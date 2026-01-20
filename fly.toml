@@ -1,0 +1,15 @@
+app = "pokebot"
+primary_region = "waw"
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+
+[processes]
+  app = "npm start"
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
