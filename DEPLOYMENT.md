@@ -1,344 +1,308 @@
-# Fly.io Deployment Guide
+# Railway Deployment Guide
 
-This guide will help you deploy the Pokemon Price Monitor bot to Fly.io with automatic deployments.
+This guide will help you deploy the Pokemon Price Monitor bot to Railway with automatic deployments on every push.
 
-## Why Fly.io?
+## Why Railway?
 
-- **True free tier**: 3 shared-cpu VMs with 256MB RAM each (plenty for this bot)
-- **No credit card required**: Actually free
-- **Auto-deploy**: GitHub Actions integration for auto-deploy
-- **Global CDN**: Fast deployment from anywhere
-- **Automatic restarts**: Built-in process monitoring
-
-## Free Tier Resources
-
-Fly.io free tier includes:
-- Up to 3 shared-cpu-1x 256MB VMs
-- 3GB persistent volume storage
-- 160GB outbound data transfer
-
-Perfect for this bot!
+- **Simple setup**: Connect GitHub and deploy in minutes
+- **Auto-deploy**: Automatically redeploys on every push to main
+- **Automatic restarts**: Process monitoring and auto-restart on crashes
+- **Built-in logging**: Real-time logs in the dashboard
+- **Hobby tier**: $5/month for hobby projects
 
 ## Prerequisites
 
 - GitHub account with this repository
-- Fly.io account (free, no credit card needed)
+- Railway account
+- Credit card (for Hobby tier - $5/month)
 
 ## Setup Steps
 
-### 1. Install Fly CLI
+### 1. Create Railway Account
 
-On Windows (PowerShell):
-```powershell
-iwr https://fly.io/install.ps1 -useb | iex
-```
+1. Go to [railway.app](https://railway.app)
+2. Click "Login"
+3. Sign in with GitHub (recommended)
 
-On macOS/Linux:
-```bash
-curl -L https://fly.io/install.sh | sh
-```
+### 2. Create New Project
 
-### 2. Sign Up and Authenticate
+1. From Railway dashboard, click "New Project"
+2. Select "Deploy from GitHub repo"
+3. Authorize Railway to access your GitHub account
+4. Choose your repository: `piotrwawrzyn/pokebot`
+5. Click "Deploy Now"
 
-```bash
-flyctl auth signup
-```
-
-Or if you already have an account:
-```bash
-flyctl auth login
-```
-
-### 3. Launch Your App
-
-From your project directory:
-
-```bash
-cd c:\Users\polsk\Desktop\pokebot_2.0
-flyctl launch
-```
-
-This will:
-- Detect the Dockerfile
-- Ask you some questions
-- Create a `fly.toml` configuration file
-
-**Answer the prompts:**
-- App name: `pokebot` (or choose your own)
-- Region: `waw` (Warsaw, Poland - closest to you)
-- Would you like to set up PostgreSQL: **No**
-- Would you like to set up Redis: **No**
-- Would you like to deploy now: **No** (we need to set secrets first)
-
-### 4. Set Environment Variables (Secrets)
-
-```bash
-flyctl secrets set TELEGRAM_BOT_TOKEN=8567378980:AAHszCIZJbuSvL7LsQozsRwzJtgUK3rClFE
-flyctl secrets set TELEGRAM_CHAT_ID=439458898
-flyctl secrets set SCRAPE_INTERVAL_MS=60000
-flyctl secrets set LOG_LEVEL=info
-```
-
-### 5. Deploy
-
-```bash
-flyctl deploy
-```
-
-This will:
-- Build the Docker image
-- Push to Fly.io registry
-- Deploy to your VM
+Railway will automatically:
+- Detect it's a Node.js project
+- Use the `railway.json` configuration
+- Install dependencies
+- Build TypeScript
 - Start the bot
 
-First deployment takes 3-5 minutes (building Docker image with Playwright).
+### 3. Upgrade to Hobby Tier
 
-### 6. Check Status
+By default, Railway deploys on the Trial plan which has limitations.
 
-```bash
-flyctl status
-```
+1. In your project dashboard, click "Settings"
+2. Scroll to "Plan"
+3. Click "Upgrade to Hobby"
+4. Add payment method (credit card)
+5. Confirm upgrade
 
-### 7. View Logs
+**Hobby tier**: $5/month flat rate, includes:
+- 5GB RAM
+- 5GB disk
+- Unlimited builds
+- No execution time limits
 
-```bash
-flyctl logs
-```
+### 4. Configure Environment Variables
 
-## Auto-Deploy with GitHub Actions
+In the Railway project dashboard:
 
-To enable auto-deploy on every push:
+1. Click on your service
+2. Go to "Variables" tab
+3. Click "New Variable" for each:
 
-### 1. Get Fly.io API Token
+| Variable | Value |
+|----------|-------|
+| `TELEGRAM_BOT_TOKEN` | Your bot token (from BotFather) |
+| `TELEGRAM_CHAT_ID` | Your chat ID |
+| `SCRAPE_INTERVAL_MS` | `60000` |
+| `LOG_LEVEL` | `info` |
+| `NODE_ENV` | `production` |
 
-```bash
-flyctl auth token
-```
+4. Click "Deploy" after adding variables
 
-Copy the token.
+**Important**: Keep `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` secret!
 
-### 2. Add Token to GitHub Secrets
+### 5. Install Playwright Browsers
 
-1. Go to your GitHub repo: https://github.com/piotrwawrzyn/pokebot
-2. Settings → Secrets and variables → Actions
-3. Click "New repository secret"
-4. Name: `FLY_API_TOKEN`
-5. Value: Paste the token from step 1
-6. Click "Add secret"
+Railway needs to install Playwright browsers. Add a build command:
 
-### 3. Create GitHub Actions Workflow
+1. Go to "Settings" tab
+2. Scroll to "Build Command"
+3. Override with: `npm install && npx playwright install chromium && npm run build`
+4. Save
 
-The repo already has the workflow file at `.github/workflows/fly.yml`:
+The deployment will restart automatically with Playwright installed.
 
-```yaml
-name: Deploy to Fly.io
+### 6. Verify Deployment
 
-on:
-  push:
-    branches: [main]
+1. Go to "Deployments" tab
+2. Check the latest deployment status
+3. Click on it to see build logs
+4. Once status shows "Success", go to "Logs" tab
+5. You should see your bot starting up
+6. Check Telegram for the test notification
 
-jobs:
-  deploy:
-    name: Deploy app
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
-        env:
-          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-```
+## Automatic Deployments
 
-Now every push to `main` will automatically deploy!
+Once set up, Railway automatically:
+1. Detects pushes to the `main` branch via GitHub webhook
+2. Stops the currently running version
+3. Builds the new version
+4. Starts the new version
+5. Monitors the process and restarts if it crashes
+
+**No configuration needed** - it just works!
 
 ## Monitoring
 
 ### View Logs
 
-Real-time logs:
-```bash
-flyctl logs
-```
+1. Go to your Railway project
+2. Click on your service
+3. Click "Logs" tab
+4. See real-time logs from your bot
+5. Use the filter box to search logs
 
-Tail logs (follow):
-```bash
-flyctl logs -f
-```
+### Check Metrics
 
-### Check VM Status
+1. Go to "Metrics" tab
+2. View:
+   - CPU usage
+   - Memory usage
+   - Network traffic
+   - Request rate
 
-```bash
-flyctl status
-```
+### Deployment History
 
-### SSH into VM (for debugging)
+1. Go to "Deployments" tab
+2. See all deployments
+3. Click any deployment to see:
+   - Build logs
+   - Deployment status
+   - Commit that triggered it
+   - Duration
 
-```bash
-flyctl ssh console
-```
+## Managing Your Service
 
-### View Metrics
+### Restart Service
 
-```bash
-flyctl metrics
-```
+1. Go to "Settings" tab
+2. Scroll to "Service"
+3. Click "Restart"
 
-Or view in dashboard: https://fly.io/dashboard
+### Redeploy
 
-## Managing Your App
+1. Go to "Deployments" tab
+2. Click "Deploy" button
+3. Select "Redeploy" to deploy the latest code
 
-### Scale Down (to save resources)
+### Stop Service (Temporarily)
 
-```bash
-flyctl scale count 1
-```
+1. Go to "Settings" tab
+2. Scroll to "Sleep Service"
+3. Click "Sleep"
+4. Wake up later by clicking "Wake"
 
-### Restart App
+### Update Environment Variables
 
-```bash
-flyctl apps restart pokebot
-```
-
-### Stop App (to save resources when not needed)
-
-```bash
-flyctl scale count 0
-```
-
-### Start App Again
-
-```bash
-flyctl scale count 1
-```
-
-### Update Secrets
-
-```bash
-flyctl secrets set SCRAPE_INTERVAL_MS=120000
-```
-
-### View All Secrets
-
-```bash
-flyctl secrets list
-```
+1. Go to "Variables" tab
+2. Click the variable you want to change
+3. Update value
+4. Service automatically redeploys
 
 ## Troubleshooting
 
-### Build Failures
-
-If Docker build fails:
-1. Check logs: `flyctl logs`
-2. Common issue: Playwright installation timeout
-3. Try deploying again: `flyctl deploy`
-
 ### Bot Not Starting
 
-```bash
-flyctl logs
-```
+Check logs for error messages:
+1. Go to "Logs" tab
+2. Look for red error messages
+3. Common issues:
+   - Missing environment variables
+   - Invalid `TELEGRAM_BOT_TOKEN`
+   - Playwright installation failed
 
-Check for:
-- Missing environment variables
-- Telegram token issues
-- Playwright browser installation errors
+### Build Failures
 
-### Out of Memory
+1. Go to "Deployments" → Click failed deployment
+2. Check build logs
+3. Common issues:
+   - `npm install` failed (check dependencies)
+   - TypeScript compilation errors
+   - Playwright installation timeout (retry deploy)
 
-The free tier provides 256MB RAM per VM. If you see OOM errors:
+### Playwright Issues
 
-1. Reduce concurrent scraping (increase `SCRAPE_INTERVAL_MS`)
-2. Monitor fewer products
-3. Or upgrade VM size (costs money):
-   ```bash
-   flyctl scale vm shared-cpu-2x
-   ```
+If Playwright fails to install:
+1. Check build command includes `npx playwright install chromium`
+2. Redeploy to retry
+3. Check logs for specific error
 
-### App Not Responding
+### High Memory Usage
 
-Restart the app:
-```bash
-flyctl apps restart pokebot
-```
+Monitor memory in "Metrics" tab:
+- Hobby tier provides 5GB RAM (plenty for this bot)
+- If issues occur, increase `SCRAPE_INTERVAL_MS`
+- Or reduce number of products being monitored
 
-## Cost Optimization
+### Service Keeps Restarting
 
-To stay within free tier:
-- Keep to 1 VM (free tier includes up to 3)
-- 256MB RAM is included free
-- Keep `SCRAPE_INTERVAL_MS` at 60000 or higher
-- Monitor fewer products initially
+1. Check "Logs" for crash errors
+2. Common causes:
+   - Uncaught exceptions in code
+   - Out of memory (unlikely on Hobby)
+   - Invalid configuration
 
-## Manual Deployment
+## Railway CLI (Optional)
 
-If auto-deploy isn't set up or you want to deploy manually:
-
-```bash
-flyctl deploy
-```
-
-## Useful Commands Reference
+For advanced users, install Railway CLI:
 
 ```bash
-# Deploy
-flyctl deploy
-
-# View logs
-flyctl logs
-flyctl logs -f  # follow mode
-
-# Check status
-flyctl status
-
-# Restart
-flyctl apps restart pokebot
-
-# SSH into VM
-flyctl ssh console
-
-# Set secrets
-flyctl secrets set KEY=value
-
-# List secrets
-flyctl secrets list
-
-# Scale VMs
-flyctl scale count 1
-
-# View metrics
-flyctl metrics
-
-# Open dashboard
-flyctl dashboard
+npm i -g @railway/cli
+railway login
+railway link  # Link to your project
+railway logs  # View logs from terminal
+railway run npm run dev  # Run locally with Railway env vars
 ```
 
-## GitHub Actions Auto-Deploy
+## Cost Management
 
-Once set up, your workflow is:
-1. Make code changes locally
-2. Commit and push to `main`
-3. GitHub Actions automatically builds and deploys
-4. Check deployment in Actions tab on GitHub
-5. View logs with `flyctl logs`
+**Hobby Tier**: $5/month flat rate
+- No usage-based billing
+- Unlimited builds and deploys
+- Generous resource limits
 
-## Free Tier Monitoring
+**Tips**:
+- One project can have multiple services
+- You're only charged once for the Hobby plan
+- Monitor usage in Railway dashboard
 
-Keep an eye on your usage:
-- Dashboard: https://fly.io/dashboard
-- Check current month usage
-- Free tier is generous for this bot
+## GitHub Integration
+
+Railway automatically:
+- Watches your `main` branch
+- Deploys on every push
+- Shows commit info in deployments
+- Links to GitHub commits in deployment history
+
+No GitHub Actions needed - Railway handles everything!
+
+## Production Best Practices
+
+1. **Monitoring**: Check logs daily for errors
+2. **Alerts**: Enable Railway notifications (Settings → Notifications)
+3. **Testing**: Test locally before pushing to main
+4. **Backups**: Keep watchlist and configs in git
+5. **Updates**: Keep dependencies updated regularly
+
+## Useful Railway Features
+
+### Environment Groups
+
+Share environment variables across services:
+1. Go to project Settings
+2. Create Environment Group
+3. Add shared variables
+4. Link to services
+
+### Custom Domains (Optional)
+
+If you add a web interface later:
+1. Go to "Settings" tab
+2. Scroll to "Domains"
+3. Add custom domain
+4. Configure DNS
+
+### Webhooks (Advanced)
+
+Get notified of deployments:
+1. Settings → Webhooks
+2. Add webhook URL
+3. Select events (deploy success/failure)
+
+## Rollback (If Needed)
+
+If a deployment breaks something:
+1. Go to "Deployments" tab
+2. Find the last working deployment
+3. Click three dots → "Redeploy"
+4. This redeploys the old version
 
 ## Support
 
-- Fly.io docs: [fly.io/docs](https://fly.io/docs)
-- Fly.io community: [community.fly.io](https://community.fly.io)
+- Railway docs: [docs.railway.app](https://docs.railway.app)
+- Railway Discord: [discord.gg/railway](https://discord.gg/railway)
 - Project issues: [GitHub Issues](https://github.com/piotrwawrzyn/pokebot/issues)
 
 ## Next Steps After Deployment
 
-1. Test bot is working: Check Telegram for test notification
-2. Monitor logs for first few cycles: `flyctl logs -f`
-3. Verify products are being scraped correctly
-4. Set up auto-deploy (GitHub Actions)
-5. Add more products to watchlist
-6. Add more shops to config
+1. ✅ Verify bot is running (check Telegram)
+2. ✅ Monitor logs for first few scan cycles
+3. ✅ Verify products are being scraped correctly
+4. Add more products to watchlist
+5. Add more shops to config
+6. Set up monitoring alerts in Railway
+
+## Summary
+
+Your deployment workflow:
+1. Make changes locally
+2. Commit and push to `main`
+3. Railway automatically deploys
+4. Check logs to verify
+5. Get Telegram notifications when products match criteria
+
+That's it! Railway handles everything else.
