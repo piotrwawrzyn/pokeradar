@@ -2,62 +2,106 @@
   "products": [
     {
       "name": "Prismatic Evolutions Booster Bundle",
-      "searchPhrases": ["Prismatic Evolutions Booster Bundle"],
-      "maxPrice": 300
+      "search": {
+        "phrases": ["Prismatic Evolutions Booster Bundle"]
+      },
+      "price": {
+        "max": 300
+      }
     },
     {
       "name": "Ascended Heroes Booster Bundle",
-      "searchPhrases": ["Ascended Heroes Booster Bundle"],
-      "maxPrice": 200
+      "search": {
+        "phrases": ["Ascended Heroes Booster Bundle"]
+      },
+      "price": {
+        "max": 200
+      }
     },
     {
       "name": "White Flare Booster Bundle",
-      "searchPhrases": ["White Flare Booster Bundle"],
-      "maxPrice": 140
+      "search": {
+        "phrases": ["White Flare Booster Bundle"]
+      },
+      "price": {
+        "max": 140
+      }
     },
     {
       "name": "Black Bolt Booster Bundle",
-      "searchPhrases": ["Black Bolt Booster Bundle"],
-      "maxPrice": 140
+      "search": {
+        "phrases": ["Black Bolt Booster Bundle"]
+      },
+      "price": {
+        "max": 140
+      }
     },
     {
       "name": "Phantasmal Flames Booster Bundle",
-      "searchPhrases": ["Phantasmal Flames Booster Bundle"],
-      "maxPrice": 120
+      "search": {
+        "phrases": ["Phantasmal Flames Booster Bundle"]
+      },
+      "price": {
+        "max": 120
+      }
     },
     {
       "name": "Destined Rivals Booster Bundle",
-      "searchPhrases": ["Destined Rivals Booster Bundle"],
-      "maxPrice": 200
+      "search": {
+        "phrases": ["Destined Rivals Booster Bundle"]
+      },
+      "price": {
+        "max": 200
+      }
     },
     {
       "name": "151 Booster Bundle",
-      "searchPhrases": ["151 Booster Bundle"],
-      "maxPrice": 400
+      "search": {
+        "phrases": ["151 Booster Bundle"]
+      },
+      "price": {
+        "max": 400
+      }
     },
     {
       "name": "Phantasmal Flames Booster Box",
-      "searchPhrases": ["Phantasmal Flames Booster Box"],
-      "maxPrice": 800,
-      "blacklist": ["kiosk", "half", "case"]
+      "search": {
+        "phrases": ["Phantasmal Flames Booster Box"],
+        "exclude": ["kiosk", "half", "case"]
+      },
+      "price": {
+        "max": 800
+      }
     },
     {
       "name": "Journey Together Booster Box",
-      "searchPhrases": ["Journey Together Booster Box"],
-      "maxPrice": 800,
-      "blacklist": ["kiosk", "half", "case"]
+      "search": {
+        "phrases": ["Journey Together Booster Box"],
+        "exclude": ["kiosk", "half", "case"]
+      },
+      "price": {
+        "max": 800
+      }
     },
     {
       "name": "Surging Sparks Booster Box",
-      "searchPhrases": ["Surging Sparks Booster Box"],
-      "maxPrice": 800,
-      "blacklist": ["kiosk", "half", "case"]
+      "search": {
+        "phrases": ["Surging Sparks Booster Box"],
+        "exclude": ["kiosk", "half", "case"]
+      },
+      "price": {
+        "max": 800
+      }
     },
     {
       "name": "Destined Rivals Booster Box",
-      "searchPhrases": ["Destined Rivals Booster Box"],
-      "maxPrice": 1000,
-      "blacklist": ["kiosk", "half", "case"]
+      "search": {
+        "phrases": ["Destined Rivals Booster Box"],
+        "exclude": ["kiosk", "half", "case"]
+      },
+      "price": {
+        "max": 1000
+      }
     }
   ]
 }

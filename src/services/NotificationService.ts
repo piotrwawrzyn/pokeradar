@@ -55,7 +55,7 @@ export class NotificationService {
     const priceStr = result.price !== null
       ? `${result.price.toFixed(2)} zł`
       : 'N/A';
-    const maxPriceStr = `${product.maxPrice.toFixed(2)} zł`;
+    const maxPriceStr = `${product.price.max.toFixed(2)} zł`;
 
     return `
 🎯 *Product Available!*

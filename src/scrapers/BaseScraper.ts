@@ -91,7 +91,7 @@ export abstract class BaseScraper {
     page: Page,
     product: WatchlistProductInternal
   ): Promise<string | null> {
-    for (const phrase of product.searchPhrases) {
+    for (const phrase of product.search.phrases) {
       const url = `${this.config.baseUrl}${this.config.searchUrl}${encodeURIComponent(phrase)}`;
 
       await page.goto(url, { waitUntil: 'domcontentloaded' });
@@ -162,14 +162,14 @@ export abstract class BaseScraper {
         );
 
         if (title && productUrl) {
-          // Check blacklist - skip if title contains any blacklisted words
-          if (product.blacklist && product.blacklist.length > 0) {
-            if (this.isBlacklisted(title, product.blacklist)) {
-              this.logger.debug('Product title contains blacklisted word, skipping', {
+          // Check exclude list - skip if title contains any excluded words
+          if (product.search.exclude && product.search.exclude.length > 0) {
+            if (this.isExcluded(title, product.search.exclude)) {
+              this.logger.debug('Product title contains excluded word, skipping', {
                 shop: this.config.id,
                 product: product.id,
                 title,
-                blacklist: product.blacklist
+                exclude: product.search.exclude
               });
               continue; // Skip this candidate
             }
@@ -344,11 +344,11 @@ export abstract class BaseScraper {
   }
 
   /**
-   * Checks if a title contains any blacklisted words.
+   * Checks if a title contains any excluded words.
    */
-  protected isBlacklisted(title: string, blacklist: string[]): boolean {
+  protected isExcluded(title: string, excludeWords: string[]): boolean {
     const titleLower = title.toLowerCase();
-    return blacklist.some(word => titleLower.includes(word.toLowerCase()));
+    return excludeWords.some(word => titleLower.includes(word.toLowerCase()));
   }
 
   /**

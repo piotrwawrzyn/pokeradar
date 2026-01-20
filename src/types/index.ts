@@ -33,12 +33,23 @@ export interface ShopConfig {
   customScraper?: string;  // Optional: path to custom scraper class
 }
 
+// Search configuration
+export interface SearchConfig {
+  phrases: string[];
+  exclude?: string[];  // Optional: words that invalidate a match if found in title
+}
+
+// Price constraints
+export interface PriceConfig {
+  max: number;
+  min?: number;  // Optional: minimum price threshold
+}
+
 // Product to monitor (config format)
 export interface WatchlistProduct {
   name: string;
-  searchPhrases: string[];
-  maxPrice: number;
-  blacklist?: string[];  // Optional: words that invalidate a match if found in title
+  search: SearchConfig;
+  price: PriceConfig;
 }
 
 // Internal product representation with auto-generated ID

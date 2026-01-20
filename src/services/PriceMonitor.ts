@@ -172,7 +172,7 @@ export class PriceMonitor {
     });
 
     // Check if we should notify
-    const meetsMaxPrice = result.price !== null && result.price <= product.maxPrice;
+    const meetsMaxPrice = result.price !== null && result.price <= product.price.max;
     const meetsAllCriteria = result.isAvailable && meetsMaxPrice;
 
     if (meetsAllCriteria) {
@@ -206,7 +206,7 @@ export class PriceMonitor {
         shop: shop.id,
         available: result.isAvailable,
         price: result.price,
-        maxPrice: product.maxPrice
+        maxPrice: product.price.max
       });
     }
   }
