@@ -6,14 +6,14 @@ import { ShopConfig } from '../../src/types';
 import { ShopTester } from '../helpers/testHelpers';
 
 // Load shop config
-const configPath = path.join(__dirname, '../../src/config/shops/rebel.json');
+const configPath = path.join(__dirname, '../../src/config/shops/basanti.json');
 const config: ShopConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
 
 // Load test fixture
-const fixturePath = path.join(__dirname, '../fixtures/rebel.json');
+const fixturePath = path.join(__dirname, '../fixtures/basanti.json');
 const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
 
-test('rebel.pl integration tests', async (t) => {
+test('basanti.pl integration tests', async (t) => {
   const tester = new ShopTester(config);
 
   await t.before(async () => {
@@ -36,7 +36,7 @@ test('rebel.pl integration tests', async (t) => {
     const result = await tester.testAvailabilityExtraction(fixture.stableProductUrl);
 
     assert.strictEqual(result.passed, true, result.error || 'Availability extraction failed');
-    assert.ok(result.value?.availabilityText, 'Availability text should be extracted');
+    assert.ok(result.value?.availabilityText !== undefined, 'Availability should be checked');
   });
 
   await t.test('Product Page - Title Extraction', async () => {

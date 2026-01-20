@@ -15,7 +15,9 @@
       "Bash(git remote set-url:*)",
       "Bash(gh auth login:*)",
       "Bash(dir:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm test:*)"
     ]
   }
 }

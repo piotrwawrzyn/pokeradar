@@ -1,105 +1,64 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { spawn } from 'child_process';
+import { test } from 'node:test';
+import * as assert from 'node:assert';
+import { ShopConfig } from '../src/types';
+import { ShopTester } from './helpers/testHelpers';
 
 /**
- * Runs all shop integration tests and provides a summary.
+ * Dynamically loads and runs all shop tests
  */
-async function runAllShopTests() {
-  const testsDir = path.join(__dirname, 'shops');
-  const testFiles = fs.readdirSync(testsDir).filter(f => f.endsWith('.test.ts'));
+const fixturesDir = path.join(__dirname, 'fixtures');
 
-  console.log('🧪 Running Shop Integration Tests');
-  console.log('='.repeat(50));
-  console.log('');
+// Find all shop config files
+const shopsConfigDir = path.join(__dirname, '../src/config/shops');
+const shopConfigFiles = fs.readdirSync(shopsConfigDir).filter(f => f.endsWith('.json'));
 
-  const results: { shop: string; passed: boolean; output: string }[] = [];
+for (const configFile of shopConfigFiles) {
+  const shopName = configFile.replace('.json', '');
+  const configPath = path.join(shopsConfigDir, configFile);
+  const fixturePath = path.join(fixturesDir, `${shopName}.json`);
 
-  for (const testFile of testFiles) {
-    const shopName = testFile.replace('.test.ts', '');
-    const testPath = path.join(testsDir, testFile);
-
-    console.log(`Testing ${shopName}...`);
-
-    try {
-      const output = await runTest(testPath);
-      results.push({ shop: shopName, passed: true, output });
-      console.log(`✅ ${shopName} - PASSED\n`);
-    } catch (error) {
-      results.push({
-        shop: shopName,
-        passed: false,
-        output: error instanceof Error ? error.message : String(error)
-      });
-      console.log(`❌ ${shopName} - FAILED\n`);
-    }
+  // Skip if no fixture exists
+  if (!fs.existsSync(fixturePath)) {
+    console.log(`⚠️  Skipping ${shopName} - no fixture file found`);
+    continue;
   }
 
-  // Print summary
-  console.log('='.repeat(50));
-  console.log('📊 Test Summary');
-  console.log('='.repeat(50));
+  const config: ShopConfig = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf-8'));
 
-  const passedCount = results.filter(r => r.passed).length;
-  const totalCount = results.length;
+  test(`${shopName} integration tests`, async (t) => {
+    const tester = new ShopTester(config);
 
-  results.forEach(result => {
-    const icon = result.passed ? '✅' : '❌';
-    console.log(`${icon} ${result.shop}`);
-  });
-
-  console.log('');
-  console.log(`Passed: ${passedCount}/${totalCount} shops`);
-  console.log('');
-
-  if (passedCount < totalCount) {
-    process.exit(1);
-  }
-}
-
-function runTest(testPath: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const child = spawn('node', [
-      '--import',
-      'tsx',
-      '--test',
-      testPath
-    ], {
-      stdio: 'pipe',
-      shell: true
+    t.before(async () => {
+      await tester.setup();
     });
 
-    let output = '';
-    let errorOutput = '';
-
-    child.stdout?.on('data', (data) => {
-      const str = data.toString();
-      output += str;
-      process.stdout.write(str);
+    t.after(async () => {
+      await tester.teardown();
     });
 
-    child.stderr?.on('data', (data) => {
-      const str = data.toString();
-      errorOutput += str;
-      process.stderr.write(str);
+    await t.test('Product Page - Price Extraction', async () => {
+      const result = await tester.testPriceExtraction(fixture.stableProductUrl);
+
+      assert.strictEqual(result.passed, true, result.error || 'Price extraction failed');
+      assert.ok(result.value?.price, 'Price should be extracted');
+      assert.ok(result.value?.price > 0, 'Price should be greater than 0');
     });
 
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve(output);
-      } else {
-        reject(new Error(errorOutput || `Test failed with exit code ${code}`));
-      }
+    await t.test('Product Page - Availability Extraction', async () => {
+      const result = await tester.testAvailabilityExtraction(fixture.stableProductUrl);
+
+      assert.strictEqual(result.passed, true, result.error || 'Availability extraction failed');
+      assert.ok(result.value?.availabilityText !== undefined, 'Availability should be checked');
     });
 
-    child.on('error', (error) => {
-      reject(error);
+    await t.test('Product Page - Title Extraction', async () => {
+      const result = await tester.testTitleExtraction(fixture.stableProductUrl);
+
+      assert.strictEqual(result.passed, true, result.error || 'Title extraction failed');
+      assert.ok(result.value?.title, 'Title should be extracted');
     });
   });
 }
-
-// Run the tests
-runAllShopTests().catch(error => {
-  console.error('Error running tests:', error);
-  process.exit(1);
-});

@@ -1,0 +1,43 @@
+{
+  "id": "basanti",
+  "name": "Basanti",
+  "baseUrl": "https://gryplanszowe-basanti.pl",
+  "searchUrl": "/en/search?controller=search&orderby=position&orderway=desc&search_query=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.item-product-list"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "div.product_name a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "div.product_name"
+      },
+      "noResults": {
+        "type": "text",
+        "value": "Sorry for the inconvenience."
+      }
+    },
+    "productPage": {
+      "title": {
+        "type": "css",
+        "value": "h1[itemprop=\"name\"]"
+      },
+      "price": {
+        "type": "css",
+        "value": "span[itemprop=\"price\"]",
+        "format": "us"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.myButton_en[data-button-action=\"add-to-cart\"]"
+      }
+    }
+  },
+  "customScraper": "BasantiScraper"
+}

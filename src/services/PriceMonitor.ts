@@ -1,17 +1,18 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { ShopConfig, WatchlistProduct, Watchlist } from '../types';
+import { ShopConfig, WatchlistProductInternal, Watchlist } from '../types';
 import { ScraperFactory } from '../scrapers/ScraperFactory';
 import { NotificationService } from './NotificationService';
 import { StateManager } from './StateManager';
 import { Logger } from './Logger';
+import { toInternalProducts } from '../utils/productUtils';
 
 /**
  * Main orchestrator that runs the price monitoring loop.
  */
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
-  private products: WatchlistProduct[] = [];
+  private products: WatchlistProductInternal[] = [];
   private stateManager: StateManager;
   private notificationService: NotificationService;
   private logger: Logger;
@@ -101,7 +102,7 @@ export class PriceMonitor {
 
     const content = fs.readFileSync(watchlistPath, 'utf-8');
     const watchlist: Watchlist = JSON.parse(content);
-    this.products = watchlist.products;
+    this.products = toInternalProducts(watchlist.products);
 
     this.logger.info('Loaded watchlist', {
       products: this.products.length
@@ -149,7 +150,7 @@ export class PriceMonitor {
    */
   private async scanProduct(
     shop: ShopConfig,
-    product: WatchlistProduct
+    product: WatchlistProductInternal
   ): Promise<void> {
     this.logger.debug('Scanning product', {
       product: product.id,

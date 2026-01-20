@@ -1,8 +1,9 @@
 import { chromium, Browser, Page, Locator } from 'playwright';
-import { ShopConfig, WatchlistProduct, ProductResult } from '../types';
+import { ShopConfig, WatchlistProductInternal, ProductResult } from '../types';
 import { SelectorEngine } from '../utils/selectorEngine';
 import { PriceParser } from '../utils/priceParser';
 import { Logger } from '../services/Logger';
+import * as fuzz from 'fuzzball';
 
 /**
  * Base scraper class implementing the template method pattern.
@@ -25,7 +26,7 @@ export abstract class BaseScraper {
   /**
    * Main template method that orchestrates the scraping process.
    */
-  async scrapeProduct(product: WatchlistProduct): Promise<ProductResult> {
+  async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult> {
     let browser: Browser | null = null;
 
     try {
@@ -88,7 +89,7 @@ export abstract class BaseScraper {
    */
   protected async findProductUrl(
     page: Page,
-    product: WatchlistProduct
+    product: WatchlistProductInternal
   ): Promise<string | null> {
     for (const phrase of product.searchPhrases) {
       const url = `${this.config.baseUrl}${this.config.searchUrl}${encodeURIComponent(phrase)}`;
@@ -98,24 +99,106 @@ export abstract class BaseScraper {
       // Wait a bit for dynamic content to load
       await page.waitForTimeout(1000);
 
+      // Check if "no results" message is present
+      const noResultsText = await this.selectorEngine.extract(
+        page,
+        this.config.selectors.searchPage.noResults
+      );
+
+      if (noResultsText) {
+        this.logger.info('No search results found', {
+          shop: this.config.id,
+          product: product.id,
+          phrase,
+          message: noResultsText
+        });
+        continue; // Try next search phrase
+      }
+
       // Get all product articles
       const articles = await this.selectorEngine.extractAll(
         page,
         this.config.selectors.searchPage.article
       );
 
-      // If articles found, take the first one
-      if (articles.length > 0) {
-        const firstArticle = articles[0];
+      if (articles.length === 0) {
+        this.logger.warn('No product articles found on search page', {
+          shop: this.config.id,
+          product: product.id,
+          phrase
+        });
+        continue; // Try next search phrase
+      }
 
+      // If only one result, skip fuzzy matching and return it directly
+      if (articles.length === 1) {
         const productUrl = await this.selectorEngine.extract(
-          firstArticle,
+          articles[0],
           this.config.selectors.searchPage.productUrl
         );
 
         if (productUrl) {
+          this.logger.info('Single search result found, using it', {
+            shop: this.config.id,
+            product: product.id,
+            phrase
+          });
           return this.normalizeUrl(productUrl);
         }
+      }
+
+      // Multiple results: extract titles and URLs, find best match using fuzzy matching
+      const candidates: Array<{ title: string; url: string; score: number }> = [];
+
+      for (const article of articles) {
+        const title = await this.selectorEngine.extract(
+          article,
+          this.config.selectors.searchPage.title
+        );
+
+        const productUrl = await this.selectorEngine.extract(
+          article,
+          this.config.selectors.searchPage.productUrl
+        );
+
+        if (title && productUrl) {
+          // Check blacklist - skip if title contains any blacklisted words
+          if (product.blacklist && product.blacklist.length > 0) {
+            if (this.isBlacklisted(title, product.blacklist)) {
+              this.logger.debug('Product title contains blacklisted word, skipping', {
+                shop: this.config.id,
+                product: product.id,
+                title,
+                blacklist: product.blacklist
+              });
+              continue; // Skip this candidate
+            }
+          }
+
+          // Calculate match score using token_set_ratio (ignores word order, handles extra words)
+          const score = fuzz.token_set_ratio(title, phrase);
+
+          candidates.push({
+            title,
+            url: productUrl,
+            score
+          });
+
+          this.logger.debug('Search result candidate', {
+            shop: this.config.id,
+            product: product.id,
+            title,
+            phrase,
+            score
+          });
+        }
+      }
+
+      // Select best candidate from search results
+      const bestMatchUrl = this.selectBestCandidate(candidates, product, phrase);
+
+      if (bestMatchUrl) {
+        return this.normalizeUrl(bestMatchUrl);
       }
     }
 
@@ -249,7 +332,7 @@ export abstract class BaseScraper {
   /**
    * Creates a null result when product is not found or scraping fails.
    */
-  protected createNullResult(product: WatchlistProduct): ProductResult {
+  protected createNullResult(product: WatchlistProductInternal): ProductResult {
     return {
       productId: product.id,
       shopId: this.config.id,
@@ -258,5 +341,56 @@ export abstract class BaseScraper {
       isAvailable: false,
       timestamp: new Date()
     };
+  }
+
+  /**
+   * Checks if a title contains any blacklisted words.
+   */
+  protected isBlacklisted(title: string, blacklist: string[]): boolean {
+    const titleLower = title.toLowerCase();
+    return blacklist.some(word => titleLower.includes(word.toLowerCase()));
+  }
+
+  /**
+   * Selects the best matching product from candidates.
+   * Returns the URL if a good match is found, null otherwise.
+   */
+  protected selectBestCandidate(
+    candidates: Array<{ title: string; url: string; score: number }>,
+    product: WatchlistProductInternal,
+    phrase: string
+  ): string | null {
+    const MIN_SCORE_THRESHOLD = 95; // Require high confidence for multiple results
+
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    // Sort by score descending
+    candidates.sort((a, b) => b.score - a.score);
+
+    const bestMatch = candidates[0];
+
+    // Check if score meets threshold
+    if (bestMatch.score < MIN_SCORE_THRESHOLD) {
+      this.logger.warn('Best match score too low, product likely not in results', {
+        shop: this.config.id,
+        product: product.id,
+        title: bestMatch.title,
+        score: bestMatch.score,
+        threshold: MIN_SCORE_THRESHOLD,
+        phrase
+      });
+      return null;
+    }
+
+    this.logger.info('Found product match', {
+      shop: this.config.id,
+      product: product.id,
+      title: bestMatch.title,
+      score: bestMatch.score
+    });
+
+    return bestMatch.url;
   }
 }

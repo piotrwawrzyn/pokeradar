@@ -1,5 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { WatchlistProduct, ProductResult, ShopConfig } from '../types';
+import { WatchlistProductInternal, ProductResult, ShopConfig } from '../types';
 import { Logger } from './Logger';
 
 export class NotificationService {
@@ -17,7 +17,7 @@ export class NotificationService {
    * Sends a Telegram alert when a product meets criteria.
    */
   async sendAlert(
-    product: WatchlistProduct,
+    product: WatchlistProductInternal,
     result: ProductResult,
     shop: ShopConfig
   ): Promise<void> {
@@ -48,7 +48,7 @@ export class NotificationService {
    * Formats the notification message.
    */
   private formatMessage(
-    product: WatchlistProduct,
+    product: WatchlistProductInternal,
     result: ProductResult,
     shop: ShopConfig
   ): string {
@@ -56,12 +56,11 @@ export class NotificationService {
       ? `${result.price.toFixed(2)} zł`
       : 'N/A';
     const maxPriceStr = `${product.maxPrice.toFixed(2)} zł`;
-    const productName = result.productTitle || product.name || product.searchPhrases[0];
 
     return `
 🎯 *Product Available!*
 
-📦 ${productName}
+📦 ${product.name}
 🏪 Shop: ${shop.name}
 💰 Price: ${priceStr} (max: ${maxPriceStr})
 ✅ Status: Available

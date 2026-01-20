@@ -21,6 +21,8 @@ export interface ShopConfig {
     searchPage: {
       article: Selector;
       productUrl: Selector;
+      title: Selector;  // Title selector for matching products in search results
+      noResults: Selector;  // Selector for "no results found" message
     };
     productPage: {
       title: Selector;
@@ -31,12 +33,17 @@ export interface ShopConfig {
   customScraper?: string;  // Optional: path to custom scraper class
 }
 
-// Product to monitor
+// Product to monitor (config format)
 export interface WatchlistProduct {
-  id: string;
-  name?: string;  // Optional: defaults to first search phrase
+  name: string;
   searchPhrases: string[];
   maxPrice: number;
+  blacklist?: string[];  // Optional: words that invalidate a match if found in title
+}
+
+// Internal product representation with auto-generated ID
+export interface WatchlistProductInternal extends WatchlistProduct {
+  id: string;  // Auto-generated from name (kebab-case)
 }
 
 export interface Watchlist {

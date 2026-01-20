@@ -1,5 +1,6 @@
 import { ShopConfig } from '../types';
 import { BaseScraper } from './BaseScraper';
+import { BasantiScraper } from './BasantiScraper';
 import { Logger } from '../services/Logger';
 
 /**
@@ -23,11 +24,13 @@ export class ScraperFactory {
    */
   static create(config: ShopConfig, logger?: Logger): BaseScraper {
     if (config.customScraper) {
-      // Load custom scraper (future implementation)
-      // For now, just use default scraper
-      // const CustomScraperClass = require(config.customScraper);
-      // return new CustomScraperClass(config, logger);
-      throw new Error('Custom scrapers not yet implemented');
+      // Map custom scraper names to their implementations
+      switch (config.customScraper) {
+        case 'BasantiScraper':
+          return new BasantiScraper(config, logger);
+        default:
+          throw new Error(`Unknown custom scraper: ${config.customScraper}`);
+      }
     }
 
     return new DefaultScraper(config, logger);

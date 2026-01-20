@@ -1,59 +1,63 @@
 {
   "products": [
     {
-      "id": "prismatic-evolutions-booster-bundle",
+      "name": "Prismatic Evolutions Booster Bundle",
       "searchPhrases": ["Prismatic Evolutions Booster Bundle"],
       "maxPrice": 300
     },
     {
-      "id": "ascended-heroes-booster-bundle",
+      "name": "Ascended Heroes Booster Bundle",
       "searchPhrases": ["Ascended Heroes Booster Bundle"],
       "maxPrice": 200
     },
     {
-      "id": "white-flare-booster-bundle",
+      "name": "White Flare Booster Bundle",
       "searchPhrases": ["White Flare Booster Bundle"],
       "maxPrice": 140
     },
     {
-      "id": "black-bolt-booster-bundle",
+      "name": "Black Bolt Booster Bundle",
       "searchPhrases": ["Black Bolt Booster Bundle"],
       "maxPrice": 140
     },
     {
-      "id": "phantasmal-flames-booster-bundle",
+      "name": "Phantasmal Flames Booster Bundle",
       "searchPhrases": ["Phantasmal Flames Booster Bundle"],
       "maxPrice": 120
     },
     {
-      "id": "destined-rivals-booster-bundle",
+      "name": "Destined Rivals Booster Bundle",
       "searchPhrases": ["Destined Rivals Booster Bundle"],
       "maxPrice": 200
     },
     {
-      "id": "151-booster-bundle",
+      "name": "151 Booster Bundle",
       "searchPhrases": ["151 Booster Bundle"],
       "maxPrice": 400
     },
     {
-      "id": "phantasmal-flames-booster-box",
+      "name": "Phantasmal Flames Booster Box",
       "searchPhrases": ["Phantasmal Flames Booster Box"],
-      "maxPrice": 800
+      "maxPrice": 800,
+      "blacklist": ["kiosk", "half", "case"]
     },
     {
-      "id": "journey-together-booster-box",
+      "name": "Journey Together Booster Box",
       "searchPhrases": ["Journey Together Booster Box"],
-      "maxPrice": 800
+      "maxPrice": 800,
+      "blacklist": ["kiosk", "half", "case"]
     },
     {
-      "id": "surging-sparks-booster-box",
+      "name": "Surging Sparks Booster Box",
       "searchPhrases": ["Surging Sparks Booster Box"],
-      "maxPrice": 800
+      "maxPrice": 800,
+      "blacklist": ["kiosk", "half", "case"]
     },
     {
-      "id": "destined-rivals-booster-box",
+      "name": "Destined Rivals Booster Box",
       "searchPhrases": ["Destined Rivals Booster Box"],
-      "maxPrice": 1000
+      "maxPrice": 1000,
+      "blacklist": ["kiosk", "half", "case"]
     }
   ]
 }
