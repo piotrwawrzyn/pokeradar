@@ -1,0 +1,18 @@
+services:
+  - type: worker
+    name: pokebot
+    runtime: node
+    plan: free
+    buildCommand: npm install && npx playwright install --with-deps chromium && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SCRAPE_INTERVAL_MS
+        value: 60000
+      - key: LOG_LEVEL
+        value: info
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
