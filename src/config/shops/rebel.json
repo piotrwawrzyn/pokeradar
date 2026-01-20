@@ -1,0 +1,42 @@
+{
+  "id": "rebel",
+  "name": "Rebel.pl",
+  "baseUrl": "https://www.rebel.pl",
+  "searchUrl": "/site/search?phrase=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a",
+        "extract": "href"
+      }
+    },
+    "productPage": {
+      "title": {
+        "type": "css",
+        "value": "h1.product__title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "available": [
+        {
+          "type": "css",
+          "value": "span[data-target='#stock-info']",
+          "matchText": "Produkt dostępny w magazynie"
+        },
+        {
+          "type": "css",
+          "value": "span",
+          "matchText": "Produkt w przedsprzedaży"
+        }
+      ]
+    }
+  }
+}
