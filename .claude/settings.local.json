@@ -7,7 +7,15 @@
       "Bash(npm run build:*)",
       "Bash(move rebel.pl.json rebel.json)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(gh auth login:*)",
+      "Bash(dir:*)",
+      "Bash(git restore:*)"
     ]
   }
 }

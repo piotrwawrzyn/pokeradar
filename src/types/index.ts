@@ -34,7 +34,7 @@ export interface ShopConfig {
 // Product to monitor
 export interface WatchlistProduct {
   id: string;
-  name: string;
+  name?: string;  // Optional: defaults to first search phrase
   searchPhrases: string[];
   maxPrice: number;
 }

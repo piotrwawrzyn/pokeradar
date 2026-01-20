@@ -163,7 +163,18 @@ export abstract class BaseScraper {
     }
 
     const format = this.config.selectors.productPage.price.format || 'european';
-    return this.priceParser.parse(priceText, format);
+
+    try {
+      return this.priceParser.parse(priceText, format);
+    } catch (error) {
+      this.logger.error('Price parsing failed', {
+        shop: this.config.id,
+        priceText,
+        format,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      return null;
+    }
   }
 
   /**

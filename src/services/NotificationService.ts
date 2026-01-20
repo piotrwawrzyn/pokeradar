@@ -56,7 +56,7 @@ export class NotificationService {
       ? `${result.price.toFixed(2)} zł`
       : 'N/A';
     const maxPriceStr = `${product.maxPrice.toFixed(2)} zł`;
-    const productName = result.productTitle || product.name;
+    const productName = result.productTitle || product.name || product.searchPhrases[0];
 
     return `
 🎯 *Product Available!*

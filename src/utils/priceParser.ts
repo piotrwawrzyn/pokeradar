@@ -15,7 +15,7 @@ export class PriceParser {
       case 'us':
         return this.parseUS(priceText);
       default:
-        return this.parseEuropean(priceText);
+        throw new Error(`Unsupported price format: ${format}`);
     }
   }
 
