@@ -30,8 +30,6 @@ test('rebel.pl integration tests', async (t) => {
     assert.strictEqual(result.passed, true, result.error || 'Price extraction failed');
     assert.ok(result.value?.price, 'Price should be extracted');
     assert.ok(result.value?.price > 0, 'Price should be greater than 0');
-
-    console.log(`  ✓ Extracted price: ${result.value?.price} zł (from "${result.value?.priceText}")`);
   });
 
   await t.test('Product Page - Availability Extraction', async () => {
@@ -39,8 +37,6 @@ test('rebel.pl integration tests', async (t) => {
 
     assert.strictEqual(result.passed, true, result.error || 'Availability extraction failed');
     assert.ok(result.value?.availabilityText, 'Availability text should be extracted');
-
-    console.log(`  ✓ Found availability: "${result.value?.availabilityText}"`);
   });
 
   await t.test('Product Page - Title Extraction', async () => {
@@ -48,8 +44,6 @@ test('rebel.pl integration tests', async (t) => {
 
     assert.strictEqual(result.passed, true, result.error || 'Title extraction failed');
     assert.ok(result.value?.title, 'Title should be extracted');
-
-    console.log(`  ✓ Extracted title: "${result.value?.title}"`);
   });
 
   await t.test('Search Page - Articles Found', async () => {
@@ -57,8 +51,6 @@ test('rebel.pl integration tests', async (t) => {
 
     assert.strictEqual(result.passed, true, result.error || 'Search articles test failed');
     assert.ok(result.value?.articleCount > 0, 'Should find at least one article');
-
-    console.log(`  ✓ Found ${result.value?.articleCount} articles for "${fixture.searchPhrase}"`);
   });
 
   await t.test('Search Page - URL Extraction', async () => {
@@ -70,7 +62,5 @@ test('rebel.pl integration tests', async (t) => {
       result.value?.productUrl.startsWith('http'),
       'Product URL should be a valid URL'
     );
-
-    console.log(`  ✓ Extracted URL: ${result.value?.productUrl}`);
   });
 });

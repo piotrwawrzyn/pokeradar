@@ -5,6 +5,12 @@
       "name": "Prismatic Evolutions Booster Bundle",
       "searchPhrases": ["Prismatic Evolutions Booster Bundle"],
       "maxPrice": 250.00
+    },
+    {
+      "id": "star-wars-unlimited-jabba-the-hutt",
+      "name": "Star Wars: Unlimited Card Game - A Lawless Time - Spotlight Deck - Jabba the Hutt",
+      "searchPhrases": ["Star Wars: Unlimited Card Game - A Lawless Time - Spotlight Deck - Jabba the Hutt"],
+      "maxPrice": 120.00
     }
   ]
 }

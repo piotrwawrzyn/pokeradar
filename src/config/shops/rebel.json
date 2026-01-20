@@ -27,14 +27,12 @@
       },
       "available": [
         {
-          "type": "css",
-          "value": "span[data-target='#stock-info']",
-          "matchText": "Produkt dostępny w magazynie"
+          "type": "text",
+          "value": "Produkt dostępny w magazynie"
         },
         {
-          "type": "css",
-          "value": "span",
-          "matchText": "Produkt w przedsprzedaży"
+          "type": "text",
+          "value": "Produkt w przedsprzedaży"
         }
       ]
     }
