@@ -117,8 +117,26 @@ export abstract class BaseScraper {
         continue; // Try next search phrase
       }
 
-      // If only one result, skip fuzzy matching and return it directly
+      // If only one result, still check exclusions before using it
       if (articles.length === 1) {
+        const title = await this.selectorEngine.extract(
+          articles[0],
+          this.config.selectors.searchPage.title
+        );
+
+        // Check exclude list even for single results
+        if (title && product.search.exclude && product.search.exclude.length > 0) {
+          if (this.isExcluded(title, product.search.exclude)) {
+            this.logger.debug('Single result contains excluded word, skipping', {
+              shop: this.config.id,
+              product: product.id,
+              title,
+              exclude: product.search.exclude
+            });
+            continue; // Try next search phrase
+          }
+        }
+
         const productUrl = await this.selectorEngine.extract(
           articles[0],
           this.config.selectors.searchPage.productUrl
@@ -128,7 +146,8 @@ export abstract class BaseScraper {
           this.logger.info('Single search result found, using it', {
             shop: this.config.id,
             product: product.id,
-            phrase
+            phrase,
+            title
           });
           return this.normalizeUrl(productUrl);
         }
