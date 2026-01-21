@@ -1,6 +1,5 @@
-import { chromium, Browser, Page, Locator } from 'playwright';
 import { ShopConfig, WatchlistProductInternal, ProductResult } from '../types';
-import { SelectorEngine } from '../utils/selectorEngine';
+import { IEngine } from '../engines';
 import { PriceParser } from '../utils/priceParser';
 import { Logger } from '../services/Logger';
 import * as fuzz from 'fuzzball';
@@ -8,48 +7,28 @@ import * as fuzz from 'fuzzball';
 /**
  * Base scraper class implementing the template method pattern.
  * Provides default implementation for most shops, with hooks for customization.
+ * Engine-agnostic - works with both Cheerio and Playwright engines.
  */
 export abstract class BaseScraper {
-  protected selectorEngine: SelectorEngine;
   protected priceParser: PriceParser;
   protected logger: Logger;
 
   constructor(
     protected config: ShopConfig,
+    protected engine: IEngine,
     logger?: Logger
   ) {
-    this.selectorEngine = new SelectorEngine();
     this.priceParser = new PriceParser();
     this.logger = logger || new Logger();
   }
 
   /**
    * Main template method that orchestrates the scraping process.
-   * Optionally accepts an existing browser instance to reuse.
    */
-  async scrapeProduct(product: WatchlistProductInternal, existingBrowser?: Browser): Promise<ProductResult> {
-    const ownsBrowser = !existingBrowser;
-    let browser: Browser | null = existingBrowser || null;
-    let page: Page | null = null;
-
+  async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult> {
     try {
-      if (!browser) {
-        browser = await chromium.launch({ headless: true });
-      }
-      page = await browser.newPage();
-
-      // Block unnecessary resources to save bandwidth and CPU
-      await page.route('**/*', (route) => {
-        const resourceType = route.request().resourceType();
-        if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
-          route.abort();
-        } else {
-          route.continue();
-        }
-      });
-
       // Step 1: Search for product and get its URL
-      const productUrl = await this.findProductUrl(page, product);
+      const productUrl = await this.findProductUrl(product);
 
       if (!productUrl) {
         this.logger.info('Product not found in search', {
@@ -60,11 +39,11 @@ export abstract class BaseScraper {
       }
 
       // Step 2: Navigate to product page
-      await this.navigateToProductPage(page, productUrl);
+      await this.navigateToProductPage(productUrl);
 
       // Step 3: Extract price and availability from product page
-      const price = await this.extractPrice(page);
-      const isAvailable = await this.checkAvailability(page);
+      const price = await this.extractPrice();
+      const isAvailable = await this.checkAvailability();
 
       return {
         productId: product.id,
@@ -81,15 +60,6 @@ export abstract class BaseScraper {
         error: error instanceof Error ? error.message : String(error)
       });
       return this.createNullResult(product);
-    } finally {
-      // Always close the page to free memory
-      if (page) {
-        await page.close();
-      }
-      // Only close browser if we created it ourselves
-      if (ownsBrowser && browser) {
-        await browser.close();
-      }
     }
   }
 
@@ -98,20 +68,15 @@ export abstract class BaseScraper {
    * This is a template method that can be overridden by custom scrapers.
    */
   protected async findProductUrl(
-    page: Page,
     product: WatchlistProductInternal
   ): Promise<string | null> {
     for (const phrase of product.search.phrases) {
       const url = `${this.config.baseUrl}${this.config.searchUrl}${encodeURIComponent(phrase)}`;
 
-      await page.goto(url, { waitUntil: 'domcontentloaded' });
-
-      // Wait a bit for dynamic content to load
-      await page.waitForTimeout(1000);
+      await this.engine.goto(url);
 
       // Get all product articles
-      const articles = await this.selectorEngine.extractAll(
-        page,
+      const articles = await this.engine.extractAll(
         this.config.selectors.searchPage.article
       );
 
@@ -131,15 +96,11 @@ export abstract class BaseScraper {
       const articlesToCheck = articles.slice(0, 5);
 
       for (const article of articlesToCheck) {
-        const title = await this.selectorEngine.extract(
-          article,
-          this.config.selectors.searchPage.title
-        );
+        const titleElement = await article.find(this.config.selectors.searchPage.title);
+        const title = titleElement ? await titleElement.getText() : null;
 
-        const productUrl = await this.selectorEngine.extract(
-          article,
-          this.config.selectors.searchPage.productUrl
-        );
+        const urlElement = await article.find(this.config.selectors.searchPage.productUrl);
+        const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
 
         if (title && productUrl) {
           // Check exclude list - skip if title contains any excluded words
@@ -181,22 +142,16 @@ export abstract class BaseScraper {
    * Navigates to the product page.
    * Can be overridden for custom navigation logic.
    */
-  protected async navigateToProductPage(
-    page: Page,
-    productUrl: string
-  ): Promise<void> {
-    await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
-    // Wait a bit for dynamic content
-    await page.waitForTimeout(1000);
+  protected async navigateToProductPage(productUrl: string): Promise<void> {
+    await this.engine.goto(productUrl);
   }
 
   /**
    * Extracts the price from the product page.
    * Can be overridden for custom price extraction logic.
    */
-  protected async extractPrice(page: Page): Promise<number | null> {
-    const priceText = await this.selectorEngine.extract(
-      page,
+  protected async extractPrice(): Promise<number | null> {
+    const priceText = await this.engine.extract(
       this.config.selectors.productPage.price
     );
 
@@ -223,7 +178,7 @@ export abstract class BaseScraper {
    * Checks if the product is available.
    * Can be overridden for custom availability logic.
    */
-  protected async checkAvailability(page: Page): Promise<boolean> {
+  protected async checkAvailability(): Promise<boolean> {
     const availSelector = this.config.selectors.productPage.available;
 
     // Handle both single selector and array of selectors
@@ -231,8 +186,8 @@ export abstract class BaseScraper {
 
     // Try each availability selector - presence of matching element means available
     for (const selector of selectors) {
-      const match = await this.selectorEngine.extract(page, selector);
-      if (match) {
+      const exists = await this.engine.exists(selector);
+      if (exists) {
         return true;
       }
     }

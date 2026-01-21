@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { chromium, Browser } from 'playwright';
 import { Watchlist, ShopConfig } from '../src/types';
 import { ScraperFactory } from '../src/scrapers/ScraperFactory';
 import { Logger } from '../src/services/Logger';
@@ -24,6 +25,9 @@ async function checkWatchlist() {
     JSON.parse(fs.readFileSync(path.join(shopsDir, file), 'utf-8'))
   );
 
+  // Filter out disabled shops
+  shops = shops.filter(shop => !shop.disabled);
+
   // Filter shops if shop parameter provided
   if (shopFilter) {
     shops = shops.filter(shop => shop.id.toLowerCase() === shopFilter || shop.name.toLowerCase().includes(shopFilter));
@@ -46,54 +50,84 @@ async function checkWatchlist() {
   console.log('='.repeat(80));
   console.log('');
 
-  // Check each product against each shop
-  for (const product of products) {
-    console.log(`📦 ${product.name}`);
-    console.log(`   Max Price: ${product.price.max} zł`);
-    console.log('');
+  // Group shops by engine type
+  const { cheerio: cheerioShops, playwright: playwrightShops } = ScraperFactory.groupByEngine(shops);
 
-    for (const shop of shops) {
-      const scraper = ScraperFactory.create(shop, logger);
+  // Launch browser only if needed for Playwright shops
+  let browser: Browser | null = null;
+  if (playwrightShops.length > 0) {
+    browser = await chromium.launch({ headless: true });
+  }
 
-      try {
-        const result = await scraper.scrapeProduct(product);
+  try {
+    // Check each product against each shop
+    for (const product of products) {
+      console.log(`📦 ${product.name}`);
+      console.log(`   Max Price: ${product.price.max} zł`);
+      console.log('');
 
-        // Determine status
-        let statusLine = '';
-        if (result.price === null) {
-          // Product not found
-          statusLine = `   ❌ ${shop.name.padEnd(15)} - Not found`;
-        } else {
-          // Product found
-          const availIcon = result.isAvailable ? '✅' : '⛔';
-          const availText = result.isAvailable ? 'Available' : 'Unavailable';
-          const priceStr = `${result.price.toFixed(2)} zł`;
-          const meetsPrice = result.price <= product.price.max;
-
-          const match = result.isAvailable && meetsPrice ? ' 🎯 MATCH!' : '';
-
-          statusLine = `   ${availIcon} ${shop.name.padEnd(15)} - ${priceStr.padEnd(12)} ${availText.padEnd(11)}${match}`;
-
-          if (result.productUrl && result.isAvailable && meetsPrice) {
-            console.log(statusLine);
-            console.log(`      🔗 ${result.productUrl}`);
-            continue;
-          }
-        }
-
-        console.log(statusLine);
-      } catch (error) {
-        console.log(`   ⚠️  ${shop.name.padEnd(15)} - Error: ${error instanceof Error ? error.message : String(error)}`);
+      // Process Cheerio shops first (no browser needed)
+      for (const shop of cheerioShops) {
+        await checkProductAtShop(product, shop, logger);
       }
-    }
 
-    console.log('');
-    console.log('-'.repeat(80));
-    console.log('');
+      // Process Playwright shops (with shared browser)
+      for (const shop of playwrightShops) {
+        await checkProductAtShop(product, shop, logger, browser!);
+      }
+
+      console.log('');
+      console.log('-'.repeat(80));
+      console.log('');
+    }
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 
   console.log('✨ Check complete!');
   console.log('');
+}
+
+async function checkProductAtShop(
+  product: ReturnType<typeof toInternalProducts>[0],
+  shop: ShopConfig,
+  logger: Logger,
+  browser?: Browser
+) {
+  const scraper = ScraperFactory.create(shop, logger, browser);
+
+  try {
+    const result = await scraper.scrapeProduct(product);
+
+    // Determine status
+    let statusLine = '';
+    if (result.price === null) {
+      // Product not found
+      statusLine = `   ❌ ${shop.name.padEnd(15)} - Not found`;
+    } else {
+      // Product found
+      const availIcon = result.isAvailable ? '✅' : '⛔';
+      const availText = result.isAvailable ? 'Available' : 'Unavailable';
+      const priceStr = `${result.price.toFixed(2)} zł`;
+      const meetsPrice = result.price <= product.price.max;
+
+      const match = result.isAvailable && meetsPrice ? ' 🎯 MATCH!' : '';
+
+      statusLine = `   ${availIcon} ${shop.name.padEnd(15)} - ${priceStr.padEnd(12)} ${availText.padEnd(11)}${match}`;
+
+      if (result.productUrl && result.isAvailable && meetsPrice) {
+        console.log(statusLine);
+        console.log(`      🔗 ${result.productUrl}`);
+        return;
+      }
+    }
+
+    console.log(statusLine);
+  } catch (error) {
+    console.log(`   ⚠️  ${shop.name.padEnd(15)} - Error: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 // Run the check

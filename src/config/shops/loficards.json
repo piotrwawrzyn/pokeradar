@@ -1,5 +1,6 @@
 {
   "id": "loficards",
+  "disabled": true,
   "name": "LofiCards",
   "baseUrl": "https://loficards.pl",
   "searchUrl": "/category/?q=",

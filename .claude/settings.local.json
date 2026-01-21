@@ -28,7 +28,9 @@
       "Bash(git mv src/services/HourlySummary.ts src/services/SummaryService.ts)",
       "Bash(npx playwright test:*)",
       "Bash(node:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(timeout 120 npx ts-node:*)",
+      "Bash(curl:*)"
     ]
   }
 }

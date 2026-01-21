@@ -2,6 +2,7 @@
 export type SelectorType = 'css' | 'xpath' | 'text';
 export type PriceFormat = 'european' | 'us';
 export type ExtractType = 'href' | 'text' | 'innerHTML';
+export type ScrapingEngine = 'cheerio' | 'playwright';
 
 export interface Selector {
   type: SelectorType;
@@ -15,6 +16,7 @@ export interface ShopConfig {
   id: string;
   name: string;
   disabled?: boolean;  // Optional: exclude shop from scraping
+  engine?: ScrapingEngine;  // Optional: scraping engine (default: 'cheerio')
   baseUrl: string;
   searchUrl: string;
   selectors: {

@@ -102,7 +102,8 @@ export class PriceMonitor {
 
       this.logger.info('Loaded shop configuration', {
         shop: shop.id,
-        name: shop.name
+        name: shop.name,
+        engine: shop.engine || 'cheerio'
       });
     }
 
@@ -136,7 +137,8 @@ export class PriceMonitor {
 
   /**
    * Runs a single scan cycle across all shops and products.
-   * Uses a single browser instance for the entire cycle to minimize resource usage.
+   * Optimizes resource usage by processing Cheerio shops first (no browser needed),
+   * then processing Playwright shops with a shared browser instance.
    */
   async runScanCycle(): Promise<void> {
     // Prevent overlapping scan cycles
@@ -146,7 +148,6 @@ export class PriceMonitor {
     }
 
     this.isScanning = true;
-    let browser: Browser | null = null;
 
     try {
       this.logger.info('Starting scan cycle', {
@@ -156,19 +157,55 @@ export class PriceMonitor {
 
       const startTime = Date.now();
 
-      // Launch single browser for entire scan cycle
-      browser = await chromium.launch({ headless: true });
+      // Group shops by engine type
+      const { cheerio: cheerioShops, playwright: playwrightShops } =
+        ScraperFactory.groupByEngine(this.shops);
 
-      for (const shop of this.shops) {
+      this.logger.info('Shops by engine', {
+        cheerio: cheerioShops.length,
+        playwright: playwrightShops.length
+      });
+
+      // Phase 1: Process Cheerio shops (no browser needed - lightweight)
+      for (const shop of cheerioShops) {
         for (const product of this.products) {
           try {
-            await this.scanProduct(shop, product, browser);
+            await this.scanProduct(shop, product);
           } catch (error) {
             this.logger.error('Error scanning product', {
               product: product.id,
               shop: shop.id,
+              engine: 'cheerio',
               error: error instanceof Error ? error.message : String(error)
             });
+          }
+        }
+      }
+
+      // Phase 2: Process Playwright shops (with shared browser instance)
+      if (playwrightShops.length > 0) {
+        let browser: Browser | null = null;
+
+        try {
+          browser = await chromium.launch({ headless: true });
+
+          for (const shop of playwrightShops) {
+            for (const product of this.products) {
+              try {
+                await this.scanProduct(shop, product, browser);
+              } catch (error) {
+                this.logger.error('Error scanning product', {
+                  product: product.id,
+                  shop: shop.id,
+                  engine: 'playwright',
+                  error: error instanceof Error ? error.message : String(error)
+                });
+              }
+            }
+          }
+        } finally {
+          if (browser) {
+            await browser.close();
           }
         }
       }
@@ -179,10 +216,6 @@ export class PriceMonitor {
         durationMs: duration
       });
     } finally {
-      // Always close browser at end of cycle
-      if (browser) {
-        await browser.close();
-      }
       this.isScanning = false;
     }
   }
@@ -193,56 +226,60 @@ export class PriceMonitor {
   private async scanProduct(
     shop: ShopConfig,
     product: WatchlistProductInternal,
-    browser: Browser
+    browser?: Browser
   ): Promise<void> {
-    // Create scraper
-    const scraper = ScraperFactory.create(shop, this.logger);
+    // Create scraper with engine
+    const scraper = ScraperFactory.create(shop, this.logger, browser);
 
-    // Scrape the product, reusing the browser instance
-    const result = await scraper.scrapeProduct(product, browser);
+    try {
+      // Scrape the product
+      const result = await scraper.scrapeProduct(product);
 
-    this.logger.info('Product scanned', {
-      product: product.id,
-      shop: shop.id,
-      price: result.price,
-      available: result.isAvailable,
-      url: result.productUrl
-    });
+      this.logger.info('Product scanned', {
+        product: product.id,
+        shop: shop.id,
+        price: result.price,
+        available: result.isAvailable,
+        url: result.productUrl
+      });
 
-    // Record result for summary service
-    if (this.summaryService) {
-      this.summaryService.recordResult(product, result, shop);
-    }
+      // Record result for summary service
+      if (this.summaryService) {
+        this.summaryService.recordResult(product, result, shop);
+      }
 
-    // Check if we should notify
-    const meetsMaxPrice = result.price !== null && result.price <= product.price.max;
-    const meetsAllCriteria = result.isAvailable && meetsMaxPrice;
+      // Check if we should notify
+      const meetsMaxPrice = result.price !== null && result.price <= product.price.max;
+      const meetsAllCriteria = result.isAvailable && meetsMaxPrice;
 
-    if (meetsAllCriteria) {
-      const shouldNotify = this.stateManager.shouldNotify(
-        product.id,
-        shop.id,
-        result
-      );
+      if (meetsAllCriteria) {
+        const shouldNotify = this.stateManager.shouldNotify(
+          product.id,
+          shop.id,
+          result
+        );
 
-      if (shouldNotify) {
-        this.logger.info('Sending notification', {
-          product: product.id,
-          shop: shop.id,
-          price: result.price
-        });
-
-        try {
-          await this.notificationService.sendAlert(product, result, shop);
-          this.stateManager.markNotified(product.id, shop.id, result);
-        } catch (error) {
-          this.logger.error('Failed to send notification', {
+        if (shouldNotify) {
+          this.logger.info('Sending notification', {
             product: product.id,
             shop: shop.id,
-            error: error instanceof Error ? error.message : String(error)
+            price: result.price
           });
+
+          try {
+            await this.notificationService.sendAlert(product, result, shop);
+            this.stateManager.markNotified(product.id, shop.id, result);
+          } catch (error) {
+            this.logger.error('Failed to send notification', {
+              product: product.id,
+              shop: shop.id,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
         }
       }
+    } finally {
+      // Engine cleanup is handled by the scraper/engine itself
     }
   }
 

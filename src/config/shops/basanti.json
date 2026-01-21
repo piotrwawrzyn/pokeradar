@@ -27,9 +27,8 @@
       },
       "available": {
         "type": "css",
-        "value": "button.myButton_en[data-button-action=\"add-to-cart\"]"
+        "value": "div.add button:not([disabled])"
       }
     }
-  },
-  "customScraper": "BasantiScraper"
+  }
 }
