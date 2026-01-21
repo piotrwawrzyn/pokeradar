@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { PriceMonitor } from './services/PriceMonitor';
-import { SummaryService } from './services/HourlySummary';
+import { SummaryService } from './services/SummaryService';
 
 // Load environment variables
 dotenv.config();

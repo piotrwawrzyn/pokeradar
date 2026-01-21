@@ -6,7 +6,7 @@ import { NotificationService } from './NotificationService';
 import { StateManager } from './StateManager';
 import { Logger } from './Logger';
 import { toInternalProducts } from '../utils/productUtils';
-import { SummaryService } from './HourlySummary';
+import { SummaryService } from './SummaryService';
 
 /**
  * Main orchestrator that runs the price monitoring loop.
