@@ -7,16 +7,16 @@
     "searchPage": {
       "article": {
         "type": "css",
-        "value": "div.produkt"
+        "value": "div.ProdCena"
       },
       "productUrl": {
         "type": "css",
-        "value": "div.ProdCena h3 a",
+        "value": "h3 a",
         "extract": "href"
       },
       "title": {
         "type": "css",
-        "value": "div.ProdCena h3"
+        "value": "h3"
       }
     },
     "productPage": {

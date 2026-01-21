@@ -25,7 +25,9 @@
       "Bash(npm run test:xzone:*)",
       "Bash(npm run test:loficards:*)",
       "Bash(git revert:*)",
-      "Bash(git mv src/services/HourlySummary.ts src/services/SummaryService.ts)"
+      "Bash(git mv src/services/HourlySummary.ts src/services/SummaryService.ts)",
+      "Bash(npx playwright test:*)",
+      "Bash(node:*)"
     ]
   }
 }

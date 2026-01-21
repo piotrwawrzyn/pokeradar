@@ -4,7 +4,7 @@
       "name": "Prismatic Evolutions Booster Bundle",
       "search": {
         "phrases": ["Prismatic Evolutions Booster Bundle"],
-        "exclude": ["display"]
+        "exclude": ["display", "elite trainer box"]
       },
       "price": {
         "max": 300
@@ -14,7 +14,7 @@
       "name": "Ascended Heroes Booster Bundle",
       "search": {
         "phrases": ["Ascended Heroes Booster Bundle"],
-        "exclude": ["display"]
+        "exclude": ["display", "elite trainer box"]
       },
       "price": {
         "max": 200
@@ -24,7 +24,7 @@
       "name": "White Flare Booster Bundle",
       "search": {
         "phrases": ["White Flare Booster Bundle"],
-        "exclude": ["display"]
+        "exclude": ["display", "elite trainer box"]
       },
       "price": {
         "max": 140
@@ -34,7 +34,7 @@
       "name": "Black Bolt Booster Bundle",
       "search": {
         "phrases": ["Black Bolt Booster Bundle"],
-        "exclude": ["display"]
+        "exclude": ["display", "elite trainer box"]
       },
       "price": {
         "max": 140
@@ -44,7 +44,7 @@
       "name": "Phantasmal Flames Booster Bundle",
       "search": {
         "phrases": ["Phantasmal Flames Booster Bundle"],
-        "exclude": ["display"]
+        "exclude": ["display", "elite trainer box"]
       },
       "price": {
         "max": 120
@@ -54,7 +54,7 @@
       "name": "Destined Rivals Booster Bundle",
       "search": {
         "phrases": ["Destined Rivals Booster Bundle"],
-        "exclude": ["display"]
+        "exclude": ["display", "elite trainer box"]
       },
       "price": {
         "max": 200
@@ -64,7 +64,7 @@
       "name": "151 Booster Bundle",
       "search": {
         "phrases": ["151 Booster Bundle"],
-        "exclude": ["display"]
+        "exclude": ["display", "elite trainer box"]
       },
       "price": {
         "max": 400
@@ -74,7 +74,7 @@
       "name": "Phantasmal Flames Booster Box",
       "search": {
         "phrases": ["Phantasmal Flames Booster Box"],
-        "exclude": ["kiosk", "half", "case"]
+        "exclude": ["kiosk", "half", "case", "elite trainer box"]
       },
       "price": {
         "max": 800
@@ -84,7 +84,7 @@
       "name": "Journey Together Booster Box",
       "search": {
         "phrases": ["Journey Together Booster Box"],
-        "exclude": ["kiosk", "half", "case"]
+        "exclude": ["kiosk", "half", "case", "elite trainer box"]
       },
       "price": {
         "max": 800
@@ -94,7 +94,7 @@
       "name": "Surging Sparks Booster Box",
       "search": {
         "phrases": ["Surging Sparks Booster Box"],
-        "exclude": ["kiosk", "half", "case"]
+        "exclude": ["kiosk", "half", "case", "elite trainer box"]
       },
       "price": {
         "max": 800
@@ -104,7 +104,7 @@
       "name": "Destined Rivals Booster Box",
       "search": {
         "phrases": ["Destined Rivals Booster Box"],
-        "exclude": ["kiosk", "half", "case"]
+        "exclude": ["kiosk", "half", "case", "elite trainer box"]
       },
       "price": {
         "max": 1000
