@@ -1,5 +1,6 @@
 import * as dotenv from 'dotenv';
 import { PriceMonitor } from './services/PriceMonitor';
+import { HourlySummary } from './services/HourlySummary';
 
 // Load environment variables
 dotenv.config();
@@ -44,16 +45,23 @@ async function main() {
     // Start monitoring
     monitor.start();
 
+    // Start hourly summary service (temporary feature)
+    const hourlySummary = new HourlySummary(telegramToken, telegramChatId);
+    hourlySummary.initialize();
+    hourlySummary.start();
+
     // Handle graceful shutdown
     process.on('SIGINT', () => {
       console.log('\n\nShutting down gracefully...');
       monitor.stop();
+      hourlySummary.stop();
       process.exit(0);
     });
 
     process.on('SIGTERM', () => {
       console.log('\n\nShutting down gracefully...');
       monitor.stop();
+      hourlySummary.stop();
       process.exit(0);
     });
   } catch (error) {
