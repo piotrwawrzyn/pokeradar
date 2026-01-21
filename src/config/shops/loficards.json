@@ -1,0 +1,39 @@
+{
+  "id": "loficards",
+  "name": "LofiCards",
+  "baseUrl": "https://loficards.pl",
+  "searchUrl": "/category/?q=",
+  "delayMs": 300000,
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "figure.product-tile"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "div.product-name a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "div.product-name"
+      }
+    },
+    "productPage": {
+      "title": {
+        "type": "css",
+        "value": "h1.title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price-special",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart"
+      }
+    }
+  }
+}

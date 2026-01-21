@@ -17,6 +17,7 @@ export interface ShopConfig {
   name: string;
   baseUrl: string;
   searchUrl: string;
+  delayMs?: number;  // Optional: delay in milliseconds between page loads (overrides global default)
   selectors: {
     searchPage: {
       article: Selector;

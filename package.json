@@ -14,6 +14,7 @@
     "test:basanti": "node --import tsx --test tests/shops/basanti.test.ts",
     "test:pegaz": "node --import tsx --test tests/shops/pegaz.test.ts",
     "test:xzone": "node --import tsx --test tests/shops/xzone.test.ts",
+    "test:loficards": "node --import tsx --test tests/shops/loficards.test.ts",
     "check": "tsx tests/check-watchlist.ts"
   },
   "keywords": [],
