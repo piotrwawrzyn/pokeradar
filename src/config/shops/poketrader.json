@@ -1,0 +1,38 @@
+{
+  "id": "poketrader",
+  "name": "Poketrader",
+  "baseUrl": "https://poketrader.eu",
+  "searchUrl": "/szukaj.html/szukaj=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.produkt"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "div.ProdCena h3 a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "div.ProdCena h3"
+      }
+    },
+    "productPage": {
+      "title": {
+        "type": "css",
+        "value": "#KartaProduktu div.NazwaProducent h1"
+      },
+      "price": {
+        "type": "css",
+        "value": "#KartaProduktu span[itemprop='price']",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "#KartaProduktu span.DoKoszykaKartaProduktu"
+      }
+    }
+  }
+}
