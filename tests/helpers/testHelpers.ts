@@ -111,34 +111,6 @@ export class ShopTester {
   }
 
   /**
-   * Test product page title extraction
-   */
-  async testTitleExtraction(productUrl: string): Promise<TestResult> {
-    if (!this.page) throw new Error('Page not initialized');
-
-    try {
-      await this.page.goto(productUrl, { waitUntil: 'domcontentloaded' });
-      await this.page.waitForTimeout(1000);
-
-      const title = await this.selectorEngine.extract(
-        this.page,
-        this.config.selectors.productPage.title
-      );
-
-      if (!title) {
-        return { passed: false, error: 'Product title not found' };
-      }
-
-      return { passed: true, value: { title } };
-    } catch (error) {
-      return {
-        passed: false,
-        error: error instanceof Error ? error.message : String(error)
-      };
-    }
-  }
-
-  /**
    * Test search page - finding articles
    */
   async testSearchArticles(searchPhrase: string): Promise<TestResult> {

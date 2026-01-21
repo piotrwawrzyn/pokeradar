@@ -20,10 +20,6 @@
       }
     },
     "productPage": {
-      "title": {
-        "type": "css",
-        "value": "#KartaProduktu #InformacjeProduktu div.NazwaProducent h1"
-      },
       "price": {
         "type": "css",
         "value": "#KartaProduktu #InformacjeProduktu span[itemprop='price']",

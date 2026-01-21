@@ -52,8 +52,7 @@ export abstract class BaseScraper {
       // Step 2: Navigate to product page
       await this.navigateToProductPage(page, productUrl);
 
-      // Step 3: Extract title, price and availability from product page
-      const productTitle = await this.extractTitle(page);
+      // Step 3: Extract price and availability from product page
       const price = await this.extractPrice(page);
       const isAvailable = await this.checkAvailability(page);
 
@@ -61,7 +60,6 @@ export abstract class BaseScraper {
         productId: product.id,
         shopId: this.config.id,
         productUrl,
-        productTitle: productTitle || undefined,
         price,
         isAvailable,
         timestamp: new Date()
@@ -180,19 +178,6 @@ export abstract class BaseScraper {
     await page.goto(productUrl, { waitUntil: 'domcontentloaded' });
     // Wait a bit for dynamic content
     await page.waitForTimeout(1000);
-  }
-
-  /**
-   * Extracts the product title from the product page.
-   * Can be overridden for custom title extraction logic.
-   */
-  protected async extractTitle(page: Page): Promise<string | null> {
-    const title = await this.selectorEngine.extract(
-      page,
-      this.config.selectors.productPage.title
-    );
-
-    return title;
   }
 
   /**

@@ -20,10 +20,6 @@
       }
     },
     "productPage": {
-      "title": {
-        "type": "css",
-        "value": "h1[itemprop=\"name\"]"
-      },
       "price": {
         "type": "css",
         "value": "span[itemprop=\"price\"]",

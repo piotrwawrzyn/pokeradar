@@ -20,10 +20,6 @@
       }
     },
     "productPage": {
-      "title": {
-        "type": "css",
-        "value": "h1.product_name"
-      },
       "price": {
         "type": "css",
         "value": "span.price",

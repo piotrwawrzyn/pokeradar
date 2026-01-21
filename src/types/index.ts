@@ -24,7 +24,6 @@ export interface ShopConfig {
       title: Selector;  // Title selector for matching products in search results
     };
     productPage: {
-      title: Selector;
       price: Selector;
       available: Selector | Selector[];  // Can be single or array for multiple availability checks
     };
@@ -65,7 +64,6 @@ export interface ProductResult {
   productId: string;
   shopId: string;
   productUrl: string;
-  productTitle?: string;  // Actual title from the shop
   price: number | null;
   isAvailable: boolean;
   timestamp: Date;
