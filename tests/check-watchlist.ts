@@ -34,8 +34,8 @@ async function checkWatchlist() {
     }
   }
 
-  // Create logger (suppress debug logs)
-  const logger = new Logger();
+  // Create logger in silent mode (logs to file only, not console)
+  const logger = new Logger('info', true);
 
   console.log('\n🔍 Checking Watchlist Products\n');
   if (shopFilter) {

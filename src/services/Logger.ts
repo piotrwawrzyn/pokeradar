@@ -6,10 +6,12 @@ type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 export class Logger {
   private logFile: string;
   private logLevel: LogLevel;
+  private silent: boolean;
 
-  constructor(logLevel: LogLevel = 'info') {
+  constructor(logLevel: LogLevel = 'info', silent: boolean = false) {
     this.logFile = path.join(__dirname, '../../logs/app.log');
     this.logLevel = logLevel;
+    this.silent = silent;
     this.ensureLogDirectory();
   }
 
@@ -66,16 +68,18 @@ export class Logger {
     // Write to file
     fs.appendFileSync(this.logFile, fullLog);
 
-    // Write to console with appropriate method
-    switch (level) {
-      case 'error':
-        console.error(logLine, meta || '');
-        break;
-      case 'warn':
-        console.warn(logLine, meta || '');
-        break;
-      default:
-        console.log(logLine, meta || '');
+    // Write to console only if not silent
+    if (!this.silent) {
+      switch (level) {
+        case 'error':
+          console.error(logLine, meta || '');
+          break;
+        case 'warn':
+          console.warn(logLine, meta || '');
+          break;
+        default:
+          console.log(logLine, meta || '');
+      }
     }
   }
 }
