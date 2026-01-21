@@ -8,7 +8,6 @@ export interface Selector {
   value: string | string[];  // Array for fallback selectors
   extract?: ExtractType;
   format?: PriceFormat;
-  matchText?: string;
 }
 
 // Shop configuration

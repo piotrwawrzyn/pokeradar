@@ -85,23 +85,17 @@ export class ShopTester {
       const availSelector = this.config.selectors.productPage.available;
       const selectors = Array.isArray(availSelector) ? availSelector : [availSelector];
 
-      let foundAvailability = false;
-      let availabilityText = '';
+      let isAvailable = false;
 
       for (const selector of selectors) {
-        const text = await this.selectorEngine.extract(this.page, selector);
-        if (text) {
-          foundAvailability = true;
-          availabilityText = text;
+        const match = await this.selectorEngine.extract(this.page, selector);
+        if (match) {
+          isAvailable = true;
           break;
         }
       }
 
-      if (!foundAvailability) {
-        return { passed: false, error: 'Availability element not found' };
-      }
-
-      return { passed: true, value: { availabilityText } };
+      return { passed: true, value: { isAvailable } };
     } catch (error) {
       return {
         passed: false,

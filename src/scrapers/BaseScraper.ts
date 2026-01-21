@@ -219,21 +219,10 @@ export abstract class BaseScraper {
     // Handle both single selector and array of selectors
     const selectors = Array.isArray(availSelector) ? availSelector : [availSelector];
 
-    // Try each availability selector
+    // Try each availability selector - presence of matching element means available
     for (const selector of selectors) {
-      const availText = await this.selectorEngine.extract(page, selector);
-
-      if (!availText) {
-        continue; // Try next selector
-      }
-
-      const expectedText = selector.matchText;
-      if (!expectedText) {
-        // If no matchText specified, presence of element means available
-        return true;
-      }
-
-      if (availText.includes(expectedText)) {
+      const match = await this.selectorEngine.extract(page, selector);
+      if (match) {
         return true;
       }
     }

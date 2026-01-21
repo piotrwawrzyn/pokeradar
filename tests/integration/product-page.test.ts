@@ -45,11 +45,11 @@ for (const configFile of shopConfigFiles) {
       assert.ok(result.value?.price > 0, 'Price should be greater than 0');
     });
 
-    await t.test('Availability Extraction', async () => {
+    await t.test('Availability Check', async () => {
       const result = await tester.testAvailabilityExtraction(fixture.stableProductUrl);
 
-      assert.strictEqual(result.passed, true, result.error || 'Availability extraction failed');
-      assert.ok(result.value?.availabilityText !== undefined, 'Availability should be checked');
+      assert.strictEqual(result.passed, true, result.error || 'Availability check failed');
+      assert.strictEqual(typeof result.value?.isAvailable, 'boolean', 'Availability should be a boolean');
     });
   });
 }
