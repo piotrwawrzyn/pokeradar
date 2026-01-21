@@ -88,9 +88,8 @@ export abstract class BaseScraper {
 
       await page.goto(url, { waitUntil: 'domcontentloaded' });
 
-      // Wait for dynamic content to load (use shop-specific delay if configured)
-      const delay = this.config.delayMs || 1000;
-      await page.waitForTimeout(delay);
+      // Wait a bit for dynamic content to load
+      await page.waitForTimeout(1000);
 
       // Get all product articles
       const articles = await this.selectorEngine.extractAll(

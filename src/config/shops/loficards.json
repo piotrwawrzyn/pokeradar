@@ -3,7 +3,6 @@
   "name": "LofiCards",
   "baseUrl": "https://loficards.pl",
   "searchUrl": "/category/?q=",
-  "delayMs": 300000,
   "selectors": {
     "searchPage": {
       "article": {
