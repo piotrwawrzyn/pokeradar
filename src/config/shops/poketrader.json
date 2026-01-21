@@ -22,16 +22,16 @@
     "productPage": {
       "title": {
         "type": "css",
-        "value": "#KartaProduktu div.NazwaProducent h1"
+        "value": "#KartaProduktu #InformacjeProduktu div.NazwaProducent h1"
       },
       "price": {
         "type": "css",
-        "value": "#KartaProduktu span[itemprop='price']",
+        "value": "#KartaProduktu #InformacjeProduktu span[itemprop='price']",
         "format": "european"
       },
       "available": {
         "type": "css",
-        "value": "#KartaProduktu span.DoKoszykaKartaProduktu"
+        "value": "#PrzyciskKupowania:not([style*=\"display:none\"]) span.DoKoszykaKartaProduktu"
       }
     }
   }
