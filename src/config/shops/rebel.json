@@ -17,10 +17,6 @@
       "title": {
         "type": "css",
         "value": "h3.product__title"
-      },
-      "noResults": {
-        "type": "text",
-        "value": "Nie znaleziono żadnych produktów"
       }
     },
     "productPage": {

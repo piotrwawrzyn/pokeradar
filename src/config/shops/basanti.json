@@ -17,10 +17,6 @@
       "title": {
         "type": "css",
         "value": "div.product_name"
-      },
-      "noResults": {
-        "type": "text",
-        "value": "Sorry for the inconvenience."
       }
     },
     "productPage": {

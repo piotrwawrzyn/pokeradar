@@ -91,30 +91,15 @@ export abstract class BaseScraper {
       // Wait a bit for dynamic content to load
       await page.waitForTimeout(1000);
 
-      // Check if "no results" message is present
-      const noResultsText = await this.selectorEngine.extract(
-        page,
-        this.config.selectors.searchPage.noResults
-      );
-
-      if (noResultsText) {
-        this.logger.info('No search results found', {
-          shop: this.config.id,
-          product: product.id,
-          phrase,
-          message: noResultsText
-        });
-        continue; // Try next search phrase
-      }
-
       // Get all product articles
       const articles = await this.selectorEngine.extractAll(
         page,
         this.config.selectors.searchPage.article
       );
 
+      // If no articles found, try next search phrase
       if (articles.length === 0) {
-        this.logger.warn('No product articles found on search page', {
+        this.logger.info('No product articles found on search page', {
           shop: this.config.id,
           product: product.id,
           phrase

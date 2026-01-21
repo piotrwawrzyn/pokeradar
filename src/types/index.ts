@@ -22,7 +22,6 @@ export interface ShopConfig {
       article: Selector;
       productUrl: Selector;
       title: Selector;  // Title selector for matching products in search results
-      noResults: Selector;  // Selector for "no results found" message
     };
     productPage: {
       title: Selector;
