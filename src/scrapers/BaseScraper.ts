@@ -117,58 +117,7 @@ export abstract class BaseScraper {
         continue; // Try next search phrase
       }
 
-      // If only one result, still check exclusions and fuzzy match before using it
-      if (articles.length === 1) {
-        const title = await this.selectorEngine.extract(
-          articles[0],
-          this.config.selectors.searchPage.title
-        );
-
-        // Check exclude list even for single results
-        if (title && product.search.exclude && product.search.exclude.length > 0) {
-          if (this.isExcluded(title, product.search.exclude)) {
-            this.logger.debug('Single result contains excluded word, skipping', {
-              shop: this.config.id,
-              product: product.id,
-              title,
-              exclude: product.search.exclude
-            });
-            continue; // Try next search phrase
-          }
-        }
-
-        // Check fuzzy match score for single results too
-        if (title) {
-          const score = fuzz.token_set_ratio(title, phrase);
-          if (score < 95) {
-            this.logger.debug('Single result fuzzy match too low, skipping', {
-              shop: this.config.id,
-              product: product.id,
-              title,
-              phrase,
-              score
-            });
-            continue; // Try next search phrase
-          }
-        }
-
-        const productUrl = await this.selectorEngine.extract(
-          articles[0],
-          this.config.selectors.searchPage.productUrl
-        );
-
-        if (productUrl) {
-          this.logger.info('Single search result found, using it', {
-            shop: this.config.id,
-            product: product.id,
-            phrase,
-            title
-          });
-          return this.normalizeUrl(productUrl);
-        }
-      }
-
-      // Multiple results: extract titles and URLs, find best match using fuzzy matching
+      // Extract titles and URLs, find best match using fuzzy matching
       // Only check first 5 results to avoid processing irrelevant items
       const candidates: Array<{ title: string; url: string; score: number }> = [];
       const articlesToCheck = articles.slice(0, 5);
