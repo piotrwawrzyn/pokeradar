@@ -27,10 +27,6 @@ export class StateManager {
 
     // First time seeing this product - should notify
     if (!prevState || !prevState.lastNotified) {
-      this.logger.debug('First time checking product, will notify if criteria met', {
-        product: productId,
-        shop: shopId
-      });
       return true;
     }
 
@@ -48,12 +44,6 @@ export class StateManager {
     }
 
     // Already notified and no reset conditions met
-    this.logger.debug('Already notified, no reset conditions met', {
-      product: productId,
-      shop: shopId,
-      lastNotified: prevState.lastNotified
-    });
-
     return false;
   }
 
@@ -69,13 +59,6 @@ export class StateManager {
       lastNotified: new Date(),
       lastPrice: result.price,
       wasAvailable: result.isAvailable
-    });
-
-    this.logger.debug('Marked as notified', {
-      product: productId,
-      shop: shopId,
-      price: result.price,
-      available: result.isAvailable
     });
   }
 

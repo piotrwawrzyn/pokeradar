@@ -152,11 +152,6 @@ export class PriceMonitor {
     shop: ShopConfig,
     product: WatchlistProductInternal
   ): Promise<void> {
-    this.logger.debug('Scanning product', {
-      product: product.id,
-      shop: shop.id
-    });
-
     // Create scraper
     const scraper = ScraperFactory.create(shop, this.logger);
 
@@ -200,14 +195,6 @@ export class PriceMonitor {
           });
         }
       }
-    } else {
-      this.logger.debug('Product does not meet criteria', {
-        product: product.id,
-        shop: shop.id,
-        available: result.isAvailable,
-        price: result.price,
-        maxPrice: product.price.max
-      });
     }
   }
 

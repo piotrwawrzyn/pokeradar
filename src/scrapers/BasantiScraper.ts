@@ -23,9 +23,6 @@ export class BasantiScraper extends BaseScraper {
       // Check if button exists
       const buttonCount = await button.count();
       if (buttonCount === 0) {
-        this.logger.debug('Add to cart button not found', {
-          shop: this.config.id
-        });
         return false;
       }
 
@@ -34,12 +31,6 @@ export class BasantiScraper extends BaseScraper {
 
       // Available if button exists and is NOT disabled
       const isAvailable = isDisabled === null;
-
-      this.logger.debug('Basanti availability check', {
-        shop: this.config.id,
-        isDisabled: isDisabled !== null,
-        isAvailable
-      });
 
       return isAvailable;
     } catch (error) {

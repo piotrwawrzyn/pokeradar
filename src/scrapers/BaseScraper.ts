@@ -52,14 +52,6 @@ export abstract class BaseScraper {
       const price = await this.extractPrice(page);
       const isAvailable = await this.checkAvailability(page);
 
-      this.logger.debug('Product scraped successfully', {
-        shop: this.config.id,
-        product: product.id,
-        productTitle,
-        price,
-        isAvailable
-      });
-
       return {
         productId: product.id,
         shopId: this.config.id,
@@ -181,14 +173,6 @@ export abstract class BaseScraper {
           candidates.push({
             title,
             url: productUrl,
-            score
-          });
-
-          this.logger.debug('Search result candidate', {
-            shop: this.config.id,
-            product: product.id,
-            title,
-            phrase,
             score
           });
         }
