@@ -25,13 +25,18 @@ export abstract class BaseScraper {
 
   /**
    * Main template method that orchestrates the scraping process.
+   * Optionally accepts an existing browser instance to reuse.
    */
-  async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult> {
-    let browser: Browser | null = null;
+  async scrapeProduct(product: WatchlistProductInternal, existingBrowser?: Browser): Promise<ProductResult> {
+    const ownsBrowser = !existingBrowser;
+    let browser: Browser | null = existingBrowser || null;
+    let page: Page | null = null;
 
     try {
-      browser = await chromium.launch({ headless: true });
-      const page = await browser.newPage();
+      if (!browser) {
+        browser = await chromium.launch({ headless: true });
+      }
+      page = await browser.newPage();
 
       // Step 1: Search for product and get its URL
       const productUrl = await this.findProductUrl(page, product);
@@ -69,7 +74,12 @@ export abstract class BaseScraper {
       });
       return this.createNullResult(product);
     } finally {
-      if (browser) {
+      // Always close the page to free memory
+      if (page) {
+        await page.close();
+      }
+      // Only close browser if we created it ourselves
+      if (ownsBrowser && browser) {
         await browser.close();
       }
     }

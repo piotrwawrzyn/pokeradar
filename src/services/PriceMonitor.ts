@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { chromium, Browser } from 'playwright';
 import { ShopConfig, WatchlistProductInternal, Watchlist } from '../types';
 import { ScraperFactory } from '../scrapers/ScraperFactory';
 import { NotificationService } from './NotificationService';
@@ -124,6 +125,7 @@ export class PriceMonitor {
 
   /**
    * Runs a single scan cycle across all shops and products.
+   * Uses a single browser instance per shop to reduce resource usage.
    */
   async runScanCycle(): Promise<void> {
     this.logger.info('Starting scan cycle', {
@@ -134,15 +136,32 @@ export class PriceMonitor {
     const startTime = Date.now();
 
     for (const shop of this.shops) {
-      for (const product of this.products) {
-        try {
-          await this.scanProduct(shop, product);
-        } catch (error) {
-          this.logger.error('Error scanning product', {
-            product: product.id,
-            shop: shop.id,
-            error: error instanceof Error ? error.message : String(error)
-          });
+      let browser: Browser | null = null;
+
+      try {
+        // Launch one browser per shop
+        browser = await chromium.launch({ headless: true });
+
+        for (const product of this.products) {
+          try {
+            await this.scanProduct(shop, product, browser);
+          } catch (error) {
+            this.logger.error('Error scanning product', {
+              product: product.id,
+              shop: shop.id,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
+        }
+      } catch (error) {
+        this.logger.error('Error launching browser for shop', {
+          shop: shop.id,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      } finally {
+        // Always close browser after processing all products for this shop
+        if (browser) {
+          await browser.close();
         }
       }
     }
@@ -159,13 +178,14 @@ export class PriceMonitor {
    */
   private async scanProduct(
     shop: ShopConfig,
-    product: WatchlistProductInternal
+    product: WatchlistProductInternal,
+    browser: Browser
   ): Promise<void> {
     // Create scraper
     const scraper = ScraperFactory.create(shop, this.logger);
 
-    // Scrape the product
-    const result = await scraper.scrapeProduct(product);
+    // Scrape the product, reusing the browser instance
+    const result = await scraper.scrapeProduct(product, browser);
 
     this.logger.info('Product scanned', {
       product: product.id,
