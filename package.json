@@ -8,6 +8,7 @@
     "copy-configs": "node -e \"require('fs').cpSync('src/config', 'dist/config', {recursive: true})\"",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
+    "postinstall": "playwright install --with-deps chromium",
     "test": "tsx --test tests/run-all-shops.ts",
     "test:rebel": "node --import tsx --test tests/shops/rebel.test.ts",
     "test:basanti": "node --import tsx --test tests/shops/basanti.test.ts"
