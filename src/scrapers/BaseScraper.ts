@@ -117,7 +117,7 @@ export abstract class BaseScraper {
         continue; // Try next search phrase
       }
 
-      // If only one result, still check exclusions before using it
+      // If only one result, still check exclusions and fuzzy match before using it
       if (articles.length === 1) {
         const title = await this.selectorEngine.extract(
           articles[0],
@@ -132,6 +132,21 @@ export abstract class BaseScraper {
               product: product.id,
               title,
               exclude: product.search.exclude
+            });
+            continue; // Try next search phrase
+          }
+        }
+
+        // Check fuzzy match score for single results too
+        if (title) {
+          const score = fuzz.token_set_ratio(title, phrase);
+          if (score < 95) {
+            this.logger.debug('Single result fuzzy match too low, skipping', {
+              shop: this.config.id,
+              product: product.id,
+              title,
+              phrase,
+              score
             });
             continue; // Try next search phrase
           }
