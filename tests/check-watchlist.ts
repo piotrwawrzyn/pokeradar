@@ -58,18 +58,31 @@ async function checkWatchlist() {
       try {
         const result = await scraper.scrapeProduct(product);
 
-        const availIcon = result.isAvailable ? '✅' : '❌';
-        const priceStr = result.price !== null ? `${result.price.toFixed(2)} zł` : 'N/A';
-        const meetsPrice = result.price !== null && result.price <= product.price.max;
-        const priceIcon = result.price !== null ? (meetsPrice ? '💚' : '💔') : '  ';
+        // Determine status
+        let statusLine = '';
+        if (result.price === null) {
+          // Product not found
+          statusLine = `   ❌ ${shop.name.padEnd(15)} - Not found`;
+        } else {
+          // Product found
+          const availIcon = result.isAvailable ? '✅' : '⛔';
+          const availText = result.isAvailable ? 'Available' : 'Unavailable';
+          const priceStr = `${result.price.toFixed(2)} zł`;
+          const meetsPrice = result.price <= product.price.max;
+          const priceIcon = meetsPrice ? '💚' : '💔';
 
-        const status = result.isAvailable && meetsPrice ? '🎯 MATCH!' : '';
+          const match = result.isAvailable && meetsPrice ? ' 🎯 MATCH!' : '';
 
-        console.log(`   ${availIcon} ${shop.name.padEnd(15)} - ${priceStr.padEnd(12)} ${priceIcon} ${status}`);
+          statusLine = `   ${availIcon} ${shop.name.padEnd(15)} - ${priceStr.padEnd(12)} ${availText.padEnd(11)} ${priceIcon}${match}`;
 
-        if (result.productUrl && result.isAvailable && meetsPrice) {
-          console.log(`      🔗 ${result.productUrl}`);
+          if (result.productUrl && result.isAvailable && meetsPrice) {
+            console.log(statusLine);
+            console.log(`      🔗 ${result.productUrl}`);
+            continue;
+          }
         }
+
+        console.log(statusLine);
       } catch (error) {
         console.log(`   ⚠️  ${shop.name.padEnd(15)} - Error: ${error instanceof Error ? error.message : String(error)}`);
       }
