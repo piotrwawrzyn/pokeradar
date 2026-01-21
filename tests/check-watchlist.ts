@@ -69,11 +69,10 @@ async function checkWatchlist() {
           const availText = result.isAvailable ? 'Available' : 'Unavailable';
           const priceStr = `${result.price.toFixed(2)} zł`;
           const meetsPrice = result.price <= product.price.max;
-          const priceIcon = meetsPrice ? '💚' : '💔';
 
           const match = result.isAvailable && meetsPrice ? ' 🎯 MATCH!' : '';
 
-          statusLine = `   ${availIcon} ${shop.name.padEnd(15)} - ${priceStr.padEnd(12)} ${availText.padEnd(11)} ${priceIcon}${match}`;
+          statusLine = `   ${availIcon} ${shop.name.padEnd(15)} - ${priceStr.padEnd(12)} ${availText.padEnd(11)}${match}`;
 
           if (result.productUrl && result.isAvailable && meetsPrice) {
             console.log(statusLine);
