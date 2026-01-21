@@ -125,9 +125,11 @@ export abstract class BaseScraper {
       }
 
       // Multiple results: extract titles and URLs, find best match using fuzzy matching
+      // Only check first 5 results to avoid processing irrelevant items
       const candidates: Array<{ title: string; url: string; score: number }> = [];
+      const articlesToCheck = articles.slice(0, 5);
 
-      for (const article of articles) {
+      for (const article of articlesToCheck) {
         const title = await this.selectorEngine.extract(
           article,
           this.config.selectors.searchPage.title
