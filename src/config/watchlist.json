@@ -3,7 +3,8 @@
     {
       "name": "Prismatic Evolutions Booster Bundle",
       "search": {
-        "phrases": ["Prismatic Evolutions Booster Bundle"]
+        "phrases": ["Prismatic Evolutions Booster Bundle"],
+        "exclude": ["display"]
       },
       "price": {
         "max": 300
@@ -12,7 +13,8 @@
     {
       "name": "Ascended Heroes Booster Bundle",
       "search": {
-        "phrases": ["Ascended Heroes Booster Bundle"]
+        "phrases": ["Ascended Heroes Booster Bundle"],
+        "exclude": ["display"]
       },
       "price": {
         "max": 200
@@ -21,7 +23,8 @@
     {
       "name": "White Flare Booster Bundle",
       "search": {
-        "phrases": ["White Flare Booster Bundle"]
+        "phrases": ["White Flare Booster Bundle"],
+        "exclude": ["display"]
       },
       "price": {
         "max": 140
@@ -30,7 +33,8 @@
     {
       "name": "Black Bolt Booster Bundle",
       "search": {
-        "phrases": ["Black Bolt Booster Bundle"]
+        "phrases": ["Black Bolt Booster Bundle"],
+        "exclude": ["display"]
       },
       "price": {
         "max": 140
@@ -39,7 +43,8 @@
     {
       "name": "Phantasmal Flames Booster Bundle",
       "search": {
-        "phrases": ["Phantasmal Flames Booster Bundle"]
+        "phrases": ["Phantasmal Flames Booster Bundle"],
+        "exclude": ["display"]
       },
       "price": {
         "max": 120
@@ -48,7 +53,8 @@
     {
       "name": "Destined Rivals Booster Bundle",
       "search": {
-        "phrases": ["Destined Rivals Booster Bundle"]
+        "phrases": ["Destined Rivals Booster Bundle"],
+        "exclude": ["display"]
       },
       "price": {
         "max": 200
@@ -57,7 +63,8 @@
     {
       "name": "151 Booster Bundle",
       "search": {
-        "phrases": ["151 Booster Bundle"]
+        "phrases": ["151 Booster Bundle"],
+        "exclude": ["display"]
       },
       "price": {
         "max": 400

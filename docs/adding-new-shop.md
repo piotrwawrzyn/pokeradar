@@ -11,7 +11,6 @@ Adding a new shop involves:
 4. Running tests to validate selectors
 5. (Optional) Creating a custom scraper if needed
 
-**Time estimate**: 15-30 minutes for a simple shop
 
 ## Prerequisites
 
@@ -30,6 +29,7 @@ Before writing any code, you need to understand the shop's HTML structure.
    - How to construct a search URL
    - CSS selector for product articles/cards
    - CSS selector for product URL within an article
+   - CSS selector for product title within an article (required for fuzzy matching)
 
 2. **Product Page**:
    - CSS selector for product title
@@ -80,6 +80,10 @@ Create a new JSON file in `src/config/shops/` named after the shop (e.g., `examp
         "type": "css",
         "value": "a.product-link",
         "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product-card-title"
       }
     },
     "productPage": {
@@ -126,6 +130,12 @@ Create a new JSON file in `src/config/shops/` named after the shop (e.g., `examp
   - `type`: Usually `"css"`
   - `value`: CSS selector for link element
   - `extract`: `"href"` to get the URL
+
+- **title**: Selector for product title within article (REQUIRED)
+  - `type`: Usually `"css"`
+  - `value`: CSS selector for title element
+  - Used for fuzzy matching to find the best product match
+  - The bot compares search phrases against titles to ensure correct product is selected
 
 #### Product Page Selectors
 
@@ -206,18 +216,16 @@ Create `tests/fixtures/shopname.json` with test data:
 
 ```json
 {
-  "stableProductUrl": "https://www.example-shop.com/products/popular-item",
-  "searchPhrase": "pokemon"
+  "stableProductUrl": "https://www.example-shop.com/products/popular-item"
 }
 ```
 
 **stableProductUrl**: A popular product unlikely to be removed
-**searchPhrase**: A search term that returns results
 
 **Tips for choosing test data**:
 - Pick evergreen products (Pokemon base sets, popular items)
 - Choose products regularly in stock
-- Use generic search phrases that return multiple results
+- The URL should be for a product that's likely to remain available
 
 ## Step 4: Create Integration Tests
 
@@ -272,23 +280,6 @@ test('example-shop.com integration tests', async (t) => {
     assert.ok(result.value?.title, 'Title should be extracted');
   });
 
-  await t.test('Search Page - Articles Found', async () => {
-    const result = await tester.testSearchArticles(fixture.searchPhrase);
-
-    assert.strictEqual(result.passed, true, result.error || 'Search articles test failed');
-    assert.ok(result.value?.articleCount > 0, 'Should find at least one article');
-  });
-
-  await t.test('Search Page - URL Extraction', async () => {
-    const result = await tester.testSearchUrlExtraction(fixture.searchPhrase);
-
-    assert.strictEqual(result.passed, true, result.error || 'URL extraction from search failed');
-    assert.ok(result.value?.productUrl, 'Product URL should be extracted');
-    assert.ok(
-      result.value?.productUrl.startsWith('http'),
-      'Product URL should be a valid URL'
-    );
-  });
 });
 ```
 
@@ -311,8 +302,6 @@ node --import tsx --test tests/shops/example-shop.test.ts
 ✓ Product Page - Price Extraction
 ✓ Product Page - Availability Extraction
 ✓ Product Page - Title Extraction
-✓ Search Page - Articles Found
-✓ Search Page - URL Extraction
 ```
 
 **Failure**:
@@ -339,29 +328,83 @@ If tests fail:
 
 ## Step 6: Add Shop to Watchlist
 
-Once tests pass, add products for this shop:
+Once tests pass, add products to `src/config/watchlist.json`:
 
 ```json
 {
   "products": [
     {
-      "id": "pokemon-booster-example-shop",
       "name": "Pokemon Booster Pack",
-      "searchPhrases": ["Pokemon Booster Pack"],
-      "maxPrice": 50.00
+      "search": {
+        "phrases": ["Pokemon Booster Pack", "Pokemon Booster"],
+        "exclude": ["case", "half", "kiosk"]
+      },
+      "price": {
+        "max": 50.00
+      }
     }
   ]
 }
 ```
 
+**Search configuration**:
+- **phrases**: Array of search terms to try (tries in order until product found)
+- **exclude**: Optional array of keywords to filter out unwanted results
+  - Example: `["case", "kiosk"]` excludes bulk cases and kiosk products
+  - Uses fuzzy matching with case-insensitive comparison
+- **price.max**: Maximum acceptable price in shop currency
+
+**Fuzzy Matching**:
+The bot uses fuzzy string matching to find the best product from search results:
+- Compares search phrases against product titles from search results
+- Calculates similarity score (0-1) for each product
+- Selects the product with the highest score above threshold (0.5)
+- Filters out products containing any excluded keywords
+- If multiple search phrases provided, tries each until a match is found
+
 **Search phrase tips**:
 - Be specific enough to find the right product
-- The scraper takes the first search result
-- Test the search phrase on the website first
+- Provide multiple variations if the product name varies across shops
+- Use `exclude` to filter out bulk items, reprints, or other variants
+- Test search phrases on the website first to ensure results appear
 
-## Step 7: Test Live (Optional)
+## Step 7: Test with Check Command
 
-Run the bot locally to test live scraping:
+Test your shop configuration with the check command:
+
+```bash
+# Check all shops
+npm run check
+
+# Check specific shop
+npm run check rebel
+npm run check basanti
+```
+
+The check command will:
+- Load all watchlist products
+- Search for each product on specified shops
+- Display availability, price, and match status
+- Show product URLs for items that match criteria
+
+**Output format**:
+```
+📦 Pokemon Prismatic Evolutions Booster
+   Max Price: 120 zł
+
+   ✅ Rebel.pl        - 129.95 zł    Available
+   ❌ Basanti         - Not found
+```
+
+**Status indicators**:
+- ✅ Available - Product found and in stock
+- ⛔ Unavailable - Product found but out of stock
+- ❌ Not found - Product not found on this shop
+- 🎯 MATCH! - Product available AND price meets criteria
+
+## Step 8: Test Live (Optional)
+
+Run the bot locally to test the monitoring loop:
 
 ```bash
 npm run dev
@@ -372,6 +415,7 @@ Watch the logs to ensure:
 - Product page loads correctly
 - Price is extracted
 - Availability is detected
+- Discord notifications sent for matches
 
 Press Ctrl+C to stop.
 
@@ -557,6 +601,10 @@ Visit PokeCards.pl and find:
         "type": "css",
         "value": "a.card__link",
         "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.card__title"
       }
     },
     "productPage": {
@@ -586,8 +634,7 @@ Visit PokeCards.pl and find:
 
 ```json
 {
-  "stableProductUrl": "https://pokecards.pl/products/charizard-vmax",
-  "searchPhrase": "pokemon"
+  "stableProductUrl": "https://pokecards.pl/products/charizard-vmax"
 }
 ```
 
@@ -603,17 +650,28 @@ node --import tsx --test tests/shops/pokecards.test.ts
 
 ### 6. Add to Watchlist
 
+Edit `src/config/watchlist.json`:
+
 ```json
 {
   "products": [
     {
-      "id": "charizard-pokecards",
       "name": "Charizard VMAX",
-      "searchPhrases": ["Charizard VMAX"],
-      "maxPrice": 100.00
+      "search": {
+        "phrases": ["Charizard VMAX", "Charizard V-MAX"]
+      },
+      "price": {
+        "max": 100.00
+      }
     }
   ]
 }
+```
+
+### 7. Test with Check Command
+
+```bash
+npm run check pokecards
 ```
 
 Done! The bot now monitors PokeCards.pl.
@@ -622,15 +680,16 @@ Done! The bot now monitors PokeCards.pl.
 
 Before considering a shop complete:
 
-- [ ] Shop config created in `src/config/shops/`
-- [ ] Test fixture created in `tests/fixtures/`
+- [ ] Shop config created in `src/config/shops/` with all required selectors
+- [ ] `title` selector added to searchPage (required for fuzzy matching)
+- [ ] Test fixture created in `tests/fixtures/` with stableProductUrl
 - [ ] Integration test created in `tests/shops/`
 - [ ] All tests passing (`npm test`)
-- [ ] Tested with real search phrase
-- [ ] Product added to watchlist
-- [ ] Verified bot can scrape product locally
+- [ ] Product added to watchlist with search phrases and price.max
+- [ ] Tested with check command (`npm run check shopname`)
+- [ ] Verified matches appear correctly with 🎯 indicator
 - [ ] Committed to git
-- [ ] Deployed to Railway
+- [ ] Deployed to production
 
 ## Getting Help
 

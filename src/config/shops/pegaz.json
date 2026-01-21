@@ -1,0 +1,38 @@
+{
+  "id": "pegaz",
+  "name": "Pegaz",
+  "baseUrl": "https://pegaz-gry.pl",
+  "searchUrl": "/szukaj?controller=search&s=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article.product-miniature"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h3.product-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product-title"
+      }
+    },
+    "productPage": {
+      "title": {
+        "type": "css",
+        "value": "h1.product_name"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.add button.add-to-cart:not([disabled])"
+      }
+    }
+  }
+}

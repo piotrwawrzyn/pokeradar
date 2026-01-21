@@ -12,6 +12,8 @@
     "test": "tsx --test tests/run-all-shops.ts",
     "test:rebel": "node --import tsx --test tests/shops/rebel.test.ts",
     "test:basanti": "node --import tsx --test tests/shops/basanti.test.ts",
+    "test:pegaz": "node --import tsx --test tests/shops/pegaz.test.ts",
+    "test:xzone": "node --import tsx --test tests/shops/xzone.test.ts",
     "check": "tsx tests/check-watchlist.ts"
   },
   "keywords": [],

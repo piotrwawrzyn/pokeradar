@@ -1,0 +1,38 @@
+{
+  "id": "xzone",
+  "name": "XZone",
+  "baseUrl": "https://www.xzone.pl",
+  "searchUrl": "/katalog.php?term=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.product-item"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "div.product-item-name a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "div.product-item-name"
+      }
+    },
+    "productPage": {
+      "title": {
+        "type": "css",
+        "value": "h1.product_heading"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "ul.dostupnost_holder li.green_text"
+      }
+    }
+  }
+}

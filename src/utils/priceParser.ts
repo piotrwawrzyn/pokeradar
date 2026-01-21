@@ -25,18 +25,20 @@ export class PriceParser {
    * - 79,95 zł
    * - zł 79,95
    * - 79 zł (no decimals)
-   * - 1.299,95 zł (thousands separator)
+   * - 1.299,95 zł (thousands separator with dot)
+   * - 4 899,00 zł (thousands separator with space or non-breaking space)
    * - 79,95zł (no space)
    */
   private parseEuropean(priceText: string): number | null {
-    // Remove currency symbols and extra whitespace
-    const cleaned = priceText.trim();
+    // Remove currency symbols and normalize whitespace
+    // Replace non-breaking spaces (U+00A0) with regular spaces
+    const cleaned = priceText.trim().replace(/\u00A0/g, ' ');
 
     // Match number patterns:
-    // - Optional thousands separator (dot): 1.299
+    // - Optional thousands separator (dot, space, or non-breaking space): 1.299 or 4 899
     // - Main number: 123
     // - Optional decimal part (comma): ,95
-    const regex = /(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?)/;
+    const regex = /(\d{1,3}(?:[\.\s]\d{3})*(?:,\d{1,2})?)/;
     const match = cleaned.match(regex);
 
     if (!match) {
@@ -45,9 +47,10 @@ export class PriceParser {
 
     // Convert European format to standard decimal:
     // 1.299,95 → 1299.95
+    // 4 899,00 → 4899.00
     const numberStr = match[1]
-      .replace(/\./g, '')     // Remove thousands separator
-      .replace(',', '.');     // Replace decimal comma with dot
+      .replace(/[\.\s]/g, '')     // Remove thousands separators (dots and spaces)
+      .replace(',', '.');          // Replace decimal comma with dot
 
     const parsed = parseFloat(numberStr);
 
