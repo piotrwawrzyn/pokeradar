@@ -14,6 +14,7 @@ export interface Selector {
 export interface ShopConfig {
   id: string;
   name: string;
+  disabled?: boolean;  // Optional: exclude shop from scraping
   baseUrl: string;
   searchUrl: string;
   selectors: {

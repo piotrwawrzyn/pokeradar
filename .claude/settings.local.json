@@ -27,7 +27,8 @@
       "Bash(git revert:*)",
       "Bash(git mv src/services/HourlySummary.ts src/services/SummaryService.ts)",
       "Bash(npx playwright test:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }

@@ -38,6 +38,16 @@ export abstract class BaseScraper {
       }
       page = await browser.newPage();
 
+      // Block unnecessary resources to save bandwidth and CPU
+      await page.route('**/*', (route) => {
+        const resourceType = route.request().resourceType();
+        if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+          route.abort();
+        } else {
+          route.continue();
+        }
+      });
+
       // Step 1: Search for product and get its URL
       const productUrl = await this.findProductUrl(page, product);
 

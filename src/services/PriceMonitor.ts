@@ -21,6 +21,7 @@ export class PriceMonitor {
   private intervalMs: number;
   private intervalId?: NodeJS.Timeout;
   private summaryService?: SummaryService;
+  private isScanning: boolean = false;  // Prevents overlapping scan cycles
 
   constructor(
     telegramToken: string,
@@ -87,6 +88,16 @@ export class PriceMonitor {
       const filePath = path.join(shopsDir, file);
       const content = fs.readFileSync(filePath, 'utf-8');
       const shop: ShopConfig = JSON.parse(content);
+
+      // Skip disabled shops
+      if (shop.disabled) {
+        this.logger.info('Skipping disabled shop', {
+          shop: shop.id,
+          name: shop.name
+        });
+        continue;
+      }
+
       this.shops.push(shop);
 
       this.logger.info('Loaded shop configuration', {
@@ -125,23 +136,30 @@ export class PriceMonitor {
 
   /**
    * Runs a single scan cycle across all shops and products.
-   * Uses a single browser instance per shop to reduce resource usage.
+   * Uses a single browser instance for the entire cycle to minimize resource usage.
    */
   async runScanCycle(): Promise<void> {
-    this.logger.info('Starting scan cycle', {
-      shops: this.shops.length,
-      products: this.products.length
-    });
+    // Prevent overlapping scan cycles
+    if (this.isScanning) {
+      this.logger.warn('Scan cycle already in progress, skipping');
+      return;
+    }
 
-    const startTime = Date.now();
+    this.isScanning = true;
+    let browser: Browser | null = null;
 
-    for (const shop of this.shops) {
-      let browser: Browser | null = null;
+    try {
+      this.logger.info('Starting scan cycle', {
+        shops: this.shops.length,
+        products: this.products.length
+      });
 
-      try {
-        // Launch one browser per shop
-        browser = await chromium.launch({ headless: true });
+      const startTime = Date.now();
 
+      // Launch single browser for entire scan cycle
+      browser = await chromium.launch({ headless: true });
+
+      for (const shop of this.shops) {
         for (const product of this.products) {
           try {
             await this.scanProduct(shop, product, browser);
@@ -153,24 +171,20 @@ export class PriceMonitor {
             });
           }
         }
-      } catch (error) {
-        this.logger.error('Error launching browser for shop', {
-          shop: shop.id,
-          error: error instanceof Error ? error.message : String(error)
-        });
-      } finally {
-        // Always close browser after processing all products for this shop
-        if (browser) {
-          await browser.close();
-        }
       }
+
+      const duration = Date.now() - startTime;
+
+      this.logger.info('Scan cycle completed', {
+        durationMs: duration
+      });
+    } finally {
+      // Always close browser at end of cycle
+      if (browser) {
+        await browser.close();
+      }
+      this.isScanning = false;
     }
-
-    const duration = Date.now() - startTime;
-
-    this.logger.info('Scan cycle completed', {
-      durationMs: duration
-    });
   }
 
   /**

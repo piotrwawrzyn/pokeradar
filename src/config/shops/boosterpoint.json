@@ -1,0 +1,35 @@
+{
+  "id": "boosterpoint",
+  "name": "BoosterPoint",
+  "disabled": true,
+  "baseUrl": "https://boosterpoint.pl",
+  "searchUrl": "/wszystkie-produkty/?s=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "li.product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "p.price bdi",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button[name='add-to-cart']"
+      }
+    }
+  }
+}
