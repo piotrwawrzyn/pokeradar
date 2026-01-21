@@ -1,6 +1,6 @@
 import * as dotenv from 'dotenv';
 import { PriceMonitor } from './services/PriceMonitor';
-import { HourlySummary } from './services/HourlySummary';
+import { SummaryService } from './services/HourlySummary';
 
 // Load environment variables
 dotenv.config();
@@ -13,6 +13,7 @@ async function main() {
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
   const telegramChatId = process.env.TELEGRAM_CHAT_ID;
   const intervalMs = parseInt(process.env.SCRAPE_INTERVAL_MS || '60000');
+  const summaryIntervalMs = parseInt(process.env.SUMMARY_INTERVAL_MS || '3600000');
   const logLevel = (process.env.LOG_LEVEL as 'info' | 'debug') || 'info';
 
   if (!telegramToken) {
@@ -42,26 +43,26 @@ async function main() {
 
     await monitor.initialize();
 
+    // Setup summary service (temporary feature)
+    const summaryService = new SummaryService(telegramToken, telegramChatId, summaryIntervalMs);
+    monitor.setSummaryService(summaryService);
+    summaryService.start();
+
     // Start monitoring
     monitor.start();
-
-    // Start hourly summary service (temporary feature)
-    const hourlySummary = new HourlySummary(telegramToken, telegramChatId);
-    hourlySummary.initialize();
-    hourlySummary.start();
 
     // Handle graceful shutdown
     process.on('SIGINT', () => {
       console.log('\n\nShutting down gracefully...');
       monitor.stop();
-      hourlySummary.stop();
+      summaryService.stop();
       process.exit(0);
     });
 
     process.on('SIGTERM', () => {
       console.log('\n\nShutting down gracefully...');
       monitor.stop();
-      hourlySummary.stop();
+      summaryService.stop();
       process.exit(0);
     });
   } catch (error) {

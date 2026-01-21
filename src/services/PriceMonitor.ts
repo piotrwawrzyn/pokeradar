@@ -6,6 +6,7 @@ import { NotificationService } from './NotificationService';
 import { StateManager } from './StateManager';
 import { Logger } from './Logger';
 import { toInternalProducts } from '../utils/productUtils';
+import { SummaryService } from './HourlySummary';
 
 /**
  * Main orchestrator that runs the price monitoring loop.
@@ -18,6 +19,7 @@ export class PriceMonitor {
   private logger: Logger;
   private intervalMs: number;
   private intervalId?: NodeJS.Timeout;
+  private summaryService?: SummaryService;
 
   constructor(
     telegramToken: string,
@@ -33,6 +35,13 @@ export class PriceMonitor {
       this.logger
     );
     this.intervalMs = intervalMs;
+  }
+
+  /**
+   * Sets the summary service to receive scan results.
+   */
+  setSummaryService(summaryService: SummaryService): void {
+    this.summaryService = summaryService;
   }
 
   /**
@@ -165,6 +174,11 @@ export class PriceMonitor {
       available: result.isAvailable,
       url: result.productUrl
     });
+
+    // Record result for summary service
+    if (this.summaryService) {
+      this.summaryService.recordResult(product, result, shop);
+    }
 
     // Check if we should notify
     const meetsMaxPrice = result.price !== null && result.price <= product.price.max;
