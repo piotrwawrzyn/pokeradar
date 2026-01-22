@@ -35,7 +35,7 @@ export class ScraperFactory {
       : (config.engine || 'cheerio');
 
     // Create the engine
-    const engine = createEngine(engineType, browser);
+    const engine = createEngine(engineType, browser, logger);
 
     // Create the scraper with injected engine
     if (config.customScraper) {

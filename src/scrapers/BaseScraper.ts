@@ -233,6 +233,13 @@ export abstract class BaseScraper {
   }
 
   /**
+   * Closes the underlying engine and releases resources.
+   */
+  async close(): Promise<void> {
+    await this.engine.close();
+  }
+
+  /**
    * Creates a null result when product is not found or scraping fails.
    */
   protected createNullResult(product: WatchlistProductInternal): ProductResult {

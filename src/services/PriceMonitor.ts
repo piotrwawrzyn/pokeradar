@@ -279,7 +279,7 @@ export class PriceMonitor {
         }
       }
     } finally {
-      // Engine cleanup is handled by the scraper/engine itself
+      await scraper.close();
     }
   }
 

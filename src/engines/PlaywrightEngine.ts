@@ -1,18 +1,23 @@
 import { Browser, Page, Locator } from 'playwright';
 import { Selector, ExtractType } from '../types';
 import { IEngine, IElement } from './IEngine';
+import { Logger } from '../services/Logger';
+import { safeClose } from '../utils/safeClose';
 
 /**
  * Element wrapper for Playwright Locators.
  */
 class PlaywrightElement implements IElement {
-  constructor(private locator: Locator) {}
+  constructor(private locator: Locator, private logger?: Logger) {}
 
   async getText(): Promise<string | null> {
     try {
       const text = await this.locator.textContent();
       return text?.trim() || null;
-    } catch {
+    } catch (error) {
+      this.logger?.debug('PlaywrightElement.getText failed', {
+        error: error instanceof Error ? error.message : String(error)
+      });
       return null;
     }
   }
@@ -20,7 +25,11 @@ class PlaywrightElement implements IElement {
   async getAttribute(name: string): Promise<string | null> {
     try {
       return await this.locator.getAttribute(name);
-    } catch {
+    } catch (error) {
+      this.logger?.debug('PlaywrightElement.getAttribute failed', {
+        attribute: name,
+        error: error instanceof Error ? error.message : String(error)
+      });
       return null;
     }
   }
@@ -28,14 +37,19 @@ class PlaywrightElement implements IElement {
   async find(selector: Selector): Promise<IElement | null> {
     try {
       const locator = this.createLocator(selector);
-      const count = await locator.count();
+      // Use evaluateAll to check existence - no waiting, no timeout risk
+      const count = await locator.evaluateAll(els => els.length).catch(() => 0);
 
       if (count === 0) {
         return null;
       }
 
-      return new PlaywrightElement(locator.first());
-    } catch {
+      return new PlaywrightElement(locator.first(), this.logger);
+    } catch (error) {
+      this.logger?.debug('PlaywrightElement.find failed', {
+        selector: selector.value,
+        error: error instanceof Error ? error.message : String(error)
+      });
       return null;
     }
   }
@@ -43,9 +57,24 @@ class PlaywrightElement implements IElement {
   async findAll(selector: Selector): Promise<IElement[]> {
     try {
       const locator = this.createLocator(selector);
-      const all = await locator.all();
-      return all.map(loc => new PlaywrightElement(loc));
-    } catch {
+      // Use evaluateAll to get count - no DOM snapshot, no waiting
+      const count = await locator.evaluateAll(els => els.length).catch(() => 0);
+
+      if (count === 0) {
+        return [];
+      }
+
+      // Build locators by index - avoids locator.all() DOM snapshot
+      const elements: IElement[] = [];
+      for (let i = 0; i < count; i++) {
+        elements.push(new PlaywrightElement(locator.nth(i), this.logger));
+      }
+      return elements;
+    } catch (error) {
+      this.logger?.debug('PlaywrightElement.findAll failed', {
+        selector: selector.value,
+        error: error instanceof Error ? error.message : String(error)
+      });
       return [];
     }
   }
@@ -75,7 +104,10 @@ export class PlaywrightEngine implements IEngine {
   private ownsBrowser: boolean = false;
   private browser: Browser | null = null;
 
-  constructor(private existingBrowser?: Browser) {}
+  private readonly NAVIGATION_TIMEOUT = 30000;  // 30 seconds max for page load
+  private readonly ACTION_TIMEOUT = 10000;  // 10 seconds max for element actions
+
+  constructor(private existingBrowser?: Browser, private logger?: Logger) {}
 
   async goto(url: string): Promise<void> {
     // Create page if not exists
@@ -91,6 +123,10 @@ export class PlaywrightEngine implements IEngine {
         this.ownsBrowser = true;
       }
 
+      // Set default timeouts for all actions
+      this.page.setDefaultTimeout(this.ACTION_TIMEOUT);
+      this.page.setDefaultNavigationTimeout(this.NAVIGATION_TIMEOUT);
+
       // Block unnecessary resources to save bandwidth and CPU
       await this.page.route('**/*', (route) => {
         const resourceType = route.request().resourceType();
@@ -102,8 +138,10 @@ export class PlaywrightEngine implements IEngine {
       });
     }
 
-    await this.page.goto(url, { waitUntil: 'domcontentloaded' });
-    await this.page.waitForTimeout(1000); // Brief wait for dynamic content
+    await this.page.goto(url, {
+      waitUntil: 'networkidle',
+      timeout: this.NAVIGATION_TIMEOUT
+    });
   }
 
   async extract(selector: Selector): Promise<string | null> {
@@ -116,7 +154,8 @@ export class PlaywrightEngine implements IEngine {
     for (const selectorValue of selectors) {
       try {
         const locator = this.createLocator(selector.type, selectorValue);
-        const count = await locator.count();
+        // Use evaluateAll to check existence - no waiting, no timeout risk
+        const count = await locator.evaluateAll(els => els.length).catch(() => 0);
 
         if (count === 0) {
           continue;
@@ -126,7 +165,11 @@ export class PlaywrightEngine implements IEngine {
         if (value) {
           return value;
         }
-      } catch {
+      } catch (error) {
+        this.logger?.debug('PlaywrightEngine.extract failed', {
+          selector: selectorValue,
+          error: error instanceof Error ? error.message : String(error)
+        });
         continue;
       }
     }
@@ -144,15 +187,24 @@ export class PlaywrightEngine implements IEngine {
     for (const selectorValue of selectors) {
       try {
         const locator = this.createLocator(selector.type, selectorValue);
-        const count = await locator.count();
+        // Use evaluateAll to get count - no DOM snapshot, no waiting
+        const count = await locator.evaluateAll(els => els.length).catch(() => 0);
 
         if (count === 0) {
           continue;
         }
 
-        const all = await locator.all();
-        return all.map(loc => new PlaywrightElement(loc));
-      } catch {
+        // Build locators by index - avoids locator.all() memory overhead
+        const elements: IElement[] = [];
+        for (let i = 0; i < count; i++) {
+          elements.push(new PlaywrightElement(locator.nth(i), this.logger));
+        }
+        return elements;
+      } catch (error) {
+        this.logger?.debug('PlaywrightEngine.extractAll failed', {
+          selector: selectorValue,
+          error: error instanceof Error ? error.message : String(error)
+        });
         continue;
       }
     }
@@ -170,12 +222,17 @@ export class PlaywrightEngine implements IEngine {
     for (const selectorValue of selectors) {
       try {
         const locator = this.createLocator(selector.type, selectorValue);
-        const count = await locator.count();
+        // Use evaluateAll to check existence - no waiting, no timeout risk
+        const count = await locator.evaluateAll(els => els.length).catch(() => 0);
 
         if (count > 0) {
           return true;
         }
-      } catch {
+      } catch (error) {
+        this.logger?.debug('PlaywrightEngine.exists failed', {
+          selector: selectorValue,
+          error: error instanceof Error ? error.message : String(error)
+        });
         continue;
       }
     }
@@ -185,13 +242,21 @@ export class PlaywrightEngine implements IEngine {
 
   async close(): Promise<void> {
     if (this.page) {
-      await this.page.close();
+      // Remove route handlers before closing to prevent hangs
+      try {
+        await this.page.unroute('**/*');
+      } catch (error) {
+        this.logger?.debug('PlaywrightEngine.close unroute failed', {
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
+      await safeClose(this.page);
       this.page = null;
     }
 
     // Only close browser if we created it
     if (this.ownsBrowser && this.browser) {
-      await this.browser.close();
+      await safeClose(this.browser);
       this.browser = null;
     }
   }
@@ -227,7 +292,11 @@ export class PlaywrightEngine implements IEngine {
           const defaultText = await locator.textContent();
           return defaultText?.trim() || null;
       }
-    } catch {
+    } catch (error) {
+      this.logger?.debug('PlaywrightEngine.extractValue failed', {
+        extractType,
+        error: error instanceof Error ? error.message : String(error)
+      });
       return null;
     }
   }

@@ -127,6 +127,8 @@ async function checkProductAtShop(
     console.log(statusLine);
   } catch (error) {
     console.log(`   ⚠️  ${shop.name.padEnd(15)} - Error: ${error instanceof Error ? error.message : String(error)}`);
+  } finally {
+    await scraper.close();
   }
 }
 

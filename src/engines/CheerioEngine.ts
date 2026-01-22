@@ -3,6 +3,7 @@ import * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
 import { Selector, ExtractType } from '../types';
 import { IEngine, IElement } from './IEngine';
+import { Logger } from '../services/Logger';
 
 /**
  * Element wrapper for Cheerio selections.
@@ -71,6 +72,8 @@ class CheerioElement implements IElement {
 export class CheerioEngine implements IEngine {
   private $: cheerio.CheerioAPI | null = null;
 
+  constructor(private logger?: Logger) {}
+
   private readonly defaultHeaders = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -110,7 +113,11 @@ export class CheerioEngine implements IEngine {
         if (value) {
           return value;
         }
-      } catch {
+      } catch (error) {
+        this.logger?.debug('CheerioEngine.extract failed', {
+          selector: selectorValue,
+          error: error instanceof Error ? error.message : String(error)
+        });
         continue;
       }
     }
@@ -141,7 +148,11 @@ export class CheerioEngine implements IEngine {
         });
 
         return result;
-      } catch {
+      } catch (error) {
+        this.logger?.debug('CheerioEngine.extractAll failed', {
+          selector: selectorValue,
+          error: error instanceof Error ? error.message : String(error)
+        });
         continue;
       }
     }
@@ -164,7 +175,11 @@ export class CheerioEngine implements IEngine {
         if (element.length > 0) {
           return true;
         }
-      } catch {
+      } catch (error) {
+        this.logger?.debug('CheerioEngine.exists failed', {
+          selector: selectorValue,
+          error: error instanceof Error ? error.message : String(error)
+        });
         continue;
       }
     }
