@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { chromium, Browser } from 'playwright';
+import { Browser } from 'playwright';
 import { ShopConfig, WatchlistProductInternal, Watchlist } from '../types';
 import { ScraperFactory } from '../scrapers/ScraperFactory';
 import { NotificationService } from './NotificationService';
@@ -8,6 +8,11 @@ import { StateManager } from './StateManager';
 import { Logger } from './Logger';
 import { toInternalProducts } from '../utils/productUtils';
 import { SummaryService } from './SummaryService';
+
+// Use playwright-extra with stealth plugin for bot detection evasion
+import { chromium } from 'playwright-extra';
+import stealth from 'puppeteer-extra-plugin-stealth';
+chromium.use(stealth());
 
 /**
  * Main orchestrator that runs the price monitoring loop.

@@ -1,10 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { chromium, Browser } from 'playwright';
+import { Browser } from 'playwright';
 import { Watchlist, ShopConfig } from '../src/types';
 import { ScraperFactory } from '../src/scrapers/ScraperFactory';
 import { Logger } from '../src/services/Logger';
 import { toInternalProducts } from '../src/utils/productUtils';
+
+// Use playwright-extra with stealth plugin for bot detection evasion
+import { chromium } from 'playwright-extra';
+import stealth from 'puppeteer-extra-plugin-stealth';
+chromium.use(stealth());
 
 /**
  * Checks all watchlist products against all shops and displays availability/prices
@@ -25,17 +30,18 @@ async function checkWatchlist() {
     JSON.parse(fs.readFileSync(path.join(shopsDir, file), 'utf-8'))
   );
 
-  // Filter out disabled shops
-  shops = shops.filter(shop => !shop.disabled);
-
   // Filter shops if shop parameter provided
   if (shopFilter) {
+    // When explicitly requesting a shop by name, allow testing disabled shops
     shops = shops.filter(shop => shop.id.toLowerCase() === shopFilter || shop.name.toLowerCase().includes(shopFilter));
 
     if (shops.length === 0) {
       console.error(`\n❌ Shop "${shopFilter}" not found. Available shops: ${shopFiles.map(f => f.replace('.json', '')).join(', ')}\n`);
       process.exit(1);
     }
+  } else {
+    // Filter out disabled shops only when running all shops
+    shops = shops.filter(shop => !shop.disabled);
   }
 
   // Create logger in silent mode (logs to file only, not console)
