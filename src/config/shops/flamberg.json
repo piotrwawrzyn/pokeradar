@@ -1,0 +1,34 @@
+{
+    "id": "flamberg",
+    "name": "Flamberg",
+    "baseUrl": "https://flamberg.com.pl",
+    "searchUrl": "/pl/search?text=",
+    "selectors": {
+      "searchPage": {
+        "article": {
+          "type": "css",
+          "value": "div.product"
+        },
+        "productUrl": {
+          "type": "css",
+          "value": "a.product__name",
+          "extract": "href"
+        },
+        "title": {
+          "type": "css",
+          "value": "a.product__name"
+        }
+      },
+      "productPage": {
+        "price": {
+          "type": "css",
+          "value": "h2#projector_price_value",
+          "format": "european"
+        },
+        "available": {
+          "type": "css",
+          "value": ".projector_buy:not(.--hidden)"
+        }
+      }
+    }
+  }
