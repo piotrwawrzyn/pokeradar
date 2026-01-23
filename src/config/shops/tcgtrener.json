@@ -1,0 +1,34 @@
+{
+  "id": "tcgtrener",
+  "name": "TCG Trener",
+  "baseUrl": "https://tcgtrener.pl",
+  "searchUrl": "/pl/searchquery/",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.products div.product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a.prodname",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "span.productname"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div.price__container em.main-price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "fieldset.addtobasket-container:not(.none)"
+      }
+    }
+  }
+}
