@@ -4,11 +4,6 @@ import { IEngine, IElement } from './IEngine';
 import { Logger } from '../services/Logger';
 import { safeClose } from '../utils/safeClose';
 
-// Use playwright-extra with stealth plugin for better bot detection evasion
-import { chromium } from 'playwright-extra';
-import stealth from 'puppeteer-extra-plugin-stealth';
-chromium.use(stealth());
-
 /**
  * Element wrapper for Playwright Locators.
  */
@@ -121,7 +116,8 @@ export class PlaywrightEngine implements IEngine {
         this.page = await this.existingBrowser.newPage();
         this.ownsBrowser = false;
       } else {
-        // Use playwright-extra with stealth for better bot detection evasion
+        // Import chromium dynamically to avoid loading it when using Cheerio
+        const { chromium } = await import('playwright');
         this.browser = await chromium.launch({ headless: true });
         this.page = await this.browser.newPage();
         this.ownsBrowser = true;
