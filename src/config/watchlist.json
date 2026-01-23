@@ -51,16 +51,6 @@
       }
     },
     {
-      "name": "Destined Rivals Booster Bundle",
-      "search": {
-        "phrases": ["Destined Rivals Booster Bundle"],
-        "exclude": ["display", "elite"]
-      },
-      "price": {
-        "max": 200
-      }
-    },
-    {
       "name": "151 Booster Bundle",
       "search": {
         "phrases": ["151 Booster Bundle"],
@@ -105,6 +95,16 @@
       "search": {
         "phrases": ["Destined Rivals Booster Box"],
         "exclude": ["kiosk", "half", "case", "elite"]
+      },
+      "price": {
+        "max": 1000
+      }
+    },
+    {
+      "name": "151 Mini Tin Display",
+      "search": {
+        "phrases": ["151 Mini Tin Display", "Scarlet Violet 151 Mini Tin Display"],
+        "exclude": []
       },
       "price": {
         "max": 1000
