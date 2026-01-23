@@ -36,6 +36,11 @@ export interface IEngine {
   goto(url: string): Promise<void>;
 
   /**
+   * Get the current page URL (after any redirects).
+   */
+  getCurrentUrl(): string | null;
+
+  /**
    * Extract a single value using the selector.
    */
   extract(selector: Selector): Promise<string | null>;

@@ -19,6 +19,7 @@ export interface ShopConfig {
   engine?: ScrapingEngine;  // Optional: scraping engine (default: 'cheerio')
   baseUrl: string;
   searchUrl: string;
+  directHitPattern?: string;  // Optional: regex pattern to detect when search redirects to product page
   selectors: {
     searchPage: {
       article: Selector;
@@ -26,6 +27,7 @@ export interface ShopConfig {
       title: Selector;  // Title selector for matching products in search results
     };
     productPage: {
+      title?: Selector;  // Optional: title selector for direct hit validation
       price: Selector;
       available: Selector | Selector[];  // Can be single or array for multiple availability checks
     };

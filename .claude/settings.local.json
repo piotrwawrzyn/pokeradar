@@ -30,7 +30,11 @@
       "Bash(node:*)",
       "Bash(git checkout:*)",
       "Bash(timeout 120 npx ts-node:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(del \"c:\\\\Users\\\\polsk\\\\Desktop\\\\pokebot_2.0\\\\test-rozetka-cheerio.ts\")",
+      "Bash(npm run check-watchlist:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

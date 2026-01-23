@@ -28,9 +28,9 @@ export abstract class BaseScraper {
   async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult> {
     try {
       // Step 1: Search for product and get its URL
-      const productUrl = await this.findProductUrl(product);
+      const searchResult = await this.findProductUrl(product);
 
-      if (!productUrl) {
+      if (!searchResult) {
         this.logger.info('Product not found in search', {
           shop: this.config.id,
           product: product.id
@@ -38,8 +38,12 @@ export abstract class BaseScraper {
         return this.createNullResult(product);
       }
 
-      // Step 2: Navigate to product page
-      await this.navigateToProductPage(productUrl);
+      const { url: productUrl, isDirectHit } = searchResult;
+
+      // Step 2: Navigate to product page (skip if direct hit - already there)
+      if (!isDirectHit) {
+        await this.navigateToProductPage(productUrl);
+      }
 
       // Step 3: Extract price and availability from product page
       const price = await this.extractPrice();
@@ -69,11 +73,37 @@ export abstract class BaseScraper {
    */
   protected async findProductUrl(
     product: WatchlistProductInternal
-  ): Promise<string | null> {
+  ): Promise<{ url: string; isDirectHit: boolean } | null> {
     for (const phrase of product.search.phrases) {
       const url = `${this.config.baseUrl}${this.config.searchUrl}${encodeURIComponent(phrase)}`;
 
       await this.engine.goto(url);
+
+      // Check for direct hit - search redirected to product page
+      if (this.config.directHitPattern) {
+        const currentUrl = this.engine.getCurrentUrl();
+        if (currentUrl && new RegExp(this.config.directHitPattern).test(currentUrl)) {
+          this.logger.info('Direct hit detected - validating product match', {
+            shop: this.config.id,
+            product: product.id,
+            phrase,
+            productUrl: currentUrl
+          });
+
+          // Validate the direct hit matches what we're looking for
+          const isValid = await this.validateDirectHit(product, phrase);
+          if (isValid) {
+            return { url: currentUrl, isDirectHit: true };
+          }
+
+          this.logger.info('Direct hit validation failed - product does not match', {
+            shop: this.config.id,
+            product: product.id,
+            phrase
+          });
+          continue; // Try next search phrase
+        }
+      }
 
       // Get all product articles
       const articles = await this.engine.extractAll(
@@ -103,21 +133,11 @@ export abstract class BaseScraper {
         const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
 
         if (title && productUrl) {
-          // Check exclude list - skip if title contains any excluded words
-          if (product.search.exclude && product.search.exclude.length > 0) {
-            if (this.isExcluded(title, product.search.exclude)) {
-              this.logger.debug('Product title contains excluded word, skipping', {
-                shop: this.config.id,
-                product: product.id,
-                title,
-                exclude: product.search.exclude
-              });
-              continue; // Skip this candidate
-            }
+          // Validate title (checks exclude list and returns fuzzy score)
+          const score = this.validateTitle(title, phrase, product);
+          if (score === null) {
+            continue; // Excluded, skip this candidate
           }
-
-          // Calculate match score using token_set_ratio (ignores word order, handles extra words)
-          const score = fuzz.token_set_ratio(title, phrase);
 
           candidates.push({
             title,
@@ -131,7 +151,7 @@ export abstract class BaseScraper {
       const bestMatchUrl = this.selectBestCandidate(candidates, product, phrase);
 
       if (bestMatchUrl) {
-        return this.normalizeUrl(bestMatchUrl);
+        return { url: this.normalizeUrl(bestMatchUrl), isDirectHit: false };
       }
     }
 
@@ -254,11 +274,89 @@ export abstract class BaseScraper {
   }
 
   /**
-   * Checks if a title contains any excluded words.
+   * Validates a title against exclude list and returns fuzzy match score.
+   * Returns null if title is excluded, otherwise returns the fuzzy score.
    */
-  protected isExcluded(title: string, excludeWords: string[]): boolean {
-    const titleLower = title.toLowerCase();
-    return excludeWords.some(word => titleLower.includes(word.toLowerCase()));
+  protected validateTitle(
+    title: string,
+    phrase: string,
+    product: WatchlistProductInternal
+  ): number | null {
+    // Check exclude list
+    if (product.search.exclude && product.search.exclude.length > 0) {
+      const titleLower = title.toLowerCase();
+      const isExcluded = product.search.exclude.some(word =>
+        titleLower.includes(word.toLowerCase())
+      );
+      if (isExcluded) {
+        this.logger.debug('Title contains excluded word', {
+          shop: this.config.id,
+          product: product.id,
+          title,
+          exclude: product.search.exclude
+        });
+        return null;
+      }
+    }
+
+    // Return fuzzy match score
+    return fuzz.token_set_ratio(title, phrase);
+  }
+
+  /**
+   * Validates a direct hit by extracting and checking the product page title.
+   * Uses a lower threshold (90) since the search engine already matched this product.
+   */
+  protected async validateDirectHit(
+    product: WatchlistProductInternal,
+    phrase: string
+  ): Promise<boolean> {
+    const MIN_SCORE_THRESHOLD = 90;
+
+    // Get title selector from product page config
+    const titleSelector = this.config.selectors.productPage.title;
+    if (!titleSelector) {
+      this.logger.debug('No productPage.title selector configured, accepting direct hit', {
+        shop: this.config.id
+      });
+      return true;
+    }
+
+    // Extract title from product page
+    const title = await this.engine.extract(titleSelector);
+    if (!title) {
+      this.logger.debug('Could not extract title from product page', {
+        shop: this.config.id,
+        product: product.id
+      });
+      return false;
+    }
+
+    // Validate title
+    const score = this.validateTitle(title, phrase, product);
+    if (score === null) {
+      return false;
+    }
+
+    if (score < MIN_SCORE_THRESHOLD) {
+      this.logger.debug('Direct hit fuzzy match score too low', {
+        shop: this.config.id,
+        product: product.id,
+        title,
+        phrase,
+        score,
+        threshold: MIN_SCORE_THRESHOLD
+      });
+      return false;
+    }
+
+    this.logger.info('Direct hit validated', {
+      shop: this.config.id,
+      product: product.id,
+      title,
+      score
+    });
+    return true;
   }
 
   /**

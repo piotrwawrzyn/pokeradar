@@ -71,6 +71,7 @@ class CheerioElement implements IElement {
  */
 export class CheerioEngine implements IEngine {
   private $: cheerio.CheerioAPI | null = null;
+  private currentUrl: string | null = null;
 
   constructor(private logger?: Logger) {}
 
@@ -91,6 +92,12 @@ export class CheerioEngine implements IEngine {
     });
 
     this.$ = cheerio.load(response.data);
+    // Track final URL after redirects
+    this.currentUrl = response.request?.res?.responseUrl || url;
+  }
+
+  getCurrentUrl(): string | null {
+    return this.currentUrl;
   }
 
   async extract(selector: Selector): Promise<string | null> {
@@ -189,6 +196,7 @@ export class CheerioEngine implements IEngine {
 
   async close(): Promise<void> {
     this.$ = null;
+    this.currentUrl = null;
   }
 
   private toCssSelector(type: string, value: string): string {

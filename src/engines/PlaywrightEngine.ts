@@ -144,6 +144,10 @@ export class PlaywrightEngine implements IEngine {
     });
   }
 
+  getCurrentUrl(): string | null {
+    return this.page?.url() || null;
+  }
+
   async extract(selector: Selector): Promise<string | null> {
     if (!this.page) {
       throw new Error('No page loaded. Call goto() first.');
