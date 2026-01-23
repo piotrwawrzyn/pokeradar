@@ -1,0 +1,34 @@
+{
+  "id": "tcgumisia",
+  "name": "TCG Umisia",
+  "baseUrl": "https://tcgumisia.pl",
+  "searchUrl": "/szukaj?word=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.l-listing div.c-product-box"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a.c-product-box__block-part",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.c-product-box__title"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.m-product-data-1__price-value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button#product-card-add-to-card:not(.u-hide)"
+      }
+    }
+  }
+}

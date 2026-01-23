@@ -23,7 +23,7 @@
     {
       "name": "White Flare Booster Bundle",
       "search": {
-        "phrases": ["White Flare Booster Bundle"],
+        "phrases": ["Booster Bundle Reshiram", "White Flare Booster Bundle"],
         "exclude": ["display", "elite"]
       },
       "price": {
@@ -33,7 +33,7 @@
     {
       "name": "Black Bolt Booster Bundle",
       "search": {
-        "phrases": ["Black Bolt Booster Bundle"],
+        "phrases": ["Booster Bundle Zekrom", "Black Bolt Booster Bundle"],
         "exclude": ["display", "elite"]
       },
       "price": {
