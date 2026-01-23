@@ -25,6 +25,7 @@ export class SummaryService {
   private bot: TelegramBot;
   private chatId: string;
   private logger: Logger;
+  private initialTimeoutId?: NodeJS.Timeout;
   private intervalId?: NodeJS.Timeout;
   private intervalMs: number;
 
@@ -157,29 +158,54 @@ export class SummaryService {
   }
 
   /**
-   * Starts the summary service.
+   * Starts the summary service, aligned to full hours.
    */
   start(): void {
     const intervalMinutes = Math.round(this.intervalMs / 60000);
-    this.logger.info(`SummaryService: Starting (interval: ${intervalMinutes} minutes)`);
 
-    this.intervalId = setInterval(() => {
+    // Calculate time until next full hour
+    const now = new Date();
+    const nextHour = new Date(now);
+    nextHour.setHours(nextHour.getHours() + 1, 0, 0, 0);
+    const msUntilNextHour = nextHour.getTime() - now.getTime();
+    const minutesUntilNextHour = Math.round(msUntilNextHour / 60000);
+
+    this.logger.info(`SummaryService: Starting (interval: ${intervalMinutes} min, first summary in ${minutesUntilNextHour} min at ${nextHour.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })})`);
+
+    // Wait until next full hour, then start the interval
+    this.initialTimeoutId = setTimeout(() => {
+      this.initialTimeoutId = undefined;
+
+      // Send first summary at the full hour
       this.sendSummary().catch(error => {
         this.logger.error('SummaryService: Error in summary cycle', {
           error: error instanceof Error ? error.message : String(error)
         });
       });
-    }, this.intervalMs);
+
+      // Then continue on interval
+      this.intervalId = setInterval(() => {
+        this.sendSummary().catch(error => {
+          this.logger.error('SummaryService: Error in summary cycle', {
+            error: error instanceof Error ? error.message : String(error)
+          });
+        });
+      }, this.intervalMs);
+    }, msUntilNextHour);
   }
 
   /**
    * Stops the summary service.
    */
   stop(): void {
+    if (this.initialTimeoutId) {
+      clearTimeout(this.initialTimeoutId);
+      this.initialTimeoutId = undefined;
+    }
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = undefined;
-      this.logger.info('SummaryService: Service stopped');
     }
+    this.logger.info('SummaryService: Service stopped');
   }
 }
