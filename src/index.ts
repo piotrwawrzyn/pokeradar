@@ -1,9 +1,15 @@
 import * as dotenv from 'dotenv';
+import * as path from 'path';
 import { PriceMonitor } from './services/PriceMonitor';
 import { SummaryService } from './services/SummaryService';
+import { FileShopRepository, FileWatchlistRepository, IShopRepository, IWatchlistRepository } from './repositories';
 
 // Load environment variables
 dotenv.config();
+
+// Create repositories (swap these for different implementations, e.g. database)
+const shopRepository: IShopRepository = new FileShopRepository(path.join(__dirname, 'config/shops'));
+const watchlistRepository: IWatchlistRepository = new FileWatchlistRepository(path.join(__dirname, 'config/watchlist.json'));
 
 /**
  * Main entry point for the Pokemon Price Monitor.
@@ -27,11 +33,20 @@ async function main() {
     process.exit(1);
   }
 
+  // Load startup info
+  const shops = await shopRepository.getEnabled();
+  const products = await watchlistRepository.getAll();
+  const fastShops = shops.filter(s => !s.engine || s.engine === 'cheerio').length;
+  const slowShops = shops.filter(s => s.engine === 'playwright').length;
+
   console.log('🤖 Pokemon Price Monitor');
   console.log('========================');
-  console.log(`Cheerio scan interval: ${intervalMs}ms (${intervalMs / 1000} seconds)`);
-  console.log(`Playwright scan interval: ${playwrightIntervalMs}ms (${playwrightIntervalMs / 1000} seconds)`);
-  console.log(`Log level: ${logLevel}`);
+  console.log(`📊 ${fastShops} shops @ ${intervalMs / 60000}min, ${slowShops} shops @ ${playwrightIntervalMs / 60000}min`);
+  console.log('');
+  console.log('🔍 Watching:');
+  products.forEach(p => {
+    console.log(`   • ${p.name} (max ${p.price.max} zł)`);
+  });
   console.log('');
 
   try {
@@ -39,6 +54,8 @@ async function main() {
     const monitor = new PriceMonitor(
       telegramToken,
       telegramChatId,
+      shopRepository,
+      watchlistRepository,
       intervalMs,
       logLevel,
       playwrightIntervalMs

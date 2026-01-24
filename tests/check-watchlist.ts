@@ -1,10 +1,13 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import { chromium, Browser } from 'playwright';
-import { Watchlist, ShopConfig } from '../src/types';
+import { ShopConfig, WatchlistProductInternal } from '../src/types';
 import { ScraperFactory } from '../src/scrapers/ScraperFactory';
 import { Logger } from '../src/services/Logger';
-import { toInternalProducts } from '../src/utils/productUtils';
+import { FileShopRepository, FileWatchlistRepository } from '../src/repositories';
+
+// Create repositories
+const shopRepository = new FileShopRepository(path.join(__dirname, '../src/config/shops'));
+const watchlistRepository = new FileWatchlistRepository(path.join(__dirname, '../src/config/watchlist.json'));
 
 /**
  * Checks all watchlist products against all shops and displays availability/prices
@@ -13,27 +16,17 @@ async function checkWatchlist() {
   // Get optional shop filter from command line args
   const shopFilter = process.argv[2]?.toLowerCase();
 
-  // Load watchlist
-  const watchlistPath = path.join(__dirname, '../src/config/watchlist.json');
-  const watchlist: Watchlist = JSON.parse(fs.readFileSync(watchlistPath, 'utf-8'));
-  const products = toInternalProducts(watchlist.products);
-
-  // Load all shop configs
-  const shopsDir = path.join(__dirname, '../src/config/shops');
-  const shopFiles = fs.readdirSync(shopsDir).filter(f => f.endsWith('.json'));
-  let shops: ShopConfig[] = shopFiles.map(file =>
-    JSON.parse(fs.readFileSync(path.join(shopsDir, file), 'utf-8'))
-  );
-
-  // Filter out disabled shops
-  shops = shops.filter(shop => !shop.disabled);
+  // Load watchlist and shops via repositories
+  const products = await watchlistRepository.getAll();
+  let shops = await shopRepository.getEnabled();
 
   // Filter shops if shop parameter provided
   if (shopFilter) {
     shops = shops.filter(shop => shop.id.toLowerCase() === shopFilter || shop.name.toLowerCase().includes(shopFilter));
 
     if (shops.length === 0) {
-      console.error(`\n❌ Shop "${shopFilter}" not found. Available shops: ${shopFiles.map(f => f.replace('.json', '')).join(', ')}\n`);
+      const allShops = await shopRepository.getAll();
+      console.error(`\n❌ Shop "${shopFilter}" not found. Available shops: ${allShops.map(s => s.id).join(', ')}\n`);
       process.exit(1);
     }
   }
@@ -91,7 +84,7 @@ async function checkWatchlist() {
 }
 
 async function checkProductAtShop(
-  product: ReturnType<typeof toInternalProducts>[0],
+  product: WatchlistProductInternal,
   shop: ShopConfig,
   logger: Logger,
   browser?: Browser

@@ -1,13 +1,11 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import { chromium, Browser } from 'playwright';
-import { ShopConfig, WatchlistProductInternal, Watchlist } from '../types';
+import { ShopConfig, WatchlistProductInternal } from '../types';
 import { ScraperFactory } from '../scrapers/ScraperFactory';
 import { NotificationService } from './NotificationService';
 import { StateManager } from './StateManager';
 import { Logger } from './Logger';
-import { toInternalProducts } from '../utils/productUtils';
 import { SummaryService } from './SummaryService';
+import { IShopRepository, IWatchlistRepository } from '../repositories';
 
 /**
  * Main orchestrator that runs the price monitoring loop.
@@ -25,10 +23,14 @@ export class PriceMonitor {
   private summaryService?: SummaryService;
   private isCheerioScanning: boolean = false;
   private isPlaywrightScanning: boolean = false;
+  private shopRepository: IShopRepository;
+  private watchlistRepository: IWatchlistRepository;
 
   constructor(
     telegramToken: string,
     telegramChatId: string,
+    shopRepository: IShopRepository,
+    watchlistRepository: IWatchlistRepository,
     intervalMs: number = 60000,
     logLevel: 'info' | 'debug' = 'info',
     playwrightIntervalMs?: number
@@ -40,6 +42,8 @@ export class PriceMonitor {
       telegramChatId,
       this.logger
     );
+    this.shopRepository = shopRepository;
+    this.watchlistRepository = watchlistRepository;
     this.intervalMs = intervalMs;
     this.playwrightIntervalMs = playwrightIntervalMs || intervalMs;
   }
@@ -58,10 +62,16 @@ export class PriceMonitor {
     this.logger.info('Initializing Price Monitor...');
 
     // Load shop configurations
-    this.loadShops();
+    this.shops = await this.shopRepository.getEnabled();
+    if (this.shops.length === 0) {
+      throw new Error('No shop configurations found');
+    }
 
     // Load watchlist
-    this.loadWatchlist();
+    this.products = await this.watchlistRepository.getAll();
+    if (this.products.length === 0) {
+      throw new Error('No products in watchlist');
+    }
 
     this.logger.info('Price Monitor initialized', {
       shops: this.shops.length,
@@ -74,69 +84,6 @@ export class PriceMonitor {
       await this.notificationService.sendTestNotification();
     } catch (error) {
       this.logger.warn('Failed to send test notification - check Telegram credentials');
-    }
-  }
-
-  /**
-   * Loads shop configurations from the config directory.
-   */
-  private loadShops(): void {
-    const shopsDir = path.join(__dirname, '../config/shops');
-
-    if (!fs.existsSync(shopsDir)) {
-      throw new Error(`Shops directory not found: ${shopsDir}`);
-    }
-
-    const files = fs.readdirSync(shopsDir).filter(f => f.endsWith('.json'));
-
-    for (const file of files) {
-      const filePath = path.join(shopsDir, file);
-      const content = fs.readFileSync(filePath, 'utf-8');
-      const shop: ShopConfig = JSON.parse(content);
-
-      // Skip disabled shops
-      if (shop.disabled) {
-        this.logger.info('Skipping disabled shop', {
-          shop: shop.id,
-          name: shop.name
-        });
-        continue;
-      }
-
-      this.shops.push(shop);
-
-      this.logger.info('Loaded shop configuration', {
-        shop: shop.id,
-        name: shop.name,
-        engine: shop.engine || 'cheerio'
-      });
-    }
-
-    if (this.shops.length === 0) {
-      throw new Error('No shop configurations found');
-    }
-  }
-
-  /**
-   * Loads the watchlist from the config directory.
-   */
-  private loadWatchlist(): void {
-    const watchlistPath = path.join(__dirname, '../config/watchlist.json');
-
-    if (!fs.existsSync(watchlistPath)) {
-      throw new Error(`Watchlist not found: ${watchlistPath}`);
-    }
-
-    const content = fs.readFileSync(watchlistPath, 'utf-8');
-    const watchlist: Watchlist = JSON.parse(content);
-    this.products = toInternalProducts(watchlist.products);
-
-    this.logger.info('Loaded watchlist', {
-      products: this.products.length
-    });
-
-    if (this.products.length === 0) {
-      throw new Error('No products in watchlist');
     }
   }
 
