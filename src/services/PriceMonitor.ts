@@ -78,13 +78,6 @@ export class PriceMonitor {
       products: this.products.length,
       intervalMs: this.intervalMs
     });
-
-    // Send test notification
-    try {
-      await this.notificationService.sendTestNotification();
-    } catch (error) {
-      this.logger.warn('Failed to send test notification - check Telegram credentials');
-    }
   }
 
   /**

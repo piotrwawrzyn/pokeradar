@@ -70,17 +70,31 @@ export class NotificationService {
   }
 
   /**
-   * Sends a test notification to verify the setup.
+   * Sends a startup message with monitoring info.
    */
-  async sendTestNotification(): Promise<void> {
+  async sendStartupMessage(
+    fastShops: number,
+    slowShops: number,
+    fastIntervalMin: number,
+    slowIntervalMin: number,
+    products: { name: string; price: { max: number } }[]
+  ): Promise<void> {
+    const productList = products.map(p => `• ${p.name} (max ${p.price.max} zł)`).join('\n');
+
+    const message = `
+🤖 *Pokemon Price Monitor*
+
+📊 ${fastShops} shops @ ${fastIntervalMin}min, ${slowShops} shops @ ${slowIntervalMin}min
+
+🔍 *Watching:*
+${productList}
+    `.trim();
+
     try {
-      await this.bot.sendMessage(
-        this.chatId,
-        '🤖 Pokemon Price Monitor is now running!'
-      );
-      this.logger.info('Test notification sent successfully');
+      await this.bot.sendMessage(this.chatId, message, { parse_mode: 'Markdown' });
+      this.logger.info('Startup notification sent successfully');
     } catch (error) {
-      this.logger.error('Failed to send test notification', {
+      this.logger.error('Failed to send startup notification', {
         error: error instanceof Error ? error.message : String(error)
       });
       throw error;

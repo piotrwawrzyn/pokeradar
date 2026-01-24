@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { PriceMonitor } from './services/PriceMonitor';
 import { SummaryService } from './services/SummaryService';
+import { NotificationService } from './services/NotificationService';
 import { FileShopRepository, FileWatchlistRepository, IShopRepository, IWatchlistRepository } from './repositories';
 
 // Load environment variables
@@ -39,15 +40,15 @@ async function main() {
   const fastShops = shops.filter(s => !s.engine || s.engine === 'cheerio').length;
   const slowShops = shops.filter(s => s.engine === 'playwright').length;
 
-  console.log('🤖 Pokemon Price Monitor');
-  console.log('========================');
-  console.log(`📊 ${fastShops} shops @ ${intervalMs / 60000}min, ${slowShops} shops @ ${playwrightIntervalMs / 60000}min`);
-  console.log('');
-  console.log('🔍 Watching:');
-  products.forEach(p => {
-    console.log(`   • ${p.name} (max ${p.price.max} zł)`);
-  });
-  console.log('');
+  // Send startup message to Telegram
+  const notificationService = new NotificationService(telegramToken, telegramChatId);
+  await notificationService.sendStartupMessage(
+    fastShops,
+    slowShops,
+    intervalMs / 60000,
+    playwrightIntervalMs / 60000,
+    products
+  );
 
   try {
     // Create and initialize monitor
