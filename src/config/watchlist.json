@@ -101,6 +101,16 @@
       }
     },
     {
+      "name": "Mega Evolution Booster Box",
+      "search": {
+        "phrases": ["Mega Evolution Booster Box"],
+        "exclude": ["kiosk", "half", "case", "elite"]
+      },
+      "price": {
+        "max": 800
+      }
+    },
+    {
       "name": "151 Mini Tin Display",
       "search": {
         "phrases": ["151 Mini Tin Display", "Scarlet Violet 151 Mini Tin Display"],
