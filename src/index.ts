@@ -12,7 +12,8 @@ async function main() {
   // Validate environment variables
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
   const telegramChatId = process.env.TELEGRAM_CHAT_ID;
-  const intervalMs = parseInt(process.env.SCRAPE_INTERVAL_MS || '60000');
+  const intervalMs = parseInt(process.env.SCRAPE_INTERVAL_MS || '300000');
+  const playwrightIntervalMs = parseInt(process.env.PLAYWRIGHT_SCRAPE_INTERVAL_MS || '600000');
   const summaryIntervalMs = parseInt(process.env.SUMMARY_INTERVAL_MS || '3600000');
   const logLevel = (process.env.LOG_LEVEL as 'info' | 'debug') || 'info';
 
@@ -28,7 +29,8 @@ async function main() {
 
   console.log('🤖 Pokemon Price Monitor');
   console.log('========================');
-  console.log(`Scan interval: ${intervalMs}ms (${intervalMs / 1000} seconds)`);
+  console.log(`Cheerio scan interval: ${intervalMs}ms (${intervalMs / 1000} seconds)`);
+  console.log(`Playwright scan interval: ${playwrightIntervalMs}ms (${playwrightIntervalMs / 1000} seconds)`);
   console.log(`Log level: ${logLevel}`);
   console.log('');
 
@@ -38,7 +40,8 @@ async function main() {
       telegramToken,
       telegramChatId,
       intervalMs,
-      logLevel
+      logLevel,
+      playwrightIntervalMs
     );
 
     await monitor.initialize();
