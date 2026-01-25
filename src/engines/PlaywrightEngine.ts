@@ -139,7 +139,7 @@ export class PlaywrightEngine implements IEngine {
     }
 
     await this.page.goto(url, {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
       timeout: this.NAVIGATION_TIMEOUT
     });
   }
