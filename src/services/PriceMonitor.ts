@@ -4,11 +4,11 @@ import { ScraperFactory } from '../scrapers/ScraperFactory';
 import { NotificationService } from './NotificationService';
 import { StateManager } from './StateManager';
 import { Logger } from './Logger';
-import { SummaryService } from './SummaryService';
 import { IShopRepository, IWatchlistRepository, INotificationStateRepository, IProductResultRepository } from '../repositories';
 
 /**
- * Main orchestrator that runs the price monitoring loop.
+ * Price monitor that scans products across shops.
+ * Designed for single-run cron execution.
  */
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
@@ -16,13 +16,6 @@ export class PriceMonitor {
   private stateManager: StateManager;
   private notificationService: NotificationService;
   private logger: Logger;
-  private intervalMs: number;
-  private playwrightIntervalMs: number;
-  private intervalId?: NodeJS.Timeout;
-  private playwrightIntervalId?: NodeJS.Timeout;
-  private summaryService?: SummaryService;
-  private isCheerioScanning: boolean = false;
-  private isPlaywrightScanning: boolean = false;
   private shopRepository: IShopRepository;
   private watchlistRepository: IWatchlistRepository;
   private productResultRepository?: IProductResultRepository;
@@ -32,9 +25,7 @@ export class PriceMonitor {
     telegramChatId: string,
     shopRepository: IShopRepository,
     watchlistRepository: IWatchlistRepository,
-    intervalMs: number = 60000,
     logLevel: 'info' | 'debug' = 'info',
-    playwrightIntervalMs?: number,
     notificationStateRepository?: INotificationStateRepository,
     productResultRepository?: IProductResultRepository
   ) {
@@ -48,15 +39,6 @@ export class PriceMonitor {
     this.shopRepository = shopRepository;
     this.watchlistRepository = watchlistRepository;
     this.productResultRepository = productResultRepository;
-    this.intervalMs = intervalMs;
-    this.playwrightIntervalMs = playwrightIntervalMs || intervalMs;
-  }
-
-  /**
-   * Sets the summary service to receive scan results.
-   */
-  setSummaryService(summaryService: SummaryService): void {
-    this.summaryService = summaryService;
   }
 
   /**
@@ -82,8 +64,7 @@ export class PriceMonitor {
 
     this.logger.info('Price Monitor initialized', {
       shops: this.shops.length,
-      products: this.products.length,
-      intervalMs: this.intervalMs
+      products: this.products.length
     });
   }
 
@@ -91,120 +72,97 @@ export class PriceMonitor {
    * Runs Cheerio scan cycle (lightweight HTTP-based scraping).
    */
   async runCheerioScanCycle(): Promise<void> {
-    if (this.isCheerioScanning) {
-      this.logger.warn('Cheerio scan cycle already in progress, skipping');
+    const { cheerio: cheerioShops } = ScraperFactory.groupByEngine(this.shops);
+
+    if (cheerioShops.length === 0) {
       return;
     }
 
-    this.isCheerioScanning = true;
+    this.logger.info('Starting Cheerio scan cycle', {
+      shops: cheerioShops.length,
+      products: this.products.length
+    });
 
-    try {
-      const { cheerio: cheerioShops } = ScraperFactory.groupByEngine(this.shops);
+    const startTime = Date.now();
 
-      if (cheerioShops.length === 0) {
-        return;
-      }
-
-      this.logger.info('Starting Cheerio scan cycle', {
-        shops: cheerioShops.length,
-        products: this.products.length
-      });
-
-      const startTime = Date.now();
-
-      for (const shop of cheerioShops) {
-        for (const product of this.products) {
-          try {
-            await this.scanProduct(shop, product);
-          } catch (error) {
-            this.logger.error('Error scanning product', {
-              product: product.id,
-              shop: shop.id,
-              engine: 'cheerio',
-              error: error instanceof Error ? error.message : String(error)
-            });
-          }
+    for (const shop of cheerioShops) {
+      for (const product of this.products) {
+        try {
+          await this.scanProduct(shop, product);
+        } catch (error) {
+          this.logger.error('Error scanning product', {
+            product: product.id,
+            shop: shop.id,
+            engine: 'cheerio',
+            error: error instanceof Error ? error.message : String(error)
+          });
         }
       }
-
-      const duration = Date.now() - startTime;
-      const memUsage = process.memoryUsage();
-      this.logger.info('Cheerio scan cycle completed', {
-        durationMs: duration,
-        heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
-        heapTotalMB: Math.round(memUsage.heapTotal / 1024 / 1024),
-        rssMB: Math.round(memUsage.rss / 1024 / 1024)
-      });
-    } finally {
-      this.isCheerioScanning = false;
     }
+
+    const duration = Date.now() - startTime;
+    const memUsage = process.memoryUsage();
+    this.logger.info('Cheerio scan cycle completed', {
+      durationMs: duration,
+      heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
+      heapTotalMB: Math.round(memUsage.heapTotal / 1024 / 1024),
+      rssMB: Math.round(memUsage.rss / 1024 / 1024)
+    });
   }
 
   /**
    * Runs Playwright scan cycle (browser-based scraping - resource intensive).
    */
   async runPlaywrightScanCycle(): Promise<void> {
-    if (this.isPlaywrightScanning) {
-      this.logger.warn('Playwright scan cycle already in progress, skipping');
+    const { playwright: playwrightShops } = ScraperFactory.groupByEngine(this.shops);
+
+    if (playwrightShops.length === 0) {
       return;
     }
 
-    this.isPlaywrightScanning = true;
+    this.logger.info('Starting Playwright scan cycle', {
+      shops: playwrightShops.length,
+      products: this.products.length
+    });
+
+    const startTime = Date.now();
+    let browser: Browser | null = null;
 
     try {
-      const { playwright: playwrightShops } = ScraperFactory.groupByEngine(this.shops);
+      browser = await chromium.launch({ headless: true });
 
-      if (playwrightShops.length === 0) {
-        return;
-      }
-
-      this.logger.info('Starting Playwright scan cycle', {
-        shops: playwrightShops.length,
-        products: this.products.length
-      });
-
-      const startTime = Date.now();
-      let browser: Browser | null = null;
-
-      try {
-        browser = await chromium.launch({ headless: true });
-
-        for (const shop of playwrightShops) {
-          for (const product of this.products) {
-            try {
-              await this.scanProduct(shop, product, browser);
-            } catch (error) {
-              this.logger.error('Error scanning product', {
-                product: product.id,
-                shop: shop.id,
-                engine: 'playwright',
-                error: error instanceof Error ? error.message : String(error)
-              });
-            }
+      for (const shop of playwrightShops) {
+        for (const product of this.products) {
+          try {
+            await this.scanProduct(shop, product, browser);
+          } catch (error) {
+            this.logger.error('Error scanning product', {
+              product: product.id,
+              shop: shop.id,
+              engine: 'playwright',
+              error: error instanceof Error ? error.message : String(error)
+            });
           }
         }
-      } finally {
-        if (browser) {
-          await browser.close();
-        }
       }
-
-      const duration = Date.now() - startTime;
-      const memUsage = process.memoryUsage();
-      this.logger.info('Playwright scan cycle completed', {
-        durationMs: duration,
-        heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
-        heapTotalMB: Math.round(memUsage.heapTotal / 1024 / 1024),
-        rssMB: Math.round(memUsage.rss / 1024 / 1024)
-      });
     } finally {
-      this.isPlaywrightScanning = false;
+      if (browser) {
+        await browser.close();
+      }
     }
+
+    const duration = Date.now() - startTime;
+    const memUsage = process.memoryUsage();
+    this.logger.info('Playwright scan cycle completed', {
+      durationMs: duration,
+      heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
+      heapTotalMB: Math.round(memUsage.heapTotal / 1024 / 1024),
+      rssMB: Math.round(memUsage.rss / 1024 / 1024)
+    });
   }
 
   /**
    * Runs a full scan cycle (both Cheerio and Playwright).
-   * Used for initial scan on startup.
    */
   async runFullScanCycle(): Promise<void> {
     this.logger.info('Starting full scan cycle', {
@@ -226,11 +184,9 @@ export class PriceMonitor {
     product: WatchlistProductInternal,
     browser?: Browser
   ): Promise<void> {
-    // Create scraper with engine
     const scraper = ScraperFactory.create(shop, this.logger, browser);
 
     try {
-      // Scrape the product
       const result = await scraper.scrapeProduct(product);
 
       this.logger.info('Product scanned', {
@@ -241,7 +197,7 @@ export class PriceMonitor {
         url: result.productUrl
       });
 
-      // Save result to repository (if configured)
+      // Save result to repository
       if (this.productResultRepository) {
         try {
           await this.productResultRepository.save(result);
@@ -252,11 +208,6 @@ export class PriceMonitor {
             error: error instanceof Error ? error.message : String(error)
           });
         }
-      }
-
-      // Record result for summary service
-      if (this.summaryService) {
-        this.summaryService.recordResult(product, result, shop);
       }
 
       // Check if we should notify
@@ -292,57 +243,5 @@ export class PriceMonitor {
     } finally {
       await scraper.close();
     }
-  }
-
-  /**
-   * Starts the monitoring loop with separate intervals for Cheerio and Playwright.
-   */
-  start(): void {
-    this.logger.info('Starting Price Monitor', {
-      cheerioIntervalMs: this.intervalMs,
-      playwrightIntervalMs: this.playwrightIntervalMs
-    });
-
-    // Run full scan immediately on start
-    this.runFullScanCycle().catch((error: Error) => {
-      this.logger.error('Error in initial scan cycle', {
-        error: error.message
-      });
-    });
-
-    // Cheerio shops interval (lightweight, can run frequently)
-    this.intervalId = setInterval(() => {
-      this.runCheerioScanCycle().catch((error: Error) => {
-        this.logger.error('Error in Cheerio scan cycle', {
-          error: error.message
-        });
-      });
-    }, this.intervalMs);
-
-    // Playwright shops interval (resource intensive, runs less frequently)
-    this.playwrightIntervalId = setInterval(() => {
-      this.runPlaywrightScanCycle().catch((error: Error) => {
-        this.logger.error('Error in Playwright scan cycle', {
-          error: error.message
-        });
-      });
-    }, this.playwrightIntervalMs);
-
-    this.logger.info('Price Monitor started successfully');
-  }
-
-  /**
-   * Stops the monitoring loop.
-   */
-  stop(): void {
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-      this.intervalId = undefined;
-    }
-    if (this.playwrightIntervalId) {
-      clearInterval(this.playwrightIntervalId);
-      this.playwrightIntervalId = undefined;
-    }
-    this.logger.info('Price Monitor stopped');
   }
 }
