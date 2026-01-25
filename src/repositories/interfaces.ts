@@ -42,6 +42,6 @@ export interface IProductResultRepository {
   save(result: ProductResult): Promise<void>;
   saveBatch(results: ProductResult[]): Promise<void>;
   getByProduct(productId: string, shopId: string, limit?: number): Promise<ProductResult[]>;
-  getBestPrice(productId: string, shopId?: string): Promise<ProductResult | null>;
+  getCurrentBestOffer(productId: string): Promise<ProductResult | null>;
   getRecent(limit?: number): Promise<ProductResult[]>;
 }
