@@ -1,4 +1,5 @@
 import { NotificationState, ProductResult } from '../types';
+import { INotificationStateRepository } from '../repositories/interfaces';
 import { Logger } from './Logger';
 
 /**
@@ -9,19 +10,37 @@ import { Logger } from './Logger';
  * 2. Price increases
  *
  * When state resets, the next time criteria is met, a notification will be sent.
+ *
+ * Supports both in-memory state and persistent MongoDB storage.
  */
 export class StateManager {
   private state: Map<string, NotificationState> = new Map();
   private logger: Logger;
+  private repository?: INotificationStateRepository;
 
-  constructor(logger?: Logger) {
+  constructor(logger?: Logger, repository?: INotificationStateRepository) {
     this.logger = logger || new Logger();
+    this.repository = repository;
+  }
+
+  /**
+   * Loads state from repository into memory (call on startup if using persistence).
+   */
+  async loadFromRepository(): Promise<void> {
+    if (!this.repository) return;
+
+    const states = await this.repository.getAll();
+    for (const state of states) {
+      const key = this.getKey(state.productId, state.shopId);
+      this.state.set(key, state);
+    }
+    this.logger.info(`Loaded ${states.length} notification states from repository`);
   }
 
   /**
    * Determines if a notification should be sent for this product/shop combination.
    */
-  shouldNotify(productId: string, shopId: string, result: ProductResult): boolean {
+  async shouldNotify(productId: string, shopId: string, result: ProductResult): Promise<boolean> {
     const key = this.getKey(productId, shopId);
     const prevState = this.state.get(key);
 
@@ -39,7 +58,7 @@ export class StateManager {
         shop: shopId,
         reason: this.getResetReason(prevState, result)
       });
-      this.resetState(key);
+      await this.resetState(key);
       return true;
     }
 
@@ -50,16 +69,23 @@ export class StateManager {
   /**
    * Marks a product/shop combination as notified with current state.
    */
-  markNotified(productId: string, shopId: string, result: ProductResult): void {
+  async markNotified(productId: string, shopId: string, result: ProductResult): Promise<void> {
     const key = this.getKey(productId, shopId);
 
-    this.state.set(key, {
+    const state: NotificationState = {
       productId,
       shopId,
       lastNotified: new Date(),
       lastPrice: result.price,
       wasAvailable: result.isAvailable
-    });
+    };
+
+    this.state.set(key, state);
+
+    // Persist to repository if available
+    if (this.repository) {
+      await this.repository.set(state);
+    }
   }
 
   /**
@@ -111,8 +137,14 @@ export class StateManager {
   /**
    * Resets the notification state for a product/shop combination.
    */
-  private resetState(key: string): void {
+  private async resetState(key: string): Promise<void> {
     this.state.delete(key);
+
+    // Also delete from repository if available
+    if (this.repository) {
+      const [productId, shopId] = key.split(':');
+      await this.repository.delete(productId, shopId);
+    }
   }
 
   /**
@@ -133,7 +165,7 @@ export class StateManager {
   /**
    * Clears all state (useful for testing).
    */
-  clearAll(): void {
+  async clearAll(): Promise<void> {
     this.state.clear();
     this.logger.info('All notification state cleared');
   }
