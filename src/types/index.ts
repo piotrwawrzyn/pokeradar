@@ -18,7 +18,7 @@ export interface ShopConfig {
   disabled?: boolean;  // Optional: exclude shop from scraping
   engine?: ScrapingEngine;  // Optional: scraping engine (default: 'cheerio')
   baseUrl: string;
-  searchUrl: string;
+  searchUrl: string;  // Use {query} placeholder for search term, e.g. "/?s={query}&post_type=product"
   directHitPattern?: string;  // Optional: regex pattern to detect when search redirects to product page
   selectors: {
     searchPage: {

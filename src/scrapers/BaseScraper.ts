@@ -75,7 +75,11 @@ export abstract class BaseScraper {
     product: WatchlistProductInternal
   ): Promise<{ url: string; isDirectHit: boolean } | null> {
     for (const phrase of product.search.phrases) {
-      const url = `${this.config.baseUrl}${this.config.searchUrl}${encodeURIComponent(phrase)}`;
+      const encodedQuery = encodeURIComponent(phrase);
+      const searchPath = this.config.searchUrl.includes('{query}')
+        ? this.config.searchUrl.replace('{query}', encodedQuery)
+        : `${this.config.searchUrl}${encodedQuery}`;
+      const url = `${this.config.baseUrl}${searchPath}`;
 
       await this.engine.goto(url);
 
@@ -216,6 +220,18 @@ export abstract class BaseScraper {
   }
 
   /**
+   * Normalizes text for matching (lowercase, normalize dashes/spaces).
+   */
+  private normalizeForMatching(text: string): string {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[–—‐‑−]/g, '-')  // Normalize various dashes to hyphen
+      .replace(/[-:]+/g, ' ')     // Replace dashes and colons with space
+      .replace(/\s+/g, ' ');      // Collapse multiple spaces
+  }
+
+  /**
    * Checks if the extracted title matches the product name.
    * Can be overridden for custom matching logic.
    */
@@ -224,8 +240,8 @@ export abstract class BaseScraper {
       return false;
     }
 
-    const normalizedTitle = titleText.toLowerCase().trim();
-    const normalizedProduct = productName.toLowerCase().trim();
+    const normalizedTitle = this.normalizeForMatching(titleText);
+    const normalizedProduct = this.normalizeForMatching(productName);
 
     return normalizedTitle.includes(normalizedProduct);
   }

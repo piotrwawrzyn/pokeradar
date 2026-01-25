@@ -1,0 +1,39 @@
+{
+  "id": "lootquest",
+  "name": "Loot Quest",
+  "baseUrl": "https://lootquest.pl",
+  "searchUrl": "/?s={query}&post_type=product",
+  "directHitPattern": "/produkt/",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "ul.products li.product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2"
+      }
+    },
+    "productPage": {
+      "title": {
+        "type": "css",
+        "value": "h1"
+      },
+      "price": {
+        "type": "css",
+        "value": "p.price bdi",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button[name='add-to-cart']"
+      }
+    }
+  }
+}
