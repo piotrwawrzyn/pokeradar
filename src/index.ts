@@ -3,14 +3,24 @@ import * as path from 'path';
 import { PriceMonitor } from './services/PriceMonitor';
 import { SummaryService } from './services/SummaryService';
 import { NotificationService } from './services/NotificationService';
-import { FileShopRepository, FileWatchlistRepository, IShopRepository, IWatchlistRepository } from './repositories';
+import {
+  FileShopRepository,
+  IShopRepository,
+  IWatchlistRepository,
+  INotificationStateRepository,
+  IProductResultRepository,
+  connectDB,
+  disconnectDB,
+  MongoWatchlistRepository,
+  MongoNotificationStateRepository,
+  MongoProductResultRepository
+} from './repositories';
 
 // Load environment variables
 dotenv.config();
 
-// Create repositories (swap these for different implementations, e.g. database)
+// Create file-based repositories (shops always from files per requirements)
 const shopRepository: IShopRepository = new FileShopRepository(path.join(__dirname, 'config/shops'));
-const watchlistRepository: IWatchlistRepository = new FileWatchlistRepository(path.join(__dirname, 'config/watchlist.json'));
 
 /**
  * Main entry point for the Pokemon Price Monitor.
@@ -23,6 +33,7 @@ async function main() {
   const playwrightIntervalMs = parseInt(process.env.PLAYWRIGHT_SCRAPE_INTERVAL_MS || '600000');
   const summaryIntervalMs = parseInt(process.env.SUMMARY_INTERVAL_MS || '3600000');
   const logLevel = (process.env.LOG_LEVEL as 'info' | 'debug') || 'info';
+  const mongodbUri = process.env.MONGODB_URI;
 
   if (!telegramToken) {
     console.error('ERROR: TELEGRAM_BOT_TOKEN is not set in .env file');
@@ -31,6 +42,28 @@ async function main() {
 
   if (!telegramChatId) {
     console.error('ERROR: TELEGRAM_CHAT_ID is not set in .env file');
+    process.exit(1);
+  }
+
+  // MongoDB is required for watchlist storage
+  if (!mongodbUri) {
+    console.error('ERROR: MONGODB_URI is not set in .env file');
+    process.exit(1);
+  }
+
+  // Initialize MongoDB connection and repositories
+  let watchlistRepository: IWatchlistRepository;
+  let notificationStateRepository: INotificationStateRepository;
+  let productResultRepository: IProductResultRepository;
+
+  try {
+    await connectDB(mongodbUri);
+    watchlistRepository = new MongoWatchlistRepository();
+    notificationStateRepository = new MongoNotificationStateRepository();
+    productResultRepository = new MongoProductResultRepository();
+    console.log('MongoDB repositories initialized');
+  } catch (error) {
+    console.error('Failed to connect to MongoDB:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 
@@ -49,7 +82,9 @@ async function main() {
       watchlistRepository,
       intervalMs,
       logLevel,
-      playwrightIntervalMs
+      playwrightIntervalMs,
+      notificationStateRepository,
+      productResultRepository
     );
 
     // Send startup message using monitor's notification service (avoids extra TelegramBot instance)
@@ -73,19 +108,16 @@ async function main() {
     monitor.start();
 
     // Handle graceful shutdown
-    process.on('SIGINT', () => {
+    const shutdown = async () => {
       console.log('\n\nShutting down gracefully...');
       monitor.stop();
       summaryService.stop();
+      await disconnectDB();
       process.exit(0);
-    });
+    };
 
-    process.on('SIGTERM', () => {
-      console.log('\n\nShutting down gracefully...');
-      monitor.stop();
-      summaryService.stop();
-      process.exit(0);
-    });
+    process.on('SIGINT', () => shutdown());
+    process.on('SIGTERM', () => shutdown());
   } catch (error) {
     console.error('Fatal error:', error instanceof Error ? error.message : String(error));
     process.exit(1);

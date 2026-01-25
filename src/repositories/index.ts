@@ -1,3 +1,3 @@
 export * from './interfaces';
 export * from './FileShopRepository';
-export * from './FileWatchlistRepository';
+export * from './mongo';

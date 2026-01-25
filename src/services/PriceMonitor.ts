@@ -5,7 +5,7 @@ import { NotificationService } from './NotificationService';
 import { StateManager } from './StateManager';
 import { Logger } from './Logger';
 import { SummaryService } from './SummaryService';
-import { IShopRepository, IWatchlistRepository } from '../repositories';
+import { IShopRepository, IWatchlistRepository, INotificationStateRepository, IProductResultRepository } from '../repositories';
 
 /**
  * Main orchestrator that runs the price monitoring loop.
@@ -25,6 +25,7 @@ export class PriceMonitor {
   private isPlaywrightScanning: boolean = false;
   private shopRepository: IShopRepository;
   private watchlistRepository: IWatchlistRepository;
+  private productResultRepository?: IProductResultRepository;
 
   constructor(
     telegramToken: string,
@@ -33,10 +34,12 @@ export class PriceMonitor {
     watchlistRepository: IWatchlistRepository,
     intervalMs: number = 60000,
     logLevel: 'info' | 'debug' = 'info',
-    playwrightIntervalMs?: number
+    playwrightIntervalMs?: number,
+    notificationStateRepository?: INotificationStateRepository,
+    productResultRepository?: IProductResultRepository
   ) {
     this.logger = new Logger(logLevel);
-    this.stateManager = new StateManager(this.logger);
+    this.stateManager = new StateManager(this.logger, notificationStateRepository);
     this.notificationService = new NotificationService(
       telegramToken,
       telegramChatId,
@@ -44,6 +47,7 @@ export class PriceMonitor {
     );
     this.shopRepository = shopRepository;
     this.watchlistRepository = watchlistRepository;
+    this.productResultRepository = productResultRepository;
     this.intervalMs = intervalMs;
     this.playwrightIntervalMs = playwrightIntervalMs || intervalMs;
   }
@@ -72,6 +76,9 @@ export class PriceMonitor {
     if (this.products.length === 0) {
       throw new Error('No products in watchlist');
     }
+
+    // Load notification state from repository (if configured)
+    await this.stateManager.loadFromRepository();
 
     this.logger.info('Price Monitor initialized', {
       shops: this.shops.length,
@@ -234,6 +241,19 @@ export class PriceMonitor {
         url: result.productUrl
       });
 
+      // Save result to repository (if configured)
+      if (this.productResultRepository) {
+        try {
+          await this.productResultRepository.save(result);
+        } catch (error) {
+          this.logger.error('Failed to save product result', {
+            product: product.id,
+            shop: shop.id,
+            error: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+
       // Record result for summary service
       if (this.summaryService) {
         this.summaryService.recordResult(product, result, shop);
@@ -244,7 +264,7 @@ export class PriceMonitor {
       const meetsAllCriteria = result.isAvailable && meetsMaxPrice;
 
       if (meetsAllCriteria) {
-        const shouldNotify = this.stateManager.shouldNotify(
+        const shouldNotify = await this.stateManager.shouldNotify(
           product.id,
           shop.id,
           result
@@ -259,7 +279,7 @@ export class PriceMonitor {
 
           try {
             await this.notificationService.sendAlert(product, result, shop);
-            this.stateManager.markNotified(product.id, shop.id, result);
+            await this.stateManager.markNotified(product.id, shop.id, result);
           } catch (error) {
             this.logger.error('Failed to send notification', {
               product: product.id,

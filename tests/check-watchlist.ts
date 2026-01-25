@@ -1,18 +1,31 @@
+import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { chromium, Browser } from 'playwright';
 import { ShopConfig, WatchlistProductInternal } from '../src/types';
 import { ScraperFactory } from '../src/scrapers/ScraperFactory';
 import { Logger } from '../src/services/Logger';
-import { FileShopRepository, FileWatchlistRepository } from '../src/repositories';
+import { FileShopRepository, MongoWatchlistRepository, connectDB, disconnectDB } from '../src/repositories';
 
-// Create repositories
+// Load environment variables
+dotenv.config();
+
+// Create shop repository (still file-based)
 const shopRepository = new FileShopRepository(path.join(__dirname, '../src/config/shops'));
-const watchlistRepository = new FileWatchlistRepository(path.join(__dirname, '../src/config/watchlist.json'));
 
 /**
  * Checks all watchlist products against all shops and displays availability/prices
  */
 async function checkWatchlist() {
+  // Connect to MongoDB
+  const mongodbUri = process.env.MONGODB_URI;
+  if (!mongodbUri) {
+    console.error('ERROR: MONGODB_URI is not set in .env file');
+    process.exit(1);
+  }
+
+  await connectDB(mongodbUri);
+  const watchlistRepository = new MongoWatchlistRepository();
+
   // Get optional shop filter from command line args
   const shopFilter = process.argv[2]?.toLowerCase();
 
@@ -81,6 +94,8 @@ async function checkWatchlist() {
 
   console.log('✨ Check complete!');
   console.log('');
+
+  await disconnectDB();
 }
 
 async function checkProductAtShop(
