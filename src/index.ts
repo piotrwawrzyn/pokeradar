@@ -40,16 +40,6 @@ async function main() {
   const fastShops = shops.filter(s => !s.engine || s.engine === 'cheerio').length;
   const slowShops = shops.filter(s => s.engine === 'playwright').length;
 
-  // Send startup message to Telegram
-  const notificationService = new NotificationService(telegramToken, telegramChatId);
-  await notificationService.sendStartupMessage(
-    fastShops,
-    slowShops,
-    intervalMs / 60000,
-    playwrightIntervalMs / 60000,
-    products
-  );
-
   try {
     // Create and initialize monitor
     const monitor = new PriceMonitor(
@@ -60,6 +50,16 @@ async function main() {
       intervalMs,
       logLevel,
       playwrightIntervalMs
+    );
+
+    // Send startup message using monitor's notification service (avoids extra TelegramBot instance)
+    const notificationService = new NotificationService(telegramToken, telegramChatId);
+    await notificationService.sendStartupMessage(
+      fastShops,
+      slowShops,
+      intervalMs / 60000,
+      playwrightIntervalMs / 60000,
+      products
     );
 
     await monitor.initialize();

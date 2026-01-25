@@ -121,7 +121,13 @@ export class PriceMonitor {
       }
 
       const duration = Date.now() - startTime;
-      this.logger.info('Cheerio scan cycle completed', { durationMs: duration });
+      const memUsage = process.memoryUsage();
+      this.logger.info('Cheerio scan cycle completed', {
+        durationMs: duration,
+        heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
+        heapTotalMB: Math.round(memUsage.heapTotal / 1024 / 1024),
+        rssMB: Math.round(memUsage.rss / 1024 / 1024)
+      });
     } finally {
       this.isCheerioScanning = false;
     }
@@ -177,7 +183,13 @@ export class PriceMonitor {
       }
 
       const duration = Date.now() - startTime;
-      this.logger.info('Playwright scan cycle completed', { durationMs: duration });
+      const memUsage = process.memoryUsage();
+      this.logger.info('Playwright scan cycle completed', {
+        durationMs: duration,
+        heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
+        heapTotalMB: Math.round(memUsage.heapTotal / 1024 / 1024),
+        rssMB: Math.round(memUsage.rss / 1024 / 1024)
+      });
     } finally {
       this.isPlaywrightScanning = false;
     }

@@ -80,15 +80,19 @@ export class CheerioEngine implements IEngine {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
     'Accept-Language': 'en-US,en;q=0.5',
     'Accept-Encoding': 'gzip, deflate, br',
-    'Connection': 'keep-alive',
+    'Connection': 'close',  // Don't keep connections alive to reduce memory
     'Upgrade-Insecure-Requests': '1',
   };
 
   async goto(url: string): Promise<void> {
-    const response = await axios.get(url, {
+    // Clear previous DOM before loading new one
+    this.$ = null;
+
+    const response = await axios.get<string>(url, {
       headers: this.defaultHeaders,
       timeout: 30000,
       maxRedirects: 5,
+      responseType: 'text',  // Ensure we get text, not buffer
     });
 
     this.$ = cheerio.load(response.data);
