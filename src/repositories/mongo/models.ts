@@ -72,7 +72,7 @@ const NotificationStateSchema = new Schema<INotificationStateDoc>({
 const ProductResultSchema = new Schema<IProductResultDoc>({
   productId: { type: String, required: true },
   shopId: { type: String, required: true },
-  productUrl: { type: String, required: true },
+  productUrl: { type: String, default: '' },
   price: { type: Number, default: null },
   isAvailable: { type: Boolean, required: true },
   timestamp: { type: Date, required: true }
