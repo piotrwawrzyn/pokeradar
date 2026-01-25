@@ -50,23 +50,43 @@ export class MongoProductResultRepository implements IProductResultRepository {
     }));
   }
 
-  async getBestPrice(productId: string, shopId?: string): Promise<ProductResult | null> {
-    const query: { productId: string; shopId?: string; price: { $ne: null } } = {
-      productId,
-      price: { $ne: null }
-    };
-
-    if (shopId) {
-      query.shopId = shopId;
-    }
-
-    const doc = await ProductResultModel
-      .findOne(query)
-      .sort({ price: 1 })
-      .lean();
-
+  async getCurrentBestOffer(
+    productId: string
+  ): Promise<ProductResult | null> {
+  
+    const [doc] = await ProductResultModel.aggregate([
+      {
+        $match: {
+          productId,
+          isAvailable: true,
+          price: { $ne: null }
+        }
+      },
+      {
+        $sort: {
+          shopId: 1,
+          timestamp: -1
+        }
+      },
+      {
+        $group: {
+          _id: '$shopId',
+          doc: { $first: '$$ROOT' } // latest result per shop
+        }
+      },
+      {
+        $replaceRoot: { newRoot: '$doc' }
+      },
+      {
+        $sort: { price: 1 } // cheapest current offer wins
+      },
+      {
+        $limit: 1
+      }
+    ]);
+  
     if (!doc) return null;
-
+  
     return {
       productId: doc.productId,
       shopId: doc.shopId,
@@ -76,7 +96,6 @@ export class MongoProductResultRepository implements IProductResultRepository {
       timestamp: doc.timestamp
     };
   }
-
   async getRecent(limit = 100): Promise<ProductResult[]> {
     const docs = await ProductResultModel
       .find()

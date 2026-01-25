@@ -90,7 +90,7 @@ async function main() {
     console.error('ERROR: MONGODB_URI is not set');
     process.exit(1);
   }
-
+  
   // Connect to MongoDB
   await connectDB(mongodbUri);
 
@@ -110,7 +110,7 @@ async function main() {
     const bestPrices: BestPrice[] = [];
 
     for (const product of products) {
-      const bestResult = await resultsRepo.getBestPrice(product.id);
+      const bestResult = await resultsRepo.getCurrentBestOffer(product.id);
       bestPrices.push({
         product,
         result: bestResult
