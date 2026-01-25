@@ -142,6 +142,8 @@ export class PlaywrightEngine implements IEngine {
       waitUntil: 'domcontentloaded',
       timeout: this.NAVIGATION_TIMEOUT
     });
+
+    await this.page.waitForTimeout(2000)
   }
 
   getCurrentUrl(): string | null {
