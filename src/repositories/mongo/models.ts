@@ -80,8 +80,8 @@ const ProductResultSchema = new Schema<IProductResultDoc>({
   timestamps: { createdAt: true, updatedAt: false }
 });
 
-// Create TTL index for ProductResult - expires after 7 days
-ProductResultSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7 * 24 * 60 * 60 });
+// Create TTL index for ProductResult - expires after 1 hour
+ProductResultSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 });
 
 // Create compound index for efficient queries
 ProductResultSchema.index({ productId: 1, shopId: 1, timestamp: -1 });
