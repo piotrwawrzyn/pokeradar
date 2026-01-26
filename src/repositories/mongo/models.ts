@@ -35,10 +35,12 @@ export interface INotificationStateDoc extends Document {
 export interface IProductResultDoc extends Document {
   productId: string;
   shopId: string;
+  hourBucket: string; // Format: "YYYY-MM-DDTHH" for hourly aggregation
   productUrl: string;
   price: number | null;
   isAvailable: boolean;
   timestamp: Date;
+  scanCount: number; // Track how many scans occurred in this hour
   createdAt: Date;
 }
 
@@ -68,23 +70,31 @@ const NotificationStateSchema = new Schema<INotificationStateDoc>({
   timestamps: { createdAt: false, updatedAt: true }
 });
 
-// ProductResult Schema with TTL (auto-expire after 7 days)
+// ProductResult Schema with TTL and hourly aggregation
 const ProductResultSchema = new Schema<IProductResultDoc>({
   productId: { type: String, required: true },
   shopId: { type: String, required: true },
+  hourBucket: { type: String, required: true }, // "YYYY-MM-DDTHH" for hourly deduplication
   productUrl: { type: String, default: '' },
   price: { type: Number, default: null },
   isAvailable: { type: Boolean, required: true },
-  timestamp: { type: Date, required: true }
+  timestamp: { type: Date, required: true },
+  scanCount: { type: Number, default: 1 }
 }, {
   timestamps: { createdAt: true, updatedAt: false }
 });
 
-// Create TTL index for ProductResult - expires after 1 hour
-ProductResultSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 });
+// Unique compound index for hourly upserts - ensures 1 record per product/shop/hour
+ProductResultSchema.index(
+  { productId: 1, shopId: 1, hourBucket: 1 },
+  { unique: true }
+);
 
-// Create compound index for efficient queries
-ProductResultSchema.index({ productId: 1, shopId: 1, timestamp: -1 });
+// TTL index - expires after 24 hours (keep 1 day of hourly history)
+ProductResultSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 });
+
+// Query index for efficient lookups
+ProductResultSchema.index({ productId: 1, timestamp: -1 });
 NotificationStateSchema.index({ productId: 1, shopId: 1 });
 
 export const WatchlistProductModel = mongoose.model<IWatchlistProductDoc>('WatchlistProduct', WatchlistProductSchema);

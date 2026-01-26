@@ -106,16 +106,14 @@ async function main() {
       return;
     }
 
-    // Find best price for each product
-    const bestPrices: BestPrice[] = [];
+    // Find best price for each product (single batch query)
+    const productIds = products.map(p => p.id);
+    const bestOffersMap = await resultsRepo.getBestOffersForProducts(productIds);
 
-    for (const product of products) {
-      const bestResult = await resultsRepo.getCurrentBestOffer(product.id);
-      bestPrices.push({
-        product,
-        result: bestResult
-      });
-    }
+    const bestPrices: BestPrice[] = products.map(product => ({
+      product,
+      result: bestOffersMap.get(product.id) || null
+    }));
 
     // Send summary via Telegram
     const bot = new TelegramBot(telegramToken, { polling: false });
