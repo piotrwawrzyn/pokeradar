@@ -1,5 +1,5 @@
 import { chromium, Browser } from 'playwright';
-import { ShopConfig, WatchlistProductInternal } from '../types';
+import { ShopConfig, WatchlistProductInternal, ProductResult } from '../types';
 import { ScraperFactory } from '../scrapers/ScraperFactory';
 import { NotificationService } from './NotificationService';
 import { StateManager } from './StateManager';
@@ -9,6 +9,10 @@ import { IShopRepository, IWatchlistRepository, INotificationStateRepository, IP
 /**
  * Price monitor that scans products across shops.
  * Designed for single-run cron execution.
+ *
+ * Optimized for reduced MongoDB egress:
+ * - Buffers all results in memory during scan
+ * - Single batch upsert at end of cycle (1 record per product/shop/hour)
  */
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
@@ -19,6 +23,9 @@ export class PriceMonitor {
   private shopRepository: IShopRepository;
   private watchlistRepository: IWatchlistRepository;
   private productResultRepository?: IProductResultRepository;
+
+  /** Buffer for scan results - flushed at end of scan cycle */
+  private scanResultsBuffer: ProductResult[] = [];
 
   constructor(
     telegramToken: string,
@@ -163,6 +170,7 @@ export class PriceMonitor {
 
   /**
    * Runs a full scan cycle (both Cheerio and Playwright).
+   * Buffers all results and performs a single batch upsert at the end.
    */
   async runFullScanCycle(): Promise<void> {
     this.logger.info('Starting full scan cycle', {
@@ -170,10 +178,40 @@ export class PriceMonitor {
       products: this.products.length
     });
 
+    // Reset buffer at start of cycle
+    this.scanResultsBuffer = [];
+
     await this.runCheerioScanCycle();
     await this.runPlaywrightScanCycle();
 
+    // Flush buffered results with hourly upsert (1 record per product/shop/hour)
+    await this.flushResultsBuffer();
+
     this.logger.info('Full scan cycle completed');
+  }
+
+  /**
+   * Flushes buffered scan results to MongoDB using hourly upsert.
+   * Single batch operation reduces network egress significantly.
+   */
+  private async flushResultsBuffer(): Promise<void> {
+    if (!this.productResultRepository || this.scanResultsBuffer.length === 0) {
+      return;
+    }
+
+    try {
+      await this.productResultRepository.upsertHourlyBatch(this.scanResultsBuffer);
+      this.logger.info('Flushed scan results to database', {
+        count: this.scanResultsBuffer.length
+      });
+    } catch (error) {
+      this.logger.error('Failed to flush scan results', {
+        count: this.scanResultsBuffer.length,
+        error: error instanceof Error ? error.message : String(error)
+      });
+    } finally {
+      this.scanResultsBuffer = [];
+    }
   }
 
   /**
@@ -197,18 +235,8 @@ export class PriceMonitor {
         url: result.productUrl
       });
 
-      // Save result to repository
-      if (this.productResultRepository) {
-        try {
-          await this.productResultRepository.save(result);
-        } catch (error) {
-          this.logger.error('Failed to save product result', {
-            product: product.id,
-            shop: shop.id,
-            error: error instanceof Error ? error.message : String(error)
-          });
-        }
-      }
+      // Buffer result for batch write at end of scan cycle
+      this.scanResultsBuffer.push(result);
 
       // Check if we should notify
       const meetsMaxPrice = result.price !== null && result.price <= product.price.max;
