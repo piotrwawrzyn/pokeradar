@@ -42,9 +42,53 @@ export class MongoNotificationStateRepository implements INotificationStateRepos
     );
   }
 
+  /**
+   * Batch upsert multiple states in a single bulkWrite operation.
+   */
+  async setBatch(states: NotificationState[]): Promise<void> {
+    if (states.length === 0) return;
+
+    const operations = states.map(state => {
+      const key = this.getKey(state.productId, state.shopId);
+      return {
+        updateOne: {
+          filter: { key },
+          update: {
+            $set: {
+              key,
+              productId: state.productId,
+              shopId: state.shopId,
+              lastNotified: state.lastNotified,
+              lastPrice: state.lastPrice,
+              wasAvailable: state.wasAvailable
+            }
+          },
+          upsert: true
+        }
+      };
+    });
+
+    await NotificationStateModel.bulkWrite(operations, { ordered: false });
+  }
+
   async delete(productId: string, shopId: string): Promise<void> {
     const key = this.getKey(productId, shopId);
     await NotificationStateModel.deleteOne({ key });
+  }
+
+  /**
+   * Batch delete multiple states in a single bulkWrite operation.
+   */
+  async deleteBatch(keys: Array<{ productId: string; shopId: string }>): Promise<void> {
+    if (keys.length === 0) return;
+
+    const operations = keys.map(({ productId, shopId }) => ({
+      deleteOne: {
+        filter: { key: this.getKey(productId, shopId) }
+      }
+    }));
+
+    await NotificationStateModel.bulkWrite(operations, { ordered: false });
   }
 
   async getAll(): Promise<NotificationState[]> {
