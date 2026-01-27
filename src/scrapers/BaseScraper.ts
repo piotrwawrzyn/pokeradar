@@ -211,10 +211,22 @@ export abstract class BaseScraper {
     // Try each availability selector - presence of matching element means available
     for (const selector of selectors) {
       const exists = await this.engine.exists(selector);
+
+      // Debug: log what we found
       if (exists) {
+        const text = await this.engine.extract(selector);
+        this.logger?.debug('Availability check matched', {
+          shop: this.config.id,
+          selector: typeof selector === 'string' ? selector : selector.value,
+          matchedText: text?.substring(0, 100)
+        });
         return true;
       }
     }
+
+    this.logger?.debug('Availability check: no match found', {
+      shop: this.config.id
+    });
 
     return false;
   }
