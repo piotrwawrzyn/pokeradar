@@ -12,11 +12,17 @@ import { Logger } from './Logger';
  * When state resets, the next time criteria is met, a notification will be sent.
  *
  * Supports both in-memory state and persistent MongoDB storage.
+ * Buffers changes for batch persistence to minimize DB operations.
  */
-export class StateManager {
+export class NotificationStateManager {
   private state: Map<string, NotificationState> = new Map();
   private logger: Logger;
   private repository?: INotificationStateRepository;
+
+  /** Buffer for states to upsert at end of scan cycle */
+  private pendingUpserts: Map<string, NotificationState> = new Map();
+  /** Buffer for keys to delete at end of scan cycle */
+  private pendingDeletes: Set<string> = new Set();
 
   constructor(logger?: Logger, repository?: INotificationStateRepository) {
     this.logger = logger || new Logger();
@@ -39,37 +45,27 @@ export class StateManager {
 
   /**
    * Determines if a notification should be sent for this product/shop combination.
+   * Reset conditions are now handled by updateTrackedState() which should be
+   * called on every scan.
    */
-  async shouldNotify(productId: string, shopId: string, result: ProductResult): Promise<boolean> {
+  shouldNotify(productId: string, shopId: string): boolean {
     const key = this.getKey(productId, shopId);
     const prevState = this.state.get(key);
 
-    // First time seeing this product - should notify
+    // No previous notification - should notify
     if (!prevState || !prevState.lastNotified) {
       return true;
     }
 
-    // Check reset conditions
-    const shouldReset = this.checkResetConditions(prevState, result);
-
-    if (shouldReset) {
-      this.logger.info('State reset condition met', {
-        product: productId,
-        shop: shopId,
-        reason: this.getResetReason(prevState, result)
-      });
-      await this.resetState(key);
-      return true;
-    }
-
-    // Already notified and no reset conditions met
+    // Already notified and state hasn't been reset
     return false;
   }
 
   /**
    * Marks a product/shop combination as notified with current state.
+   * Buffers the change for batch persistence - call flushChanges() at end of cycle.
    */
-  async markNotified(productId: string, shopId: string, result: ProductResult): Promise<void> {
+  markNotified(productId: string, shopId: string, result: ProductResult): void {
     const key = this.getKey(productId, shopId);
 
     const state: NotificationState = {
@@ -82,9 +78,36 @@ export class StateManager {
 
     this.state.set(key, state);
 
-    // Persist to repository if available
-    if (this.repository) {
-      await this.repository.set(state);
+    // Buffer for batch persistence
+    this.pendingDeletes.delete(key); // Cancel any pending delete
+    this.pendingUpserts.set(key, state);
+  }
+
+  /**
+   * Updates tracked state for a product/shop (called on every scan).
+   * This enables reset condition detection when product becomes unavailable
+   * or price increases - even when notification criteria aren't met.
+   * Buffers changes for batch persistence - call flushChanges() at end of cycle.
+   */
+  updateTrackedState(productId: string, shopId: string, result: ProductResult): void {
+    const key = this.getKey(productId, shopId);
+    const prevState = this.state.get(key);
+
+    // No previous state - nothing to track yet
+    if (!prevState || !prevState.lastNotified) {
+      return;
+    }
+
+    // Check if reset conditions are met
+    const shouldReset = this.checkResetConditions(prevState, result);
+
+    if (shouldReset) {
+      this.logger.info('State reset condition met', {
+        product: productId,
+        shop: shopId,
+        reason: this.getResetReason(prevState, result)
+      });
+      this.resetState(key);
     }
   }
 
@@ -136,15 +159,63 @@ export class StateManager {
 
   /**
    * Resets the notification state for a product/shop combination.
+   * Buffers the change for batch persistence - call flushChanges() at end of cycle.
    */
-  private async resetState(key: string): Promise<void> {
+  private resetState(key: string): void {
     this.state.delete(key);
 
-    // Also delete from repository if available
-    if (this.repository) {
-      const [productId, shopId] = key.split(':');
-      await this.repository.delete(productId, shopId);
+    // Buffer for batch persistence
+    this.pendingUpserts.delete(key); // Cancel any pending upsert
+    this.pendingDeletes.add(key);
+  }
+
+  /**
+   * Flushes all buffered state changes to the repository.
+   * Call this at the end of a scan cycle to batch all DB operations.
+   */
+  async flushChanges(): Promise<void> {
+    if (!this.repository) {
+      this.clearBuffers();
+      return;
     }
+
+    const upsertCount = this.pendingUpserts.size;
+    const deleteCount = this.pendingDeletes.size;
+
+    if (upsertCount === 0 && deleteCount === 0) {
+      return;
+    }
+
+    try {
+      // Batch upsert all pending states
+      if (upsertCount > 0) {
+        await this.repository.setBatch(Array.from(this.pendingUpserts.values()));
+      }
+
+      // Batch delete all pending deletes
+      if (deleteCount > 0) {
+        const keysToDelete = Array.from(this.pendingDeletes).map(key => {
+          const [productId, shopId] = key.split(':');
+          return { productId, shopId };
+        });
+        await this.repository.deleteBatch(keysToDelete);
+      }
+
+      this.logger.info('Flushed notification state changes', {
+        upserts: upsertCount,
+        deletes: deleteCount
+      });
+    } finally {
+      this.clearBuffers();
+    }
+  }
+
+  /**
+   * Clears the pending change buffers.
+   */
+  private clearBuffers(): void {
+    this.pendingUpserts.clear();
+    this.pendingDeletes.clear();
   }
 
   /**

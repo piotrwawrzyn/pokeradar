@@ -2,7 +2,7 @@ import { chromium, Browser } from 'playwright';
 import { ShopConfig, WatchlistProductInternal, ProductResult } from '../types';
 import { ScraperFactory } from '../scrapers/ScraperFactory';
 import { NotificationService } from './NotificationService';
-import { StateManager } from './StateManager';
+import { NotificationStateManager } from './NotificationStateManager';
 import { Logger } from './Logger';
 import { IShopRepository, IWatchlistRepository, INotificationStateRepository, IProductResultRepository } from '../repositories';
 
@@ -17,7 +17,7 @@ import { IShopRepository, IWatchlistRepository, INotificationStateRepository, IP
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
   private products: WatchlistProductInternal[] = [];
-  private stateManager: StateManager;
+  private stateManager: NotificationStateManager;
   private notificationService: NotificationService;
   private logger: Logger;
   private shopRepository: IShopRepository;
@@ -37,7 +37,7 @@ export class PriceMonitor {
     productResultRepository?: IProductResultRepository
   ) {
     this.logger = new Logger(logLevel);
-    this.stateManager = new StateManager(this.logger, notificationStateRepository);
+    this.stateManager = new NotificationStateManager(this.logger, notificationStateRepository);
     this.notificationService = new NotificationService(
       telegramToken,
       telegramChatId,
@@ -184,34 +184,39 @@ export class PriceMonitor {
     await this.runCheerioScanCycle();
     await this.runPlaywrightScanCycle();
 
-    // Flush buffered results with hourly upsert (1 record per product/shop/hour)
-    await this.flushResultsBuffer();
+    // Flush all buffered data to MongoDB in batch operations
+    await this.flushAllChanges();
 
     this.logger.info('Full scan cycle completed');
   }
 
   /**
-   * Flushes buffered scan results to MongoDB using hourly upsert.
-   * Single batch operation reduces network egress significantly.
+   * Flushes all buffered changes to MongoDB.
+   * Coordinates ProductResult and NotificationState batch writes.
    */
-  private async flushResultsBuffer(): Promise<void> {
-    if (!this.productResultRepository || this.scanResultsBuffer.length === 0) {
-      return;
+  private async flushAllChanges(): Promise<void> {
+    const resultsCount = this.scanResultsBuffer.length;
+
+    // Flush ProductResults
+    if (this.productResultRepository && resultsCount > 0) {
+      try {
+        await this.productResultRepository.upsertHourlyBatch(this.scanResultsBuffer);
+      } catch (error) {
+        this.logger.error('Failed to flush scan results', {
+          count: resultsCount,
+          error: error instanceof Error ? error.message : String(error)
+        });
+      }
     }
 
-    try {
-      await this.productResultRepository.upsertHourlyBatch(this.scanResultsBuffer);
-      this.logger.info('Flushed scan results to database', {
-        count: this.scanResultsBuffer.length
-      });
-    } catch (error) {
-      this.logger.error('Failed to flush scan results', {
-        count: this.scanResultsBuffer.length,
-        error: error instanceof Error ? error.message : String(error)
-      });
-    } finally {
-      this.scanResultsBuffer = [];
-    }
+    // Flush NotificationState changes
+    await this.stateManager.flushChanges();
+
+    this.logger.info('Flushed all changes to database', {
+      productResults: resultsCount
+    });
+
+    this.scanResultsBuffer = [];
   }
 
   /**
@@ -238,16 +243,16 @@ export class PriceMonitor {
       // Buffer result for batch write at end of scan cycle
       this.scanResultsBuffer.push(result);
 
+      // Update tracked state on every scan - enables reset detection
+      // when product becomes unavailable or price increases (buffered)
+      this.stateManager.updateTrackedState(product.id, shop.id, result);
+
       // Check if we should notify
       const meetsMaxPrice = result.price !== null && result.price <= product.price.max;
       const meetsAllCriteria = result.isAvailable && meetsMaxPrice;
 
       if (meetsAllCriteria) {
-        const shouldNotify = await this.stateManager.shouldNotify(
-          product.id,
-          shop.id,
-          result
-        );
+        const shouldNotify = this.stateManager.shouldNotify(product.id, shop.id);
 
         if (shouldNotify) {
           this.logger.info('Sending notification', {
@@ -258,7 +263,7 @@ export class PriceMonitor {
 
           try {
             await this.notificationService.sendAlert(product, result, shop);
-            await this.stateManager.markNotified(product.id, shop.id, result);
+            this.stateManager.markNotified(product.id, shop.id, result);
           } catch (error) {
             this.logger.error('Failed to send notification', {
               product: product.id,
