@@ -40,7 +40,6 @@ export interface IProductResultDoc extends Document {
   price: number | null;
   isAvailable: boolean;
   timestamp: Date;
-  scanCount: number; // Track how many scans occurred in this hour
   createdAt: Date;
 }
 
@@ -78,8 +77,7 @@ const ProductResultSchema = new Schema<IProductResultDoc>({
   productUrl: { type: String, default: '' },
   price: { type: Number, default: null },
   isAvailable: { type: Boolean, required: true },
-  timestamp: { type: Date, required: true },
-  scanCount: { type: Number, default: 1 }
+  timestamp: { type: Date, required: true }
 }, {
   timestamps: { createdAt: true, updatedAt: false }
 });

@@ -104,8 +104,8 @@ export class PlaywrightEngine implements IEngine {
   private ownsBrowser: boolean = false;
   private browser: Browser | null = null;
 
-  private readonly NAVIGATION_TIMEOUT = 30000;  // 30 seconds max for page load
-  private readonly ACTION_TIMEOUT = 10000;  // 10 seconds max for element actions
+  private readonly NAVIGATION_TIMEOUT = 15000;  // 15 seconds max for page load
+  private readonly ACTION_TIMEOUT = 5000;  // 5 seconds max for element actions
 
   constructor(private existingBrowser?: Browser, private logger?: Logger) {}
 
@@ -118,7 +118,23 @@ export class PlaywrightEngine implements IEngine {
       } else {
         // Import chromium dynamically to avoid loading it when using Cheerio
         const { chromium } = await import('playwright');
-        this.browser = await chromium.launch({ headless: true });
+        this.browser = await chromium.launch({
+          headless: true,
+          args: [
+            '--disable-gpu',
+            '--disable-dev-shm-usage',
+            '--disable-extensions',
+            '--no-sandbox',
+            '--disable-background-networking',
+            '--disable-default-apps',
+            '--disable-sync',
+            '--disable-translate',
+            '--metrics-recording-only',
+            '--mute-audio',
+            '--no-first-run',
+            '--safebrowsing-disable-auto-update'
+          ]
+        });
         this.page = await this.browser.newPage();
         this.ownsBrowser = true;
       }
@@ -127,14 +143,29 @@ export class PlaywrightEngine implements IEngine {
       this.page.setDefaultTimeout(this.ACTION_TIMEOUT);
       this.page.setDefaultNavigationTimeout(this.NAVIGATION_TIMEOUT);
 
-      // Block unnecessary resources to save bandwidth and CPU
+      // Block unnecessary resources to save bandwidth, CPU, and memory
       await this.page.route('**/*', (route) => {
         const resourceType = route.request().resourceType();
+        const url = route.request().url();
+
+        // Block heavy resource types
         if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
           route.abort();
-        } else {
-          route.continue();
+          return;
         }
+
+        // Block common third-party scripts (analytics, ads, tracking)
+        const blockedDomains = [
+          'google-analytics.com', 'googletagmanager.com', 'facebook.net',
+          'doubleclick.net', 'hotjar.com', 'clarity.ms', 'crisp.chat',
+          'tawk.to', 'intercom.io', 'zendesk.com', 'livechatinc.com'
+        ];
+        if (blockedDomains.some(domain => url.includes(domain))) {
+          route.abort();
+          return;
+        }
+
+        route.continue();
       });
     }
 
@@ -143,7 +174,8 @@ export class PlaywrightEngine implements IEngine {
       timeout: this.NAVIGATION_TIMEOUT
     });
 
-    await this.page.waitForTimeout(2000)
+    // Short wait for dynamic content to settle (reduced from 2000ms)
+    await this.page.waitForTimeout(500);
   }
 
   getCurrentUrl(): string | null {

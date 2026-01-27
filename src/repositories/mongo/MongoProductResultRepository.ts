@@ -23,8 +23,7 @@ export class MongoProductResultRepository implements IProductResultRepository {
       productUrl: result.productUrl,
       price: result.price,
       isAvailable: result.isAvailable,
-      timestamp: result.timestamp,
-      scanCount: 1
+      timestamp: result.timestamp
     });
   }
 
@@ -39,8 +38,7 @@ export class MongoProductResultRepository implements IProductResultRepository {
         productUrl: r.productUrl,
         price: r.price,
         isAvailable: r.isAvailable,
-        timestamp: r.timestamp,
-        scanCount: 1
+        timestamp: r.timestamp
       }))
     );
   }
@@ -69,7 +67,6 @@ export class MongoProductResultRepository implements IProductResultRepository {
               isAvailable: result.isAvailable,
               timestamp: result.timestamp
             },
-            $inc: { scanCount: 1 },
             $setOnInsert: {
               productId: result.productId,
               shopId: result.shopId,
