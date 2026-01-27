@@ -136,7 +136,23 @@ export class PriceMonitor {
     let browser: Browser | null = null;
 
     try {
-      browser = await chromium.launch({ headless: true });
+      browser = await chromium.launch({
+        headless: true,
+        args: [
+          '--disable-gpu',
+          '--disable-dev-shm-usage',
+          '--disable-extensions',
+          '--no-sandbox',
+          '--disable-background-networking',
+          '--disable-default-apps',
+          '--disable-sync',
+          '--disable-translate',
+          '--metrics-recording-only',
+          '--mute-audio',
+          '--no-first-run',
+          '--safebrowsing-disable-auto-update'
+        ]
+      });
 
       for (const shop of playwrightShops) {
         for (const product of this.products) {
@@ -182,6 +198,12 @@ export class PriceMonitor {
     this.scanResultsBuffer = [];
 
     await this.runCheerioScanCycle();
+
+    // Hint GC to clean up before memory-intensive Playwright phase
+    if (global.gc) {
+      global.gc();
+    }
+
     await this.runPlaywrightScanCycle();
 
     // Flush all buffered data to MongoDB in batch operations
