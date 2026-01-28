@@ -1,0 +1,34 @@
+{
+  "id": "skladgier",
+  "name": "Sklad Gier",
+  "baseUrl": "https://skladgier.pl",
+  "searchUrl": "/search?q=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.product-card-wrapper"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "div.card__information h3 a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "div.card__information h3 a"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.price-item",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "product-form.product-form button.product-form__submit:not([disabled])"
+      }
+    }
+  }
+}
