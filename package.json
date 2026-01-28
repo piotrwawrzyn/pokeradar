@@ -2,13 +2,13 @@
   "name": "pokebot_2.0",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/index.js",
+  "main": "dist/app/index.js",
   "scripts": {
     "build": "tsc && npm run copy-configs",
     "copy-configs": "node -e \"require('fs').cpSync('src/config', 'dist/config', {recursive: true})\"",
-    "start": "node dist/index.js",
-    "summary": "node dist/summary.js",
-    "dev": "ts-node src/index.ts",
+    "start": "node dist/app/index.js",
+    "summary": "node dist/app/summary.js",
+    "dev": "ts-node src/app/index.ts",
     "postinstall": "playwright install --with-deps chromium",
     "check": "tsx tests/check-watchlist.ts"
   },
