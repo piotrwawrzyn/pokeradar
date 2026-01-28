@@ -27,7 +27,7 @@
       },
       "available": {
         "type": "css",
-        "value": "ul.dostupnost_holder li.green_text"
+        "value": "div.white-block-product ul.dostupnost_holder li.green_text"
       }
     }
   }
