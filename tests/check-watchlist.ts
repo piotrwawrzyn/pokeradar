@@ -1,10 +1,11 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { chromium, Browser } from 'playwright';
-import { ShopConfig, WatchlistProductInternal } from '../src/types';
-import { ScraperFactory } from '../src/scrapers/ScraperFactory';
-import { Logger } from '../src/services/Logger';
-import { FileShopRepository, MongoWatchlistRepository, connectDB, disconnectDB } from '../src/repositories';
+import { ShopConfig, WatchlistProductInternal } from '../src/shared/types';
+import { ScraperFactory } from '../src/scraper/scrapers';
+import { Logger } from '../src/shared/logger';
+import { FileShopRepository, MongoWatchlistRepository } from '../src/shared/repositories';
+import { connectDB, disconnectDB } from '../src/infrastructure/database';
 
 // Load environment variables
 dotenv.config();
