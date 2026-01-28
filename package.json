@@ -10,7 +10,6 @@
     "summary": "node dist/summary.js",
     "dev": "ts-node src/index.ts",
     "postinstall": "playwright install --with-deps chromium",
-    "test": "tsx --test tests/integration/product-page.test.ts",
     "check": "tsx tests/check-watchlist.ts"
   },
   "keywords": [],

@@ -34,7 +34,8 @@
       "Bash(npx ts-node:*)",
       "Bash(del \"c:\\\\Users\\\\polsk\\\\Desktop\\\\pokebot_2.0\\\\test-rozetka-cheerio.ts\")",
       "Bash(npm run check-watchlist:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
