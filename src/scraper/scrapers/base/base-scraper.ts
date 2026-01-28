@@ -152,12 +152,6 @@ export abstract class BaseScraper implements IScraper {
       const exists = await this.engine.exists(selector);
 
       if (exists) {
-        const text = await this.engine.extract(selector);
-        this.logger?.debug('Availability check matched', {
-          shop: this.config.id,
-          selector: typeof selector === 'string' ? selector : selector.value,
-          matchedText: text?.substring(0, 100),
-        });
         return true;
       }
     }
