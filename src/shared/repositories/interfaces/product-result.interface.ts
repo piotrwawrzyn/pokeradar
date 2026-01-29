@@ -14,7 +14,7 @@ export interface IProductResultRepository {
   upsertHourlyBatch(results: ProductResult[]): Promise<void>;
   getByProduct(productId: string, shopId: string, limit?: number): Promise<ProductResult[]>;
   getCurrentBestOffer(productId: string): Promise<ProductResult | null>;
-  /** Get best offers for multiple products in a single query */
-  getBestOffersForProducts(productIds: string[]): Promise<Map<string, ProductResult>>;
+  /** Get best offers for multiple products. null = fresh data but unavailable, absent = no fresh data */
+  getBestOffersForProducts(productIds: string[]): Promise<Map<string, ProductResult | null>>;
   getRecent(limit?: number): Promise<ProductResult[]>;
 }

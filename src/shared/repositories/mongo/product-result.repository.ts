@@ -7,6 +7,13 @@ import { IProductResultRepository } from '../interfaces';
 import { ProductResultModel } from '../../../infrastructure/database/models';
 import { toProductResult, toProductResultArray, getHourBucket } from './mappers';
 
+function getFreshnessCutoff(): Date {
+  const now = new Date();
+  const cutoff = new Date(now);
+  cutoff.setHours(cutoff.getHours() - 1, 0, 0, 0);
+  return cutoff;
+}
+
 export class MongoProductResultRepository implements IProductResultRepository {
   async save(result: ProductResult): Promise<void> {
     await ProductResultModel.create({
@@ -80,7 +87,7 @@ export class MongoProductResultRepository implements IProductResultRepository {
 
   async getCurrentBestOffer(productId: string): Promise<ProductResult | null> {
     const [doc] = await ProductResultModel.aggregate([
-      { $match: { productId, isAvailable: true, price: { $ne: null } } },
+      { $match: { productId, isAvailable: true, price: { $ne: null }, timestamp: { $gte: getFreshnessCutoff() } } },
       { $sort: { shopId: 1, timestamp: -1 } },
       { $group: { _id: '$shopId', doc: { $first: '$$ROOT' } } },
       { $replaceRoot: { newRoot: '$doc' } },
@@ -92,11 +99,21 @@ export class MongoProductResultRepository implements IProductResultRepository {
     return toProductResult(doc);
   }
 
-  async getBestOffersForProducts(productIds: string[]): Promise<Map<string, ProductResult>> {
+  async getBestOffersForProducts(productIds: string[]): Promise<Map<string, ProductResult | null>> {
     if (productIds.length === 0) return new Map();
 
+    const cutoff = getFreshnessCutoff();
+
+    // Find which products have any fresh data (even if unavailable)
+    const productsWithFreshData = await ProductResultModel.distinct('productId', {
+      productId: { $in: productIds },
+      timestamp: { $gte: cutoff },
+    });
+    const freshSet = new Set<string>(productsWithFreshData);
+
+    // Find best available offers among fresh results
     const docs = await ProductResultModel.aggregate([
-      { $match: { productId: { $in: productIds }, isAvailable: true, price: { $ne: null } } },
+      { $match: { productId: { $in: productIds }, isAvailable: true, price: { $ne: null }, timestamp: { $gte: cutoff } } },
       { $sort: { productId: 1, shopId: 1, timestamp: -1 } },
       { $group: { _id: { productId: '$productId', shopId: '$shopId' }, doc: { $first: '$$ROOT' } } },
       { $replaceRoot: { newRoot: '$doc' } },
@@ -105,7 +122,11 @@ export class MongoProductResultRepository implements IProductResultRepository {
       { $replaceRoot: { newRoot: '$doc' } },
     ]);
 
-    const result = new Map<string, ProductResult>();
+    // null = fresh data exists but nothing available, absent from map = no fresh data at all
+    const result = new Map<string, ProductResult | null>();
+    for (const pid of freshSet) {
+      result.set(pid, null);
+    }
     for (const doc of docs) {
       result.set(doc.productId, toProductResult(doc));
     }
