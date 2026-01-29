@@ -95,8 +95,9 @@ export function formatSummaryFromResults(summaries: ProductSummary[]): string {
     s => s.result?.isAvailable && s.result?.price !== null
   );
   const notFound = summaries.filter(
-    s => !s.result || !s.result.isAvailable || s.result.price === null
+    s => s.result && (!s.result.isAvailable || s.result.price === null)
   );
+  const noData = summaries.filter(s => !s.result);
 
   // Available items section
   if (available.length > 0) {
@@ -119,6 +120,16 @@ export function formatSummaryFromResults(summaries: ProductSummary[]): string {
     message += `❌ *Not Found (${notFound.length})*\n\n`;
 
     for (const s of notFound) {
+      message += `• ${s.product.name}\n`;
+    }
+    message += `\n`;
+  }
+
+  // No data section - stale or missing results
+  if (noData.length > 0) {
+    message += `⚠️ *No Data (${noData.length})*\n\n`;
+
+    for (const s of noData) {
       message += `• ${s.product.name}\n`;
     }
   }

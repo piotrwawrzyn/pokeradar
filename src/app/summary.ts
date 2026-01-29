@@ -60,10 +60,29 @@ async function main() {
     const bestOffersMap = await resultsRepo.getBestOffersForProducts(productIds);
 
     // Build summaries using the unified type
-    const summaries: ProductSummary[] = products.map((product) => ({
-      product,
-      result: bestOffersMap.get(product.id) || null,
-    }));
+    // Map semantics: has key + value = available offer, has key + null = fresh but not found, no key = no data
+    const summaries: ProductSummary[] = products.map((product) => {
+      if (!bestOffersMap.has(product.id)) {
+        // No fresh data at all
+        return { product, result: null };
+      }
+      const offer = bestOffersMap.get(product.id);
+      if (offer) {
+        return { product, result: offer };
+      }
+      // Fresh data exists but nothing available
+      return {
+        product,
+        result: {
+          productId: product.id,
+          shopId: '',
+          productUrl: '',
+          price: null,
+          isAvailable: false,
+          timestamp: new Date(),
+        },
+      };
+    });
 
     // Format and send summary via Telegram
     const bot = new TelegramBot(telegramToken, { polling: false });
