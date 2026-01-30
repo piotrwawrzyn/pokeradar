@@ -1,0 +1,34 @@
+{
+  "id": "strefamtg",
+  "name": "StrefaMTG",
+  "baseUrl": "https://strefamtg.pl",
+  "searchUrl": "/szukaj?controller=search&s=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h2.product-miniature__title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2.product-miniature__title a"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div.current-price span",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not([disabled])"
+      }
+    }
+  }
+}
