@@ -3,6 +3,8 @@
  * Runs a single scan cycle and exits (designed for cron-based execution).
  */
 
+console.log('[BOOT] Process starting', { pid: process.pid, node: process.version, cwd: process.cwd() });
+
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
