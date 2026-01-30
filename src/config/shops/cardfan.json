@@ -1,0 +1,34 @@
+{
+  "id": "cardfan",
+  "name": "CardFan",
+  "baseUrl": "https://www.cardfan.pl",
+  "searchUrl": "/pl/searchquery/",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a.prodname",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "a.prodname"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div.maininfo div.basket em.main-price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.maininfo fieldset.addtobasket-container:not(.none)"
+      }
+    }
+  }
+}
