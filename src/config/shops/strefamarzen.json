@@ -1,0 +1,35 @@
+{
+  "id": "strefamarzen",
+  "name": "Strefa Marzeń",
+  "engine": "playwright",
+  "baseUrl": "https://strefamarzen.pl",
+  "searchUrl": "/en/search?text=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "section#search div.product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h2 a.product__name",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2 a.product__name"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "main h2#projector_price_value",
+        "format": "us"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.projector_buy:not(.--hidden) button.projector_buy__button"
+      }
+    }
+  }
+}
