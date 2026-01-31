@@ -1,0 +1,34 @@
+{
+  "id": "letsgotry",
+  "name": "LetsGoTry",
+  "baseUrl": "https://letsgotry.pl",
+  "searchUrl": "/szukaj?controller=search&s=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h3.product-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product-title span"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div.current-price span",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not([disabled])"
+      }
+    }
+  }
+}
