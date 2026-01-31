@@ -52,7 +52,7 @@ export class PlaywrightEngine implements IEngine {
     }
 
     await this.page!.goto(url, {
-      waitUntil: 'domcontentloaded',
+      waitUntil: 'networkidle',
       timeout: this.NAVIGATION_TIMEOUT,
     });
 
