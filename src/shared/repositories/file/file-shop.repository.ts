@@ -13,7 +13,17 @@ export class FileShopRepository implements IShopRepository {
 
   async getEnabled(): Promise<ShopConfig[]> {
     const all = await this.getAll();
-    return all.filter((shop) => !shop.disabled);
+    const enabled = all.filter((shop) => !shop.disabled);
+
+    const engineFilter = process.env.SHOP_ENGINE?.toLowerCase();
+    if (engineFilter === 'cheerio') {
+      return enabled.filter((shop) => !shop.engine || shop.engine === 'cheerio');
+    }
+    if (engineFilter === 'playwright') {
+      return enabled.filter((shop) => shop.engine === 'playwright');
+    }
+
+    return enabled;
   }
 
   async getAll(): Promise<ShopConfig[]> {
