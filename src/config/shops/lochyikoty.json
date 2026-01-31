@@ -1,0 +1,34 @@
+{
+  "id": "lochyikoty",
+  "name": "Lochy i Koty",
+  "baseUrl": "https://www.lochyikoty.pl",
+  "searchUrl": "/szukaj.html/szukaj=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.Okno"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h3 a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div#InformacjeProduktu span[itemprop='price']",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "p#InfoNiedostepny[style*='display:none']"
+      }
+    }
+  }
+}
