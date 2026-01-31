@@ -6,6 +6,23 @@ import { Browser } from 'playwright';
 import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../shared/types';
 import { ResultBuffer } from './result-buffer';
 
+const CHEERIO_CONCURRENCY = 10;
+const PRODUCT_CONCURRENCY = 3;
+
+async function runWithConcurrency(
+  tasks: (() => Promise<void>)[],
+  limit: number
+): Promise<void> {
+  const queue = [...tasks];
+  const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
+    while (queue.length > 0) {
+      const task = queue.shift()!;
+      await task();
+    }
+  });
+  await Promise.allSettled(workers);
+}
+
 /**
  * Logger interface for scan operations.
  */
@@ -87,8 +104,8 @@ export class ScanCycleRunner {
 
     const startTime = Date.now();
 
-    for (const shop of cheerioShops) {
-      for (const product of products) {
+    const shopTasks = cheerioShops.map((shop) => async () => {
+      const productTasks = products.map((product) => async () => {
         try {
           await this.scanProduct(shop, product);
         } catch (error) {
@@ -99,8 +116,11 @@ export class ScanCycleRunner {
             error: error instanceof Error ? error.message : String(error),
           });
         }
-      }
-    }
+      });
+      await runWithConcurrency(productTasks, PRODUCT_CONCURRENCY);
+    });
+
+    await runWithConcurrency(shopTasks, CHEERIO_CONCURRENCY);
 
     this.logCycleCompletion('Cheerio', startTime);
   }
