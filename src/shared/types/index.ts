@@ -7,4 +7,3 @@ export * from './selector.types';
 export * from './shop.types';
 export * from './product.types';
 export * from './notification.types';
-export * from './summary.types';

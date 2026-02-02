@@ -8,19 +8,20 @@ import { NotificationStateModel } from '../../../infrastructure/database/models'
 import { toNotificationState, getStateKey } from './mappers';
 
 export class MongoNotificationStateRepository implements INotificationStateRepository {
-  async get(productId: string, shopId: string): Promise<NotificationState | null> {
-    const key = getStateKey(productId, shopId);
+  async get(userId: string, productId: string, shopId: string): Promise<NotificationState | null> {
+    const key = getStateKey(userId, productId, shopId);
     const doc = await NotificationStateModel.findOne({ key }).lean();
     if (!doc) return null;
     return toNotificationState(doc as any);
   }
 
   async set(state: NotificationState): Promise<void> {
-    const key = getStateKey(state.productId, state.shopId);
+    const key = getStateKey(state.userId, state.productId, state.shopId);
     await NotificationStateModel.updateOne(
       { key },
       {
         key,
+        userId: state.userId,
         productId: state.productId,
         shopId: state.shopId,
         lastNotified: state.lastNotified,
@@ -35,13 +36,14 @@ export class MongoNotificationStateRepository implements INotificationStateRepos
     if (states.length === 0) return;
 
     const operations = states.map((state) => {
-      const key = getStateKey(state.productId, state.shopId);
+      const key = getStateKey(state.userId, state.productId, state.shopId);
       return {
         updateOne: {
           filter: { key },
           update: {
             $set: {
               key,
+              userId: state.userId,
               productId: state.productId,
               shopId: state.shopId,
               lastNotified: state.lastNotified,
@@ -57,25 +59,26 @@ export class MongoNotificationStateRepository implements INotificationStateRepos
     await NotificationStateModel.bulkWrite(operations, { ordered: false });
   }
 
-  async delete(productId: string, shopId: string): Promise<void> {
-    const key = getStateKey(productId, shopId);
+  async delete(userId: string, productId: string, shopId: string): Promise<void> {
+    const key = getStateKey(userId, productId, shopId);
     await NotificationStateModel.deleteOne({ key });
   }
 
-  async deleteBatch(keys: Array<{ productId: string; shopId: string }>): Promise<void> {
+  async deleteBatch(keys: Array<{ userId: string; productId: string; shopId: string }>): Promise<void> {
     if (keys.length === 0) return;
 
-    const operations = keys.map(({ productId, shopId }) => ({
+    const operations = keys.map(({ userId, productId, shopId }) => ({
       deleteOne: {
-        filter: { key: getStateKey(productId, shopId) },
+        filter: { key: getStateKey(userId, productId, shopId) },
       },
     }));
 
     await NotificationStateModel.bulkWrite(operations, { ordered: false });
   }
 
-  async getAll(): Promise<NotificationState[]> {
-    const docs = await NotificationStateModel.find().lean();
+  async getAll(productIds?: string[]): Promise<NotificationState[]> {
+    const filter = productIds ? { productId: { $in: productIds } } : {};
+    const docs = await NotificationStateModel.find(filter).lean();
     return docs.map((doc) => toNotificationState(doc as any));
   }
 }

@@ -1,11 +1,13 @@
 /**
  * Price monitor that orchestrates product scanning across shops.
- * Designed for single-run cron execution.
+ * Designed for single-run cron execution with multi-user notification support.
  */
 
 import { ShopConfig, WatchlistProductInternal } from '../../shared/types';
+import { MultiUserNotificationDispatcher } from '../../shared/notification';
+import { NotificationStateService } from '../../shared/notification';
 import { ResultBuffer, IProductResultRepository } from './result-buffer';
-import { ScanCycleRunner, IScraperFactory, INotificationStateManager, INotificationService, IScanLogger } from './scan-cycle-runner';
+import { ScanCycleRunner, IScraperFactory, IScanLogger } from './scan-cycle-runner';
 
 /**
  * Repository interfaces.
@@ -23,8 +25,8 @@ export interface IWatchlistRepository {
  */
 export interface PriceMonitorConfig {
   scraperFactory: IScraperFactory;
-  notificationService: INotificationService;
-  stateManager: INotificationStateManager & { loadFromRepository(): Promise<void>; flushChanges(): Promise<void> };
+  dispatcher: MultiUserNotificationDispatcher;
+  stateManager: NotificationStateService;
   shopRepository: IShopRepository;
   watchlistRepository: IWatchlistRepository;
   productResultRepository?: IProductResultRepository;
@@ -34,6 +36,9 @@ export interface PriceMonitorConfig {
 /**
  * Price monitor that scans products across shops.
  * Optimized for reduced MongoDB egress with batch operations.
+ *
+ * DB queries per cycle: 4 total (3 preloads + 1 state flush),
+ * regardless of user count.
  */
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
@@ -50,14 +55,13 @@ export class PriceMonitor {
     this.cycleRunner = new ScanCycleRunner({
       scraperFactory: config.scraperFactory,
       resultBuffer: this.resultBuffer,
-      stateManager: config.stateManager,
-      notificationService: config.notificationService,
+      dispatcher: config.dispatcher,
       logger: config.logger,
     });
   }
 
   /**
-   * Initializes the monitor by loading shops and watchlist.
+   * Initializes the monitor by loading shops, watchlist, and preloading user data.
    */
   async initialize(): Promise<void> {
     this.config.logger.info('Initializing Price Monitor...');
@@ -68,14 +72,35 @@ export class PriceMonitor {
       throw new Error('No shop configurations found');
     }
 
-    // Load watchlist
-    this.products = await this.config.watchlistRepository.getAll();
-    if (this.products.length === 0) {
+    // Load product catalog (excluding disabled products)
+    const allProducts = await this.config.watchlistRepository.getAll();
+    if (allProducts.length === 0) {
       throw new Error('No products in watchlist');
     }
 
-    // Load notification state from repository
-    await this.config.stateManager.loadFromRepository();
+    // Preload user watch entries and notification targets (2 DB queries)
+    const allProductIds = allProducts.map((p) => p.id);
+    const subscribedProductIds = await this.config.dispatcher.preloadForCycle(allProductIds);
+
+    // Filter to only products with active subscribers
+    this.products = allProducts.filter((p) => subscribedProductIds.has(p.id));
+
+    const skippedCount = allProducts.length - this.products.length;
+    if (skippedCount > 0) {
+      this.config.logger.info('Skipped products with no subscribers', {
+        skipped: skippedCount,
+        scanning: this.products.length,
+      });
+    }
+
+    if (this.products.length === 0) {
+      this.config.logger.info('No products have active subscribers, nothing to scan');
+      return;
+    }
+
+    // Load notification states for subscribed products only (1 DB query)
+    const subscribedIds = this.products.map((p) => p.id);
+    await this.config.stateManager.loadFromRepository(subscribedIds);
 
     this.config.logger.info('Price Monitor initialized', {
       shops: this.shops.length,
@@ -88,6 +113,11 @@ export class PriceMonitor {
    * Buffers all results and performs a single batch upsert at the end.
    */
   async runFullScanCycle(): Promise<void> {
+    if (this.products.length === 0) {
+      this.config.logger.info('No products to scan, skipping cycle');
+      return;
+    }
+
     this.config.logger.info('Starting full scan cycle', {
       shops: this.shops.length,
       products: this.products.length,
@@ -136,7 +166,10 @@ export class PriceMonitor {
     // Flush ProductResults
     await this.resultBuffer.flush();
 
-    // Flush NotificationState changes
+    // Send queued notifications (rate-limited)
+    await this.config.dispatcher.flushNotifications();
+
+    // Flush NotificationState changes (1 bulkWrite)
     await this.config.stateManager.flushChanges();
 
     this.config.logger.info('Flushed all changes to database', {

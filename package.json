@@ -7,7 +7,6 @@
     "build": "tsc && npm run copy-configs",
     "copy-configs": "node -e \"require('fs').cpSync('src/config', 'dist/config', {recursive: true})\"",
     "start": "node dist/app/index.js",
-    "summary": "node dist/app/summary.js",
     "dev": "ts-node src/app/index.ts",
     "postinstall": "playwright install --with-deps chromium",
     "check": "tsx scripts/check-watchlist.ts"

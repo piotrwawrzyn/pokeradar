@@ -48,23 +48,11 @@ export interface IScraper {
 }
 
 /**
- * Notification state manager interface.
+ * Multi-user notification dispatcher interface.
+ * Processes scrape results against all watching users.
  */
-export interface INotificationStateManager {
-  updateTrackedState(productId: string, shopId: string, result: ProductResult): void;
-  shouldNotify(productId: string, shopId: string): boolean;
-  markNotified(productId: string, shopId: string, result: ProductResult): void;
-}
-
-/**
- * Notification service interface.
- */
-export interface INotificationService {
-  sendAlert(
-    product: WatchlistProductInternal,
-    result: ProductResult,
-    shop: ShopConfig
-  ): Promise<void>;
+export interface IMultiUserDispatcher {
+  processResult(product: WatchlistProductInternal, result: ProductResult, shop: ShopConfig): void;
 }
 
 /**
@@ -73,8 +61,7 @@ export interface INotificationService {
 export interface ScanCycleConfig {
   scraperFactory: IScraperFactory;
   resultBuffer: ResultBuffer;
-  stateManager: INotificationStateManager;
-  notificationService: INotificationService;
+  dispatcher: IMultiUserDispatcher;
   logger: IScanLogger;
 }
 
@@ -213,52 +200,10 @@ export class ScanCycleRunner {
       // Buffer result for batch write
       this.config.resultBuffer.add(result);
 
-      // Update tracked state
-      this.config.stateManager.updateTrackedState(product.id, shop.id, result);
-
-      // Check notification criteria
-      await this.checkAndNotify(product, result, shop);
+      // Process result against all watching users (state tracking + notification enqueue)
+      this.config.dispatcher.processResult(product, result, shop);
     } finally {
       await scraper.close();
-    }
-  }
-
-  /**
-   * Checks if notification should be sent and sends it.
-   */
-  private async checkAndNotify(
-    product: WatchlistProductInternal,
-    result: ProductResult,
-    shop: ShopConfig
-  ): Promise<void> {
-    const meetsMaxPrice = result.price !== null && result.price <= product.price.max;
-    const meetsAllCriteria = result.isAvailable && meetsMaxPrice;
-
-    if (!meetsAllCriteria) {
-      return;
-    }
-
-    const shouldNotify = this.config.stateManager.shouldNotify(product.id, shop.id);
-
-    if (!shouldNotify) {
-      return;
-    }
-
-    this.config.logger.info('Sending notification', {
-      product: product.id,
-      shop: shop.id,
-      price: result.price,
-    });
-
-    try {
-      await this.config.notificationService.sendAlert(product, result, shop);
-      this.config.stateManager.markNotified(product.id, shop.id, result);
-    } catch (error) {
-      this.config.logger.error('Failed to send notification', {
-        product: product.id,
-        shop: shop.id,
-        error: error instanceof Error ? error.message : String(error),
-      });
     }
   }
 

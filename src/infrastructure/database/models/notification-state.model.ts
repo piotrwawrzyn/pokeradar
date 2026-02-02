@@ -8,7 +8,8 @@ import mongoose, { Schema, Document } from 'mongoose';
  * NotificationState document interface.
  */
 export interface INotificationStateDoc extends Document {
-  key: string; // {productId}:{shopId}
+  key: string; // {userId}:{productId}:{shopId}
+  userId: string;
   productId: string;
   shopId: string;
   lastNotified: Date | null;
@@ -23,6 +24,7 @@ export interface INotificationStateDoc extends Document {
 const NotificationStateSchema = new Schema<INotificationStateDoc>(
   {
     key: { type: String, required: true, unique: true },
+    userId: { type: String, required: true },
     productId: { type: String, required: true },
     shopId: { type: String, required: true },
     lastNotified: { type: Date, default: null },
@@ -35,7 +37,8 @@ const NotificationStateSchema = new Schema<INotificationStateDoc>(
 );
 
 // Index for efficient lookups
-NotificationStateSchema.index({ productId: 1, shopId: 1 });
+NotificationStateSchema.index({ userId: 1, productId: 1, shopId: 1 });
+NotificationStateSchema.index({ productId: 1 });
 
 export const NotificationStateModel = mongoose.model<INotificationStateDoc>(
   'NotificationState',

@@ -8,7 +8,8 @@ import { NotificationState } from '../../../types';
  * NotificationState document interface (from MongoDB).
  */
 export interface INotificationStateDoc {
-  key: string; // {productId}:{shopId}
+  key: string; // {userId}:{productId}:{shopId}
+  userId: string;
   productId: string;
   shopId: string;
   lastNotified: Date | null;
@@ -20,8 +21,8 @@ export interface INotificationStateDoc {
 /**
  * Generates a composite key for notification state.
  */
-export function getStateKey(productId: string, shopId: string): string {
-  return `${productId}:${shopId}`;
+export function getStateKey(userId: string, productId: string, shopId: string): string {
+  return `${userId}:${productId}:${shopId}`;
 }
 
 /**
@@ -29,6 +30,7 @@ export function getStateKey(productId: string, shopId: string): string {
  */
 export function toNotificationState(doc: INotificationStateDoc): NotificationState {
   return {
+    userId: doc.userId,
     productId: doc.productId,
     shopId: doc.shopId,
     lastNotified: doc.lastNotified,
@@ -49,7 +51,8 @@ export function toNotificationStateArray(docs: INotificationStateDoc[]): Notific
  */
 export function toNotificationStateDoc(state: NotificationState): Omit<INotificationStateDoc, 'updatedAt'> {
   return {
-    key: getStateKey(state.productId, state.shopId),
+    key: getStateKey(state.userId, state.productId, state.shopId),
+    userId: state.userId,
     productId: state.productId,
     shopId: state.shopId,
     lastNotified: state.lastNotified,

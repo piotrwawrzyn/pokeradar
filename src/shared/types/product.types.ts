@@ -11,20 +11,12 @@ export interface SearchConfig {
 }
 
 /**
- * Price constraints for a product.
- */
-export interface PriceConfig {
-  max: number;
-  min?: number; // Optional minimum price threshold
-}
-
-/**
  * Product to monitor (config format).
  */
 export interface WatchlistProduct {
   name: string;
   search: SearchConfig;
-  price: PriceConfig;
+  disabled?: boolean;
 }
 
 /**
@@ -32,13 +24,6 @@ export interface WatchlistProduct {
  */
 export interface WatchlistProductInternal extends WatchlistProduct {
   id: string; // Auto-generated from name (kebab-case)
-}
-
-/**
- * Watchlist container.
- */
-export interface Watchlist {
-  products: WatchlistProduct[];
 }
 
 /**

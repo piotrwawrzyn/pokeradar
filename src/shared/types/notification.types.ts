@@ -3,9 +3,10 @@
  */
 
 /**
- * Tracks notification state for a product/shop combination.
+ * Tracks notification state for a user/product/shop combination.
  */
 export interface NotificationState {
+  userId: string;
   productId: string;
   shopId: string;
   lastNotified: Date | null;

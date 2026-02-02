@@ -1,6 +1,6 @@
 /**
  * Notification state manager service.
- * Manages state to prevent notification spam and handle reset conditions.
+ * Manages per-user state to prevent notification spam and handle reset conditions.
  */
 
 import { NotificationState, ProductResult } from '../types';
@@ -10,13 +10,13 @@ import { ILogger } from '../logger';
  * Repository interface for notification state persistence.
  */
 export interface INotificationStateRepository {
-  getAll(): Promise<NotificationState[]>;
+  getAll(productIds?: string[]): Promise<NotificationState[]>;
   setBatch(states: NotificationState[]): Promise<void>;
-  deleteBatch(keys: Array<{ productId: string; shopId: string }>): Promise<void>;
+  deleteBatch(keys: Array<{ userId: string; productId: string; shopId: string }>): Promise<void>;
 }
 
 /**
- * Manages notification state to prevent spam and handle reset conditions.
+ * Manages per-user notification state to prevent spam and handle reset conditions.
  *
  * State reset conditions:
  * 1. Product becomes unavailable
@@ -36,24 +36,24 @@ export class NotificationStateService {
   ) {}
 
   /**
-   * Loads state from repository into memory.
+   * Loads state from repository into memory, optionally filtered by product IDs.
    */
-  async loadFromRepository(): Promise<void> {
+  async loadFromRepository(productIds?: string[]): Promise<void> {
     if (!this.repository) return;
 
-    const states = await this.repository.getAll();
+    const states = await this.repository.getAll(productIds);
     for (const state of states) {
-      const key = this.getKey(state.productId, state.shopId);
+      const key = this.getKey(state.userId, state.productId, state.shopId);
       this.state.set(key, state);
     }
     this.logger?.info(`Loaded ${states.length} notification states from repository`);
   }
 
   /**
-   * Determines if a notification should be sent for this product/shop combination.
+   * Determines if a notification should be sent for this user/product/shop combination.
    */
-  shouldNotify(productId: string, shopId: string): boolean {
-    const key = this.getKey(productId, shopId);
+  shouldNotify(userId: string, productId: string, shopId: string): boolean {
+    const key = this.getKey(userId, productId, shopId);
     const prevState = this.state.get(key);
 
     // No previous notification - should notify
@@ -66,12 +66,13 @@ export class NotificationStateService {
   }
 
   /**
-   * Marks a product/shop combination as notified with current state.
+   * Marks a user/product/shop combination as notified with current state.
    */
-  markNotified(productId: string, shopId: string, result: ProductResult): void {
-    const key = this.getKey(productId, shopId);
+  markNotified(userId: string, productId: string, shopId: string, result: ProductResult): void {
+    const key = this.getKey(userId, productId, shopId);
 
     const state: NotificationState = {
+      userId,
       productId,
       shopId,
       lastNotified: new Date(),
@@ -87,11 +88,11 @@ export class NotificationStateService {
   }
 
   /**
-   * Updates tracked state for a product/shop (called on every scan).
+   * Updates tracked state for a user/product/shop (called on every scan for each watcher).
    * Enables reset condition detection.
    */
-  updateTrackedState(productId: string, shopId: string, result: ProductResult): void {
-    const key = this.getKey(productId, shopId);
+  updateTrackedState(userId: string, productId: string, shopId: string, result: ProductResult): void {
+    const key = this.getKey(userId, productId, shopId);
     const prevState = this.state.get(key);
 
     if (!prevState || !prevState.lastNotified) {
@@ -102,6 +103,7 @@ export class NotificationStateService {
 
     if (shouldReset) {
       this.logger?.info('State reset condition met', {
+        userId,
         product: productId,
         shop: shopId,
         reason: this.getResetReason(prevState, result),
@@ -133,8 +135,8 @@ export class NotificationStateService {
 
       if (deleteCount > 0) {
         const keysToDelete = Array.from(this.pendingDeletes).map((key) => {
-          const [productId, shopId] = key.split(':');
-          return { productId, shopId };
+          const [userId, productId, shopId] = key.split(':');
+          return { userId, productId, shopId };
         });
         await this.repository.deleteBatch(keysToDelete);
       }
@@ -151,8 +153,8 @@ export class NotificationStateService {
   /**
    * Gets the current state for debugging/inspection.
    */
-  getState(productId: string, shopId: string): NotificationState | undefined {
-    const key = this.getKey(productId, shopId);
+  getState(userId: string, productId: string, shopId: string): NotificationState | undefined {
+    const key = this.getKey(userId, productId, shopId);
     return this.state.get(key);
   }
 
@@ -215,7 +217,7 @@ export class NotificationStateService {
     this.pendingDeletes.clear();
   }
 
-  private getKey(productId: string, shopId: string): string {
-    return `${productId}:${shopId}`;
+  private getKey(userId: string, productId: string, shopId: string): string {
+    return `${userId}:${productId}:${shopId}`;
   }
 }

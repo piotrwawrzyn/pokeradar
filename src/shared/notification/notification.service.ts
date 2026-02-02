@@ -1,5 +1,6 @@
 /**
  * Telegram notification service for product alerts.
+ * Multi-user: chatId is provided per-call, not hardcoded.
  */
 
 import TelegramBot from 'node-telegram-bot-api';
@@ -11,40 +12,41 @@ import { ILogger } from '../logger';
  */
 export class NotificationService {
   private bot: TelegramBot;
-  private chatId: string;
 
   constructor(
     token: string,
-    chatId: string,
     private logger?: ILogger
   ) {
     this.bot = new TelegramBot(token, { polling: false });
-    this.chatId = chatId;
   }
 
   /**
-   * Sends a Telegram alert when a product meets criteria.
+   * Sends a Telegram alert to a specific user's chat.
    */
   async sendAlert(
+    chatId: string,
     product: WatchlistProductInternal,
     result: ProductResult,
-    shop: ShopConfig
+    shop: ShopConfig,
+    userMaxPrice: number
   ): Promise<void> {
     try {
-      const message = this.formatMessage(product, result, shop);
+      const message = this.formatMessage(product, result, shop, userMaxPrice);
 
-      await this.bot.sendMessage(this.chatId, message, {
+      await this.bot.sendMessage(chatId, message, {
         parse_mode: 'Markdown',
         disable_web_page_preview: false,
       });
 
       this.logger?.info('Telegram notification sent', {
+        chatId,
         product: product.id,
         shop: shop.id,
         price: result.price,
       });
     } catch (error) {
       this.logger?.error('Failed to send Telegram notification', {
+        chatId,
         product: product.id,
         shop: shop.id,
         error: error instanceof Error ? error.message : String(error),
@@ -59,10 +61,11 @@ export class NotificationService {
   private formatMessage(
     product: WatchlistProductInternal,
     result: ProductResult,
-    shop: ShopConfig
+    shop: ShopConfig,
+    userMaxPrice: number
   ): string {
     const priceStr = result.price !== null ? `${result.price.toFixed(2)} zł` : 'N/A';
-    const maxPriceStr = `${product.price.max.toFixed(2)} zł`;
+    const maxPriceStr = `${userMaxPrice.toFixed(2)} zł`;
 
     return `
 🎯 *Product Available!*

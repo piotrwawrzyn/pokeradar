@@ -1,6 +1,7 @@
 /**
  * Main entry point for the Pokemon Price Monitor.
  * Runs a single scan cycle and exits (designed for cron-based execution).
+ * Multi-user: notifications fan out to all users based on their watch entries.
  */
 
 console.log('[BOOT] Process starting', { pid: process.pid, node: process.version, cwd: process.cwd() });
@@ -10,6 +11,7 @@ import * as path from 'path';
 
 // Infrastructure
 import { connectDB, disconnectDB } from '../infrastructure/database';
+import { NotificationStateModel } from '../infrastructure/database/models';
 
 // Shared
 import {
@@ -17,11 +19,13 @@ import {
   MongoWatchlistRepository,
   MongoNotificationStateRepository,
   MongoProductResultRepository,
+  MongoUserRepository,
+  MongoUserWatchEntryRepository,
   IShopRepository,
   IWatchlistRepository,
 } from '../shared/repositories';
 import { Logger } from '../shared/logger';
-import { NotificationService, NotificationStateService } from '../shared/notification';
+import { NotificationService, NotificationStateService, MultiUserNotificationDispatcher } from '../shared/notification';
 
 // Scraper
 import { PriceMonitor } from '../scraper/monitoring';
@@ -40,17 +44,11 @@ async function main() {
 
   // Validate environment variables
   const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-  const telegramChatId = process.env.TELEGRAM_CHAT_ID;
   const logLevel = (process.env.LOG_LEVEL as 'info' | 'debug') || 'info';
   const mongodbUri = process.env.MONGODB_URI;
 
   if (!telegramToken) {
     console.error('ERROR: TELEGRAM_BOT_TOKEN is not set in .env file');
-    process.exit(1);
-  }
-
-  if (!telegramChatId) {
-    console.error('ERROR: TELEGRAM_CHAT_ID is not set in .env file');
     process.exit(1);
   }
 
@@ -66,12 +64,23 @@ async function main() {
   let watchlistRepository: IWatchlistRepository;
   let notificationStateRepository: MongoNotificationStateRepository;
   let productResultRepository: MongoProductResultRepository;
+  let userRepository: MongoUserRepository;
+  let userWatchEntryRepository: MongoUserWatchEntryRepository;
 
   try {
     await connectDB(mongodbUri);
+
+    // Clean up legacy notification states that lack userId (migration from single-user)
+    const deleted = await NotificationStateModel.deleteMany({ userId: { $exists: false } });
+    if (deleted.deletedCount > 0) {
+      console.log(`Cleaned up ${deleted.deletedCount} legacy notification states`);
+    }
+
     watchlistRepository = new MongoWatchlistRepository();
     notificationStateRepository = new MongoNotificationStateRepository();
     productResultRepository = new MongoProductResultRepository();
+    userRepository = new MongoUserRepository();
+    userWatchEntryRepository = new MongoUserWatchEntryRepository();
     console.log('MongoDB connected');
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error instanceof Error ? error.message : String(error));
@@ -80,13 +89,22 @@ async function main() {
 
   try {
     // Create services
-    const notificationService = new NotificationService(telegramToken, telegramChatId, logger);
+    const notificationService = new NotificationService(telegramToken, logger);
     const stateManager = new NotificationStateService(logger, notificationStateRepository);
 
-    // Create monitor with new architecture
+    // Create multi-user dispatcher
+    const dispatcher = new MultiUserNotificationDispatcher(
+      notificationService,
+      stateManager,
+      userWatchEntryRepository,
+      userRepository,
+      logger
+    );
+
+    // Create monitor with multi-user architecture
     const monitor = new PriceMonitor({
       scraperFactory: ScraperFactory,
-      notificationService,
+      dispatcher,
       stateManager,
       shopRepository,
       watchlistRepository,

@@ -14,10 +14,7 @@ export interface IWatchlistProductDoc extends Document {
     phrases: string[];
     exclude?: string[];
   };
-  price: {
-    max: number;
-    min?: number;
-  };
+  disabled?: boolean;
 }
 
 /**
@@ -30,10 +27,7 @@ const WatchlistProductSchema = new Schema<IWatchlistProductDoc>({
     phrases: { type: [String], required: true },
     exclude: { type: [String], default: [] },
   },
-  price: {
-    max: { type: Number, required: true },
-    min: { type: Number },
-  },
+  disabled: { type: Boolean },
 });
 
 export const WatchlistProductModel = mongoose.model<IWatchlistProductDoc>(

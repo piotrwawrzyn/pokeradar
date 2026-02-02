@@ -14,10 +14,7 @@ export interface IWatchlistProductDoc {
     phrases: string[];
     exclude?: string[];
   };
-  price: {
-    max: number;
-    min?: number;
-  };
+  disabled?: boolean;
 }
 
 /**
@@ -31,10 +28,7 @@ export function toWatchlistProduct(doc: IWatchlistProductDoc): WatchlistProductI
       phrases: doc.search.phrases,
       exclude: doc.search.exclude,
     },
-    price: {
-      max: doc.price.max,
-      min: doc.price.min,
-    },
+    disabled: doc.disabled,
   };
 }
 
@@ -56,9 +50,6 @@ export function toWatchlistProductDoc(product: WatchlistProductInternal): IWatch
       phrases: product.search.phrases,
       exclude: product.search.exclude,
     },
-    price: {
-      max: product.price.max,
-      min: product.price.min,
-    },
+    disabled: product.disabled,
   };
 }

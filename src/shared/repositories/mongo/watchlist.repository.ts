@@ -9,7 +9,7 @@ import { toWatchlistProduct } from './mappers';
 
 export class MongoWatchlistRepository implements IWatchlistRepository {
   async getAll(): Promise<WatchlistProductInternal[]> {
-    const docs = await WatchlistProductModel.find().lean();
+    const docs = await WatchlistProductModel.find({ disabled: { $ne: true } }).lean();
     return docs.map((doc) => toWatchlistProduct(doc as any));
   }
 
@@ -24,7 +24,7 @@ export class MongoWatchlistRepository implements IWatchlistRepository {
       id: product.id,
       name: product.name,
       search: product.search,
-      price: product.price,
+      disabled: product.disabled,
     });
   }
 
@@ -34,7 +34,7 @@ export class MongoWatchlistRepository implements IWatchlistRepository {
       {
         name: product.name,
         search: product.search,
-        price: product.price,
+        disabled: product.disabled,
       }
     );
   }
