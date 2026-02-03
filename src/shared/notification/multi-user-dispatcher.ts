@@ -1,19 +1,19 @@
 /**
  * Multi-user notification dispatcher.
  * Handles fan-out from scrape results to multiple users based on their watch entries.
+ * Creates notification documents for the notifications service to deliver.
  *
  * Design for scale (25K+ users):
  * - Preloads all watch entries and user targets in 2 DB queries at cycle start
  * - Zero per-result DB queries during scraping
- * - Rate-limited Telegram sending (25 msgs/sec, under Telegram's 30/sec limit)
- * - Total DB queries per cycle: 4 (3 preloads + 1 state flush)
+ * - Total DB queries per cycle: 4 (3 preloads + 1 state flush) + 1 batch insert for notifications
  */
 
 import { WatchlistProductInternal, ProductResult, ShopConfig } from '../types';
-import { NotificationService } from './notification.service';
 import { NotificationStateService } from './notification-state.service';
 import { MongoUserRepository, UserNotificationTarget } from '../repositories/mongo/user.repository';
 import { MongoUserWatchEntryRepository, UserWatchInfo } from '../repositories/mongo/user-watch-entry.repository';
+import { MongoNotificationRepository, NotificationInsert } from '../repositories/mongo/notification.repository';
 import { ILogger } from '../logger';
 
 interface QueuedNotification {
@@ -25,19 +25,16 @@ interface QueuedNotification {
   userMaxPrice: number;
 }
 
-const TELEGRAM_BATCH_SIZE = 25;
-const TELEGRAM_BATCH_INTERVAL_MS = 1100;
-
 export class MultiUserNotificationDispatcher {
   private watchersByProduct: Map<string, UserWatchInfo[]> = new Map();
   private userTargets: Map<string, UserNotificationTarget> = new Map();
   private messageQueue: QueuedNotification[] = [];
 
   constructor(
-    private notificationService: NotificationService,
     private stateService: NotificationStateService,
     private userWatchEntryRepo: MongoUserWatchEntryRepository,
     private userRepo: MongoUserRepository,
+    private notificationRepo: MongoNotificationRepository,
     private logger: ILogger
   ) {}
 
@@ -74,7 +71,7 @@ export class MultiUserNotificationDispatcher {
 
   /**
    * Processes a scrape result against all watching users.
-   * Enqueues notifications for later batch sending. Zero DB queries.
+   * Enqueues notifications for later batch insertion. Zero DB queries.
    */
   processResult(
     product: WatchlistProductInternal,
@@ -113,57 +110,37 @@ export class MultiUserNotificationDispatcher {
   }
 
   /**
-   * Sends all enqueued notifications with rate limiting.
-   * Telegram limit: 30 messages/second to different chats.
-   * We use 25/sec with 1.1s intervals for safety margin.
+   * Inserts all enqueued notifications as documents for the notifications service to deliver.
+   * Marks notification state as notified for each queued notification.
    */
   async flushNotifications(): Promise<void> {
     if (this.messageQueue.length === 0) return;
 
     this.logger.info('Flushing notifications', { count: this.messageQueue.length });
 
-    let successCount = 0;
-    let failCount = 0;
+    const inserts: NotificationInsert[] = this.messageQueue.map((msg) => ({
+      userId: msg.userId,
+      channel: 'telegram' as const,
+      channelTarget: msg.chatId,
+      payload: {
+        productName: msg.product.name,
+        shopName: msg.shop.name,
+        shopId: msg.shop.id,
+        productId: msg.product.id,
+        price: msg.result.price!,
+        maxPrice: msg.userMaxPrice,
+        productUrl: msg.result.productUrl,
+      },
+    }));
 
-    for (let i = 0; i < this.messageQueue.length; i += TELEGRAM_BATCH_SIZE) {
-      const batch = this.messageQueue.slice(i, i + TELEGRAM_BATCH_SIZE);
+    await this.notificationRepo.insertBatch(inserts);
 
-      const results = await Promise.allSettled(
-        batch.map(async (msg) => {
-          await this.notificationService.sendAlert(
-            msg.chatId,
-            msg.product,
-            msg.result,
-            msg.shop,
-            msg.userMaxPrice
-          );
-          // Mark as notified only on successful send
-          this.stateService.markNotified(msg.userId, msg.product.id, msg.shop.id, msg.result);
-        })
-      );
-
-      for (let j = 0; j < results.length; j++) {
-        if (results[j].status === 'fulfilled') {
-          successCount++;
-        } else {
-          failCount++;
-          const msg = batch[j];
-          this.logger.error('Failed to send notification', {
-            userId: msg.userId,
-            product: msg.product.id,
-            shop: msg.shop.id,
-            error: (results[j] as PromiseRejectedResult).reason?.message,
-          });
-        }
-      }
-
-      // Rate limit: wait between batches
-      if (i + TELEGRAM_BATCH_SIZE < this.messageQueue.length) {
-        await new Promise((resolve) => setTimeout(resolve, TELEGRAM_BATCH_INTERVAL_MS));
-      }
+    // Mark all as notified (scrapper's responsibility ends here)
+    for (const msg of this.messageQueue) {
+      this.stateService.markNotified(msg.userId, msg.product.id, msg.shop.id, msg.result);
     }
 
-    this.logger.info('Notifications flushed', { sent: successCount, failed: failCount });
+    this.logger.info('Notifications created', { count: inserts.length });
     this.messageQueue = [];
   }
 }

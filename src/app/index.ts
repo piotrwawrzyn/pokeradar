@@ -2,6 +2,7 @@
  * Main entry point for the Pokemon Price Monitor.
  * Runs a single scan cycle and exits (designed for cron-based execution).
  * Multi-user: notifications fan out to all users based on their watch entries.
+ * Notification delivery is handled by the pokebot-notifications service.
  */
 
 console.log('[BOOT] Process starting', { pid: process.pid, node: process.version, cwd: process.cwd() });
@@ -21,11 +22,12 @@ import {
   MongoProductResultRepository,
   MongoUserRepository,
   MongoUserWatchEntryRepository,
+  MongoNotificationRepository,
   IShopRepository,
   IWatchlistRepository,
 } from '../shared/repositories';
 import { Logger } from '../shared/logger';
-import { NotificationService, NotificationStateService, MultiUserNotificationDispatcher } from '../shared/notification';
+import { NotificationStateService, MultiUserNotificationDispatcher } from '../shared/notification';
 
 // Scraper
 import { PriceMonitor } from '../scraper/monitoring';
@@ -43,14 +45,8 @@ async function main() {
   const startTime = Date.now();
 
   // Validate environment variables
-  const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
   const logLevel = (process.env.LOG_LEVEL as 'info' | 'debug') || 'info';
   const mongodbUri = process.env.MONGODB_URI;
-
-  if (!telegramToken) {
-    console.error('ERROR: TELEGRAM_BOT_TOKEN is not set in .env file');
-    process.exit(1);
-  }
 
   if (!mongodbUri) {
     console.error('ERROR: MONGODB_URI is not set in .env file');
@@ -66,6 +62,7 @@ async function main() {
   let productResultRepository: MongoProductResultRepository;
   let userRepository: MongoUserRepository;
   let userWatchEntryRepository: MongoUserWatchEntryRepository;
+  let notificationRepository: MongoNotificationRepository;
 
   try {
     await connectDB(mongodbUri);
@@ -81,6 +78,7 @@ async function main() {
     productResultRepository = new MongoProductResultRepository();
     userRepository = new MongoUserRepository();
     userWatchEntryRepository = new MongoUserWatchEntryRepository();
+    notificationRepository = new MongoNotificationRepository();
     console.log('MongoDB connected');
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error instanceof Error ? error.message : String(error));
@@ -89,15 +87,14 @@ async function main() {
 
   try {
     // Create services
-    const notificationService = new NotificationService(telegramToken, logger);
     const stateManager = new NotificationStateService(logger, notificationStateRepository);
 
-    // Create multi-user dispatcher
+    // Create multi-user dispatcher (writes notification docs instead of sending Telegram)
     const dispatcher = new MultiUserNotificationDispatcher(
-      notificationService,
       stateManager,
       userWatchEntryRepository,
       userRepository,
+      notificationRepository,
       logger
     );
 

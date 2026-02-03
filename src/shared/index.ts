@@ -6,5 +6,5 @@ export * from './types';
 export * from './utils';
 export * from './logger';
 // Explicit exports to avoid conflicts with repository interfaces
-export { NotificationService, NotificationStateService } from './notification';
+export { NotificationStateService } from './notification';
 export * from './repositories';

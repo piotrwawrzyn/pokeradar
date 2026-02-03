@@ -25,13 +25,11 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@types/node-telegram-bot-api": "^0.64.13",
     "axios": "^1.13.2",
     "cheerio": "^1.1.2",
     "dotenv": "^17.2.3",
     "fuzzball": "^2.2.3",
     "mongoose": "^9.1.5",
-    "node-telegram-bot-api": "^0.67.0",
     "playwright": "^1.57.0"
   }
 }
