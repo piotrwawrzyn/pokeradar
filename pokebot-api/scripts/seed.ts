@@ -7,8 +7,8 @@
 
 import mongoose from 'mongoose';
 
-const SOURCE_URI = "mongodb+srv://REDACTED:REDACTED@REDACTED/pokebot";
-const TARGET_URI = "mongodb+srv://REDACTED:REDACTED@REDACTED/pokebot-v2";
+const SOURCE_URI = process.env.SOURCE_URI;
+const TARGET_URI = process.env.TARGET_URI;
 
 if (!SOURCE_URI || !TARGET_URI) {
   console.error('Both SOURCE_URI and TARGET_URI environment variables are required');

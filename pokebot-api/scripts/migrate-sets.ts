@@ -7,7 +7,12 @@
 
 import mongoose from 'mongoose';
 
-const TARGET_URI = "mongodb+srv://REDACTED:REDACTED@REDACTED/pokebot-v2";
+const TARGET_URI = process.env.TARGET_URI;
+
+if (!TARGET_URI) {
+  console.error('TARGET_URI environment variable is required');
+  process.exit(1);
+}
 
 interface ProductSetData {
   id: string;
