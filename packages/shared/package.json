@@ -1,7 +1,7 @@
 {
-  "name": "@pokebot/shared",
+  "name": "@pokeradar/shared",
   "version": "1.0.0",
-  "description": "Shared models, logger, and database utilities for pokebot services",
+  "description": "Shared models, logger, and database utilities for pokeradar services",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
