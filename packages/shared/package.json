@@ -1,0 +1,17 @@
+{
+  "name": "@pokebot/shared",
+  "version": "1.0.0",
+  "description": "Shared models, logger, and database utilities for pokebot services",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "mongoose": "^9.1.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^25.0.9"
+  }
+}

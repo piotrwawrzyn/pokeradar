@@ -35,7 +35,19 @@
       "Bash(del \"c:\\\\Users\\\\polsk\\\\Desktop\\\\pokebot_2.0\\\\test-rozetka-cheerio.ts\")",
       "Bash(npm run check-watchlist:*)",
       "Bash(npm run:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:pokesmart.pl)",
+      "WebFetch(domain:www.cardfan.pl)",
+      "WebFetch(domain:wilczek.poznan.pl)",
+      "WebFetch(domain:strefamarzen.pl)",
+      "Bash(npx jest --passWithNoTests)",
+      "Bash(npx jest --listConfig)",
+      "Bash(npx jest --showConfig)",
+      "Bash(npx jest --runInBand)",
+      "Bash(set \"MONGODB_URI=mongodb+srv://REDACTED:REDACTED@REDACTED/pokebot-v2\")",
+      "Bash(set \"SOURCE_URI=mongodb+srv://REDACTED:REDACTED@REDACTED/pokebot\")",
+      "Bash(set \"TARGET_URI=mongodb+srv://REDACTED:REDACTED@REDACTED/pokebot-v2\")"
     ]
   }
 }

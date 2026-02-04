@@ -1,35 +1,29 @@
 {
-  "name": "pokebot_2.0",
+  "name": "pokeradar",
   "version": "1.0.0",
-  "description": "",
-  "main": "dist/app/index.js",
+  "private": true,
+  "description": "Pokemon price monitor monorepo",
+  "workspaces": [
+    "packages/*",
+    "pokebot-api",
+    "pokebot-client",
+    "pokebot-scrapper",
+    "pokebot-notifications"
+  ],
   "scripts": {
-    "build": "tsc && npm run copy-configs",
-    "copy-configs": "node -e \"require('fs').cpSync('src/config', 'dist/config', {recursive: true})\"",
-    "start": "node dist/app/index.js",
-    "dev": "ts-node src/app/index.ts",
-    "postinstall": "playwright install --with-deps chromium",
-    "check": "tsx scripts/check-watchlist.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "engines": {
-    "node": ">=18.0.0"
+    "build:shared": "npm run build -w @pokebot/shared",
+    "build:api": "npm run build -w pokebot-api",
+    "build:client": "npm run build -w pokebot-client",
+    "build:scrapper": "npm run build -w pokebot-scrapper",
+    "build:notifications": "npm run build -w pokebot-notifications",
+    "build": "npm run build:shared && npm run build:api & npm run build:client & npm run build:scrapper & npm run build:notifications",
+    "dev:api": "npm run dev -w pokebot-api",
+    "dev:client": "npm run dev -w pokebot-client",
+    "dev:notifications": "npm run dev -w pokebot-notifications",
+    "dev": "concurrently -n api,client,notif -c blue,green,yellow \"npm run dev:api\" \"npm run dev:client\" \"npm run dev:notifications\"",
+    "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {
-    "@types/cheerio": "^1.0.0",
-    "@types/node": "^25.0.9",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "axios": "^1.13.2",
-    "cheerio": "^1.1.2",
-    "dotenv": "^17.2.3",
-    "fuzzball": "^2.2.3",
-    "mongoose": "^9.1.5",
-    "playwright": "^1.57.0"
+    "concurrently": "^9.1.2"
   }
 }
