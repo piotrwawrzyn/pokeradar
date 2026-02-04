@@ -1,7 +1,27 @@
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { ProductCatalog } from '@/components/products/product-catalog';
 import pikachuImg from '@/assets/pikachu.png';
 
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  signups_disabled: 'Rejestracja nowych kont jest tymczasowo wstrzymana',
+  login_disabled: 'Logowanie jest tymczasowo wyłączone',
+  auth_failed: 'Logowanie nie powiodło się. Spróbuj ponownie.',
+};
+
 export function WatchlistPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const authError = (location.state as { authError?: string } | null)?.authError;
+    if (authError) {
+      toast.error(AUTH_ERROR_MESSAGES[authError] ?? 'Wystąpił błąd logowania');
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
+
   return (
     <div>
       <div className="relative mb-6 overflow-hidden rounded-xl bg-card">

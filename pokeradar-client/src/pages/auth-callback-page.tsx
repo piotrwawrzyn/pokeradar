@@ -10,11 +10,13 @@ export function AuthCallbackPage() {
 
   useEffect(() => {
     const token = searchParams.get('token');
+    const error = searchParams.get('error');
+
     if (token) {
       login(token);
       navigate('/', { replace: true });
     } else {
-      navigate('/', { replace: true });
+      navigate('/', { replace: true, state: { authError: error || undefined } });
     }
   }, [searchParams, login, navigate]);
 

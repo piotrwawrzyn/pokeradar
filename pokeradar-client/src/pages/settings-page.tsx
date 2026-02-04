@@ -1,7 +1,7 @@
 import { AuthGuard } from '@/components/auth/auth-guard';
 import { useAuth } from '@/hooks/use-auth';
 import { NotificationChannelList } from '@/components/notifications/notification-channel-list';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { User } from 'lucide-react';
 

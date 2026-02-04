@@ -1,7 +1,21 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy, Profile } from 'passport-google-oauth20';
-import { UserModel } from '../infrastructure/database/models';
+import { UserModel, getAppSettings } from '../infrastructure/database/models';
 import { env } from './env';
+
+export class SignupsDisabledError extends Error {
+  constructor() {
+    super('Signups are currently disabled');
+    this.name = 'SignupsDisabledError';
+  }
+}
+
+export class LoginDisabledError extends Error {
+  constructor() {
+    super('Login is currently disabled');
+    this.name = 'LoginDisabledError';
+  }
+}
 
 passport.use(
   new GoogleStrategy(
@@ -12,14 +26,21 @@ passport.use(
     },
     async (_accessToken, _refreshToken, profile: Profile, done) => {
       try {
+        const settings = await getAppSettings();
         let user = await UserModel.findOne({ googleId: profile.id });
 
         if (!user) {
+          if (!settings.signupsEnabled) {
+            return done(new SignupsDisabledError(), undefined);
+          }
+
           user = await UserModel.create({
             googleId: profile.id,
             email: profile.emails?.[0]?.value ?? '',
             displayName: profile.displayName,
           });
+        } else if (!settings.loginEnabled && !user.isAdmin) {
+          return done(new LoginDisabledError(), undefined);
         }
 
         // Pass as Express.User with the fields needed by our auth system

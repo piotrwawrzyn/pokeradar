@@ -83,6 +83,7 @@ export const mockUser: UserProfile = {
   email: 'test@example.com',
   displayName: 'Test User',
   telegramLinked: true,
+  telegramLinkToken: 'abc123token',
 };
 
 export const mockUserNoTelegram: UserProfile = {
@@ -90,6 +91,7 @@ export const mockUserNoTelegram: UserProfile = {
   email: 'test@example.com',
   displayName: 'Test User',
   telegramLinked: false,
+  telegramLinkToken: null,
 };
 
 export const mockTelegramToken: TelegramLinkToken = {

@@ -16,13 +16,6 @@ export function UserMenu() {
 
   if (!user) return null;
 
-  const initials = user.displayName
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none">

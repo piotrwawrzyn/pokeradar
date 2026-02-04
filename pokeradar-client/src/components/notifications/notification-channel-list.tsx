@@ -5,7 +5,7 @@ import { TelegramIcon } from './telegram/telegram-icon';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType } from 'react';
 import type { LucideIcon } from 'lucide-react';
 
 interface NotificationChannelConfig {
@@ -22,7 +22,7 @@ const NOTIFICATION_CHANNELS: NotificationChannelConfig[] = [
   {
     id: 'telegram',
     name: 'Telegram',
-    description: 'Otrzymuj powiadomienia przez Telegram',
+    description: 'Otrzymuj natychmiastowe powiadomienia przez Telegram',
     icon: TelegramIcon,
     component: TelegramSetup,
     isAvailable: true,
@@ -59,7 +59,7 @@ export function NotificationChannelList() {
             key={channel.id}
             name={channel.name}
             description={channel.description}
-            icon={channel.icon}
+            icon={channel.icon as LucideIcon}
             isLinked={channel.getIsLinked(profile)}
             isAvailable={channel.isAvailable}
           >
