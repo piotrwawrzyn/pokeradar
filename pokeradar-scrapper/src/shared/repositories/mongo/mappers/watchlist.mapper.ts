@@ -10,6 +10,7 @@ import { WatchlistProductInternal } from '../../../types';
 export interface IWatchlistProductDoc {
   id: string;
   name: string;
+  productSetId?: string;
   search: {
     phrases: string[];
     exclude?: string[];
@@ -24,6 +25,7 @@ export function toWatchlistProduct(doc: IWatchlistProductDoc): WatchlistProductI
   return {
     id: doc.id,
     name: doc.name,
+    productSetId: doc.productSetId,
     search: {
       phrases: doc.search.phrases,
       exclude: doc.search.exclude,
@@ -46,6 +48,7 @@ export function toWatchlistProductDoc(product: WatchlistProductInternal): IWatch
   return {
     id: product.id,
     name: product.name,
+    productSetId: product.productSetId,
     search: {
       phrases: product.search.phrases,
       exclude: product.search.exclude,

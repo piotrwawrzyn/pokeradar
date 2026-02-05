@@ -2,7 +2,7 @@
   "id": "pokesmart",
   "name": "PokeSmart",
   "baseUrl": "https://pokesmart.pl",
-  "searchUrl": "/pl/searchquery/",
+  "searchUrl": "/pl/searchquery/{query}/1/full/5",
   "selectors": {
     "searchPage": {
       "article": {

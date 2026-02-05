@@ -25,6 +25,8 @@ export interface IScraperLogger {
  */
 export interface IScraper {
   scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult>;
+  scrapeProductWithUrl(product: WatchlistProductInternal, productUrl: string): Promise<ProductResult>;
+  getNavigator(): SearchNavigator;
   close(): Promise<void>;
 }
 
@@ -161,6 +163,45 @@ export abstract class BaseScraper implements IScraper {
     });
 
     return false;
+  }
+
+  /**
+   * Scrapes a product using a pre-resolved product page URL.
+   * Skips the search phase — used when set-based search already found the URL.
+   */
+  async scrapeProductWithUrl(
+    product: WatchlistProductInternal,
+    productUrl: string
+  ): Promise<ProductResult> {
+    try {
+      await this.navigateToProductPage(productUrl);
+      const price = await this.extractPrice();
+      const isAvailable = await this.checkAvailability();
+
+      return {
+        productId: product.id,
+        shopId: this.config.id,
+        productUrl,
+        price,
+        isAvailable,
+        timestamp: new Date(),
+      };
+    } catch (error) {
+      this.logger?.error('Error scraping product with pre-resolved URL', {
+        shop: this.config.id,
+        product: product.id,
+        url: productUrl,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return this.createNullResult(product);
+    }
+  }
+
+  /**
+   * Exposes the navigator for set-based search operations.
+   */
+  getNavigator(): SearchNavigator {
+    return this.navigator;
   }
 
   /**

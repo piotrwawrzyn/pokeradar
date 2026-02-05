@@ -1,9 +1,13 @@
 /**
  * Scan cycle runner for executing scraping operations.
+ * Supports set-based searching: one search per set per shop,
+ * with individual fallback for unmatched or ungrouped products.
  */
 
 import { Browser } from 'playwright';
 import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../shared/types';
+import { SetGroup } from '../../shared/utils/product-utils';
+import { IScraper } from '../scrapers/base/base-scraper';
 import { ResultBuffer } from './result-buffer';
 
 const CHEERIO_CONCURRENCY = 10;
@@ -40,14 +44,6 @@ export interface IScraperFactory {
 }
 
 /**
- * Scraper interface.
- */
-export interface IScraper {
-  scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult>;
-  close(): Promise<void>;
-}
-
-/**
  * Multi-user notification dispatcher interface.
  * Processes scrape results against all watching users.
  */
@@ -66,17 +62,30 @@ export interface ScanCycleConfig {
 }
 
 /**
+ * A product task resolved after set-based search phase.
+ */
+interface ProductTask {
+  product: WatchlistProductInternal;
+  /** If set, skip search and go directly to this URL. */
+  resolvedUrl?: string;
+}
+
+/**
  * Runs scan cycles for Cheerio and Playwright engines.
+ * Uses set-based searching to reduce HTTP requests.
  */
 export class ScanCycleRunner {
   constructor(private config: ScanCycleConfig) {}
 
   /**
-   * Runs Cheerio scan cycle (lightweight HTTP-based scraping).
+   * Runs Cheerio scan cycle with set-based search optimization.
+   * Phase 1: Set searches (sequential, one scraper per shop).
+   * Phase 2: Product page visits (concurrent, PRODUCT_CONCURRENCY per shop).
    */
   async runCheerioScanCycle(
     shops: ShopConfig[],
-    products: WatchlistProductInternal[]
+    setGroups: SetGroup[],
+    ungroupedProducts: WatchlistProductInternal[]
   ): Promise<void> {
     const { cheerio: cheerioShops } = this.config.scraperFactory.groupByEngine(shops);
 
@@ -84,27 +93,19 @@ export class ScanCycleRunner {
       return;
     }
 
+    const totalProducts = setGroups.reduce((sum, g) => sum + g.products.length, 0) + ungroupedProducts.length;
+
     this.config.logger.info('Starting Cheerio scan cycle', {
       shops: cheerioShops.length,
-      products: products.length,
+      products: totalProducts,
+      setGroups: setGroups.length,
+      ungrouped: ungroupedProducts.length,
     });
 
     const startTime = Date.now();
 
     const shopTasks = cheerioShops.map((shop) => async () => {
-      const productTasks = products.map((product) => async () => {
-        try {
-          await this.scanProduct(shop, product);
-        } catch (error) {
-          this.config.logger.error('Error scanning product', {
-            product: product.id,
-            shop: shop.id,
-            engine: 'cheerio',
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
-      });
-      await runWithConcurrency(productTasks, PRODUCT_CONCURRENCY);
+      await this.scanShopConcurrent(shop, setGroups, ungroupedProducts);
     });
 
     await runWithConcurrency(shopTasks, CHEERIO_CONCURRENCY);
@@ -113,11 +114,13 @@ export class ScanCycleRunner {
   }
 
   /**
-   * Runs Playwright scan cycle (browser-based scraping).
+   * Runs Playwright scan cycle with set-based search optimization.
+   * Playwright is sequential (one browser, one page at a time).
    */
   async runPlaywrightScanCycle(
     shops: ShopConfig[],
-    products: WatchlistProductInternal[]
+    setGroups: SetGroup[],
+    ungroupedProducts: WatchlistProductInternal[]
   ): Promise<void> {
     const { playwright: playwrightShops } = this.config.scraperFactory.groupByEngine(shops);
 
@@ -125,9 +128,13 @@ export class ScanCycleRunner {
       return;
     }
 
+    const totalProducts = setGroups.reduce((sum, g) => sum + g.products.length, 0) + ungroupedProducts.length;
+
     this.config.logger.info('Starting Playwright scan cycle', {
       shops: playwrightShops.length,
-      products: products.length,
+      products: totalProducts,
+      setGroups: setGroups.length,
+      ungrouped: ungroupedProducts.length,
     });
 
     const startTime = Date.now();
@@ -154,18 +161,7 @@ export class ScanCycleRunner {
       });
 
       for (const shop of playwrightShops) {
-        for (const product of products) {
-          try {
-            await this.scanProduct(shop, product, browser);
-          } catch (error) {
-            this.config.logger.error('Error scanning product', {
-              product: product.id,
-              shop: shop.id,
-              engine: 'playwright',
-              error: error instanceof Error ? error.message : String(error),
-            });
-          }
-        }
+        await this.scanShopSequential(shop, setGroups, ungroupedProducts, browser);
       }
     } finally {
       if (browser) {
@@ -177,34 +173,252 @@ export class ScanCycleRunner {
   }
 
   /**
-   * Scans a single product on a single shop.
+   * Scans a shop with product-level concurrency (Cheerio).
+   * Phase 1: Use one scraper to do set searches and resolve URLs.
+   * Phase 2: Run product tasks concurrently with separate scrapers.
    */
-  private async scanProduct(
+  private async scanShopConcurrent(
     shop: ShopConfig,
-    product: WatchlistProductInternal,
-    browser?: Browser
+    setGroups: SetGroup[],
+    ungroupedProducts: WatchlistProductInternal[]
+  ): Promise<void> {
+    // Phase 1: Resolve set-based URLs using a single scraper
+    const productTasks = await this.resolveSetSearches(shop, setGroups, ungroupedProducts);
+
+    // Phase 2: Execute all product tasks concurrently
+    const tasks = productTasks.map((task) => async () => {
+      const scraper = this.config.scraperFactory.create(shop, this.config.logger);
+      try {
+        if (task.resolvedUrl) {
+          const result = await scraper.scrapeProductWithUrl(task.product, task.resolvedUrl);
+          this.handleResult(task.product, result, shop);
+        } else {
+          const result = await scraper.scrapeProduct(task.product);
+          this.handleResult(task.product, result, shop);
+        }
+      } catch (error) {
+        this.config.logger.error('Error scanning product', {
+          product: task.product.id,
+          shop: shop.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      } finally {
+        await scraper.close();
+      }
+    });
+
+    await runWithConcurrency(tasks, PRODUCT_CONCURRENCY);
+  }
+
+  /**
+   * Scans a shop sequentially (Playwright).
+   * One scraper is reused for all products.
+   */
+  private async scanShopSequential(
+    shop: ShopConfig,
+    setGroups: SetGroup[],
+    ungroupedProducts: WatchlistProductInternal[],
+    browser: Browser
   ): Promise<void> {
     const scraper = this.config.scraperFactory.create(shop, this.config.logger, browser);
 
     try {
-      const result = await scraper.scrapeProduct(product);
+      // Scan set-grouped products
+      for (const setGroup of setGroups) {
+        await this.scanSetGroup(scraper, shop, setGroup);
+      }
 
-      this.config.logger.info('Product scanned', {
-        product: product.id,
-        shop: shop.id,
-        price: result.price,
-        available: result.isAvailable,
-        url: result.productUrl,
-      });
-
-      // Buffer result for batch write
-      this.config.resultBuffer.add(result);
-
-      // Process result against all watching users (state tracking + notification enqueue)
-      this.config.dispatcher.processResult(product, result, shop);
+      // Scan ungrouped products
+      for (const product of ungroupedProducts) {
+        await this.scanProductIndividual(scraper, shop, product);
+      }
     } finally {
       await scraper.close();
     }
+  }
+
+  /**
+   * Phase 1 for Cheerio: performs set searches with one scraper,
+   * returns a list of product tasks with resolved URLs where possible.
+   */
+  private async resolveSetSearches(
+    shop: ShopConfig,
+    setGroups: SetGroup[],
+    ungroupedProducts: WatchlistProductInternal[]
+  ): Promise<ProductTask[]> {
+    const tasks: ProductTask[] = [];
+
+    // Use one scraper for all set searches (sequential, lightweight)
+    const searchScraper = this.config.scraperFactory.create(shop, this.config.logger);
+    try {
+      const navigator = searchScraper.getNavigator();
+
+      for (const setGroup of setGroups) {
+        try {
+          const candidates = await navigator.extractSearchCandidates(setGroup.searchPhrase);
+
+          this.config.logger.info('Set search completed', {
+            shop: shop.id,
+            setId: setGroup.setId,
+            searchPhrase: setGroup.searchPhrase,
+            candidates: candidates.length,
+            products: setGroup.products.length,
+          });
+
+          for (const product of setGroup.products) {
+            const matchedUrl = navigator.matchProductFromCandidates(product, candidates);
+            if (matchedUrl) {
+              tasks.push({ product, resolvedUrl: matchedUrl });
+            } else {
+              this.config.logger.info('Product not found in set search', {
+                shop: shop.id,
+                product: product.id,
+                setId: setGroup.setId,
+              });
+              this.handleNotFound(product, shop);
+            }
+          }
+        } catch (error) {
+          this.config.logger.error('Set search failed, marking all products as not found', {
+            shop: shop.id,
+            setId: setGroup.setId,
+            searchPhrase: setGroup.searchPhrase,
+            error: error instanceof Error ? error.message : String(error),
+          });
+
+          for (const product of setGroup.products) {
+            this.handleNotFound(product, shop);
+          }
+        }
+      }
+    } finally {
+      await searchScraper.close();
+    }
+
+    // Add ungrouped products (no set — will use individual search)
+    for (const product of ungroupedProducts) {
+      tasks.push({ product });
+    }
+
+    return tasks;
+  }
+
+  /**
+   * Scans a set group sequentially: one search, then match + scrape each product.
+   * Used by Playwright path where concurrency isn't possible.
+   */
+  private async scanSetGroup(
+    scraper: IScraper,
+    shop: ShopConfig,
+    setGroup: SetGroup
+  ): Promise<void> {
+    const navigator = scraper.getNavigator();
+
+    try {
+      const candidates = await navigator.extractSearchCandidates(setGroup.searchPhrase);
+
+      this.config.logger.info('Set search completed', {
+        shop: shop.id,
+        setId: setGroup.setId,
+        searchPhrase: setGroup.searchPhrase,
+        candidates: candidates.length,
+        products: setGroup.products.length,
+      });
+
+      for (const product of setGroup.products) {
+        try {
+          const matchedUrl = navigator.matchProductFromCandidates(product, candidates);
+
+          if (matchedUrl) {
+            const result = await scraper.scrapeProductWithUrl(product, matchedUrl);
+            this.handleResult(product, result, shop);
+          } else {
+            this.config.logger.info('Product not found in set search', {
+              shop: shop.id,
+              product: product.id,
+              setId: setGroup.setId,
+            });
+            this.handleNotFound(product, shop);
+          }
+        } catch (error) {
+          this.config.logger.error('Error scanning set product', {
+            product: product.id,
+            shop: shop.id,
+            setId: setGroup.setId,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    } catch (error) {
+      this.config.logger.error('Set search failed, marking all products as not found', {
+        shop: shop.id,
+        setId: setGroup.setId,
+        searchPhrase: setGroup.searchPhrase,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      for (const product of setGroup.products) {
+        this.handleNotFound(product, shop);
+      }
+    }
+  }
+
+  /**
+   * Scans a single product individually (standard search + scrape).
+   */
+  private async scanProductIndividual(
+    scraper: IScraper,
+    shop: ShopConfig,
+    product: WatchlistProductInternal
+  ): Promise<void> {
+    try {
+      const result = await scraper.scrapeProduct(product);
+      this.handleResult(product, result, shop);
+    } catch (error) {
+      this.config.logger.error('Error scanning product', {
+        product: product.id,
+        shop: shop.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  /**
+   * Handles a product not found in set search — emits a null result without making any HTTP requests.
+   */
+  private handleNotFound(
+    product: WatchlistProductInternal,
+    shop: ShopConfig
+  ): void {
+    const result: ProductResult = {
+      productId: product.id,
+      shopId: shop.id,
+      productUrl: '',
+      price: null,
+      isAvailable: false,
+      timestamp: new Date(),
+    };
+    this.handleResult(product, result, shop);
+  }
+
+  /**
+   * Handles a scrape result: logs, buffers, and dispatches notifications.
+   */
+  private handleResult(
+    product: WatchlistProductInternal,
+    result: ProductResult,
+    shop: ShopConfig
+  ): void {
+    this.config.logger.info('Product scanned', {
+      product: product.id,
+      shop: shop.id,
+      price: result.price,
+      available: result.isAvailable,
+      url: result.productUrl,
+    });
+
+    this.config.resultBuffer.add(result);
+    this.config.dispatcher.processResult(product, result, shop);
   }
 
   /**

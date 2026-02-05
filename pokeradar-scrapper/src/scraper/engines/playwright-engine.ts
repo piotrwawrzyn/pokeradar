@@ -3,7 +3,7 @@
  * Supports JavaScript rendering and complex interactions.
  */
 
-import { Browser, Page, Locator } from 'playwright';
+import { Browser, Page, Locator, BrowserContext } from 'playwright';
 import { Selector, ExtractType } from '../../shared/types';
 import { IEngine, IElement } from './engine.interface';
 import { PlaywrightElement } from './element/playwright-element';
@@ -38,6 +38,7 @@ const BLOCKED_DOMAINS = [
  */
 export class PlaywrightEngine implements IEngine {
   private page: Page | null = null;
+  private context: BrowserContext | null = null;
   private ownsBrowser: boolean = false;
   private browser: Browser | null = null;
 
@@ -158,17 +159,15 @@ export class PlaywrightEngine implements IEngine {
 
   async close(): Promise<void> {
     if (this.page) {
-      try {
-        await this.page.unroute('**/*');
-      } catch (error) {
-        this.logger?.debug('PlaywrightEngine.close unroute failed', {
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
       await safeClose(this.page);
       this.page = null;
     }
-
+  
+    if (this.context) {
+      await safeClose(this.context);
+      this.context = null;
+    }
+  
     if (this.ownsBrowser && this.browser) {
       await safeClose(this.browser);
       this.browser = null;
@@ -177,7 +176,12 @@ export class PlaywrightEngine implements IEngine {
 
   private async initializePage(): Promise<void> {
     if (this.existingBrowser) {
-      this.page = await this.existingBrowser.newPage();
+      if (!this.existingBrowser.isConnected()) {
+        throw new Error('Shared browser is already closed');
+      }
+  
+      this.context = await this.existingBrowser.newContext();
+      this.page = await this.context.newPage();
       this.ownsBrowser = false;
     } else {
       const { chromium } = await import('playwright');

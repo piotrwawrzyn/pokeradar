@@ -75,7 +75,7 @@ export class SearchNavigator {
     if (!this.config.directHitPattern) {
       return null;
     }
-
+    
     const currentUrl = this.engine.getCurrentUrl();
     if (!currentUrl || !new RegExp(this.config.directHitPattern).test(currentUrl)) {
       return null;
@@ -178,8 +178,16 @@ export class SearchNavigator {
     const articlesToCheck = articles.slice(0, 5);
 
     for (const article of articlesToCheck) {
-      const titleElement = await article.find(this.config.selectors.searchPage.title);
-      const title = titleElement ? await titleElement.getText() : null;
+      const titleSelector = this.config.selectors.searchPage.title;
+      let title: string | null = null;
+
+      // If title selector has "extract" property, get attribute instead of text
+      if ('extract' in titleSelector && titleSelector.extract) {
+        title = await article.getAttribute(titleSelector.extract);
+      } else {
+        const titleElement = await article.find(titleSelector);
+        title = titleElement ? await titleElement.getText() : null;
+      }
 
       const urlElement = await article.find(this.config.selectors.searchPage.productUrl);
       const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
@@ -193,6 +201,104 @@ export class SearchNavigator {
     }
 
     return this.matcher.selectBestCandidate(candidates, product, phrase, this.config.id);
+  }
+
+  /**
+   * Performs a set-level search and extracts all article candidates (title + URL).
+   * Does NOT do product-specific matching. Used for set-based searching
+   * where one search covers multiple products.
+   */
+  async extractSearchCandidates(
+    searchPhrase: string,
+    maxArticles: number = 20
+  ): Promise<ProductCandidate[]> {
+    const searchUrl = buildSearchUrl(
+      this.config.baseUrl,
+      this.config.searchUrl,
+      searchPhrase
+    );
+
+    await this.engine.goto(searchUrl);
+
+    const articles = await this.engine.extractAll(
+      this.config.selectors.searchPage.article
+    );
+
+    if (articles.length === 0) {
+      this.logger?.info('No articles found for set search', {
+        shop: this.config.id,
+        phrase: searchPhrase,
+      });
+      return [];
+    }
+
+    const candidates: ProductCandidate[] = [];
+    for (const article of articles) {
+      const titleSelector = this.config.selectors.searchPage.title;
+      let title: string | null = null;
+
+      // If title selector has "extract" property, get attribute instead of text
+      if ('extract' in titleSelector && titleSelector.extract) {
+        // For attribute extraction from article itself, don't use find()
+        title = await article.getAttribute(titleSelector.extract);
+      } else {
+        const titleElement = await article.find(titleSelector);
+        title = titleElement ? await titleElement.getText() : null;
+      }
+
+      const urlElement = await article.find(this.config.selectors.searchPage.productUrl);
+      const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
+
+      if (title && productUrl) {
+        candidates.push({
+          title,
+          url: normalizeUrl(productUrl, this.config.baseUrl),
+          score: 0,
+        });
+      }
+    }
+
+    return candidates;
+  }
+
+  /**
+   * Matches a specific product against pre-extracted search candidates.
+   * Tries each of the product's search phrases against the candidates.
+   * Returns the best matching URL or null. No HTTP requests.
+   */
+  matchProductFromCandidates(
+    product: WatchlistProductInternal,
+    candidates: ProductCandidate[]
+  ): string | null {
+    for (const phrase of product.search.phrases) {
+      const scoredCandidates: ProductCandidate[] = [];
+
+      for (const candidate of candidates) {
+        const score = this.matcher.validateTitle(
+          candidate.title,
+          phrase,
+          product,
+          this.config.id
+        );
+
+        if (score !== null) {
+          scoredCandidates.push({ ...candidate, score });
+        }
+      }
+
+      const bestUrl = this.matcher.selectBestCandidate(
+        scoredCandidates,
+        product,
+        phrase,
+        this.config.id
+      );
+
+      if (bestUrl) {
+        return bestUrl;
+      }
+    }
+
+    return null;
   }
 
   /**

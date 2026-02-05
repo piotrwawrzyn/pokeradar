@@ -70,7 +70,6 @@ async function checkWatchlist() {
     // Check each product against each shop
     for (const product of products) {
       console.log(`📦 ${product.name}`);
-      console.log(`   Max Price: ${product.price.max} zł`);
       console.log('');
 
       // Process Cheerio shops first (no browser needed)
@@ -120,13 +119,11 @@ async function checkProductAtShop(
       const availIcon = result.isAvailable ? '✅' : '⛔';
       const availText = result.isAvailable ? 'Available' : 'Unavailable';
       const priceStr = `${result.price.toFixed(2)} zł`;
-      const meetsPrice = result.price <= product.price.max;
 
-      const match = result.isAvailable && meetsPrice ? ' 🎯 MATCH!' : '';
 
-      statusLine = `   ${availIcon} ${shop.name.padEnd(15)} - ${priceStr.padEnd(12)} ${availText.padEnd(11)}${match}`;
+      statusLine = `   ${availIcon} ${shop.name.padEnd(15)} - ${priceStr.padEnd(12)} ${availText.padEnd(11)}`;
 
-      if (result.productUrl && result.isAvailable && meetsPrice) {
+      if (result.productUrl && result.isAvailable) {
         console.log(statusLine);
         console.log(`      🔗 ${result.productUrl}`);
         return;

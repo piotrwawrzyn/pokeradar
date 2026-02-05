@@ -8,6 +8,8 @@ import { MultiUserNotificationDispatcher } from '../../shared/notification';
 import { NotificationStateService } from '../../shared/notification';
 import { ResultBuffer, IProductResultRepository } from './result-buffer';
 import { ScanCycleRunner, IScraperFactory, IScanLogger } from './scan-cycle-runner';
+import { groupProductsBySet, SetGroup } from '../../shared/utils/product-utils';
+import { ProductSetModel } from '../../infrastructure/database/models';
 
 /**
  * Repository interfaces.
@@ -43,6 +45,8 @@ export interface PriceMonitorConfig {
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
   private products: WatchlistProductInternal[] = [];
+  private setGroups: SetGroup[] = [];
+  private ungroupedProducts: WatchlistProductInternal[] = [];
   private resultBuffer: ResultBuffer;
   private cycleRunner: ScanCycleRunner;
 
@@ -102,9 +106,24 @@ export class PriceMonitor {
     const subscribedIds = this.products.map((p) => p.id);
     await this.config.stateManager.loadFromRepository(subscribedIds);
 
+    // Load product sets for set-based search grouping
+    const productSetDocs = await ProductSetModel.find().select('id name series').lean();
+    const setMap = new Map<string, { name: string; series: string }>();
+    for (const doc of productSetDocs) {
+      setMap.set(doc.id, { name: doc.name, series: doc.series });
+    }
+
+    // Group products by set for optimized searching
+    const { setGroups, ungrouped } = groupProductsBySet(this.products, setMap);
+    this.setGroups = setGroups;
+    this.ungroupedProducts = ungrouped;
+
     this.config.logger.info('Price Monitor initialized', {
       shops: this.shops.length,
       products: this.products.length,
+      setGroups: setGroups.length,
+      productsInSets: this.products.length - ungrouped.length,
+      ungrouped: ungrouped.length,
     });
   }
 
@@ -127,7 +146,7 @@ export class PriceMonitor {
     this.resultBuffer.clear();
 
     // Run Cheerio cycle
-    await this.cycleRunner.runCheerioScanCycle(this.shops, this.products);
+    await this.cycleRunner.runCheerioScanCycle(this.shops, this.setGroups, this.ungroupedProducts);
 
     // Hint GC to clean up before memory-intensive Playwright phase
     if (global.gc) {
@@ -135,7 +154,7 @@ export class PriceMonitor {
     }
 
     // Run Playwright cycle
-    await this.cycleRunner.runPlaywrightScanCycle(this.shops, this.products);
+    await this.cycleRunner.runPlaywrightScanCycle(this.shops, this.setGroups, this.ungroupedProducts);
 
     // Flush all buffered data to MongoDB
     await this.flushAllChanges();
@@ -147,14 +166,14 @@ export class PriceMonitor {
    * Runs only Cheerio scan cycle.
    */
   async runCheerioScanCycle(): Promise<void> {
-    await this.cycleRunner.runCheerioScanCycle(this.shops, this.products);
+    await this.cycleRunner.runCheerioScanCycle(this.shops, this.setGroups, this.ungroupedProducts);
   }
 
   /**
    * Runs only Playwright scan cycle.
    */
   async runPlaywrightScanCycle(): Promise<void> {
-    await this.cycleRunner.runPlaywrightScanCycle(this.shops, this.products);
+    await this.cycleRunner.runPlaywrightScanCycle(this.shops, this.setGroups, this.ungroupedProducts);
   }
 
   /**

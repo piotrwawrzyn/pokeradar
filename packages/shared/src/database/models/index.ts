@@ -12,3 +12,6 @@ export type { IProductResultDoc } from './product-result.model';
 
 export { AppSettingsModel, getAppSettings } from './app-settings.model';
 export type { IAppSettingsDoc } from './app-settings.model';
+
+export { ProductSetModel } from './product-set.model';
+export type { IProductSetDoc } from './product-set.model';

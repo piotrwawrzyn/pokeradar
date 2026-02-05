@@ -15,6 +15,7 @@ export interface SearchConfig {
  */
 export interface WatchlistProduct {
   name: string;
+  productSetId?: string;
   search: SearchConfig;
   disabled?: boolean;
 }

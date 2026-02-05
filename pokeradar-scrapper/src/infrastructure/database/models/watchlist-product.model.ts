@@ -10,6 +10,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IWatchlistProductDoc extends Document {
   id: string;
   name: string;
+  productSetId?: string;
   search: {
     phrases: string[];
     exclude?: string[];
@@ -23,6 +24,7 @@ export interface IWatchlistProductDoc extends Document {
 const WatchlistProductSchema = new Schema<IWatchlistProductDoc>({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
+  productSetId: { type: String },
   search: {
     phrases: { type: [String], required: true },
     exclude: { type: [String], default: [] },
