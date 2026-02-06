@@ -51,6 +51,36 @@ See [scripts/baseline/README.md](scripts/baseline/README.md) for:
 - CI/CD integration
 - Development guide
 
+## Pre-Commit Hook Protection
+
+The project includes an automatic pre-commit hook that runs `baseline:check` whenever you commit changes to the scrapper code:
+
+```bash
+git add pokeradar-scrapper/src/...
+git commit -m "Update scrapper"
+
+# Hook automatically runs:
+🔍 Scrapper files changed - running baseline:check...
+✅ Baseline check passed!
+```
+
+**If baseline check fails**, the commit is blocked:
+
+```bash
+❌ Baseline check failed! Your changes broke the scrapper.
+
+Options:
+  1. Fix the regressions in your code
+  2. If changes are intentional, re-record baseline:
+     npm run baseline:record -w pokeradar-scrapper
+  3. To skip this check once: git commit --no-verify
+```
+
+This prevents accidentally committing broken scrapper code. The hook:
+- Only runs when scrapper files are modified (not for API, client, etc.)
+- Skips if no baseline exists yet
+- Can be bypassed with `--no-verify` if needed
+
 ## CI/CD Integration
 
 Add to your pipeline:

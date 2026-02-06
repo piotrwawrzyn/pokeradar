@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Check if any scrapper files are being committed
+SCRAPPER_FILES=$(git diff --cached --name-only | grep "^pokeradar-scrapper/" || true)
+
+if [ -n "$SCRAPPER_FILES" ]; then
+  echo "🔍 Scrapper files changed - running baseline:check..."
+  echo ""
+
+  # Check if baseline file exists
+  if [ ! -f "pokeradar-scrapper/scripts/baseline/fixtures/_baseline.json" ]; then
+    echo "⚠️  Warning: No baseline found. Run 'npm run baseline:record -w pokeradar-scrapper' first."
+    echo "Skipping baseline check..."
+    exit 0
+  fi
+
+  # Run baseline check
+  npm run baseline:check -w pokeradar-scrapper
+
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "❌ Baseline check failed! Your changes broke the scrapper."
+    echo ""
+    echo "Options:"
+    echo "  1. Fix the regressions in your code"
+    echo "  2. If changes are intentional, re-record baseline:"
+    echo "     npm run baseline:record -w pokeradar-scrapper"
+    echo "  3. To skip this check once: git commit --no-verify"
+    echo ""
+    exit 1
+  fi
+
+  echo ""
+  echo "✅ Baseline check passed!"
+  echo ""
+fi

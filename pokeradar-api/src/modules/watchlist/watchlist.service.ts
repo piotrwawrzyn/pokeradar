@@ -2,6 +2,8 @@ import { Types } from 'mongoose';
 import {
   UserWatchEntryModel,
   WatchlistProductModel,
+  NotificationModel,
+  NotificationStateModel,
 } from '../../infrastructure/database/models';
 import { NotFoundError } from '../../shared/middleware';
 import { WatchlistEntryResponse } from '../../shared/types';
@@ -63,13 +65,19 @@ export class WatchlistService {
   }
 
   async deleteEntry(userId: string, entryId: string): Promise<void> {
-    const result = await UserWatchEntryModel.deleteOne({
+    const entry = await UserWatchEntryModel.findOneAndDelete({
       _id: new Types.ObjectId(entryId),
       userId: new Types.ObjectId(userId),
     });
 
-    if (result.deletedCount === 0) {
+    if (!entry) {
       throw new NotFoundError('Watch entry not found');
     }
+
+    // Cascade delete: remove all notifications and notification states for this user+product
+    await Promise.all([
+      NotificationStateModel.deleteMany({ userId, productId: entry.productId }),
+      NotificationModel.deleteMany({ userId, 'payload.productId': entry.productId }),
+    ]);
   }
 }
