@@ -11,11 +11,11 @@
  * Usage:
  *   npm run baseline:record                    # Record all shops and save baseline
  *   npm run baseline:record -- --shops letsgotry,basanti  # Record specific shops
- *   npm run baseline:record:compare            # Compare timing vs existing baseline (no save)
+ *   npm run baseline:record:compare            # Compare timing (readonly, no files modified)
  *
  * Output:
- *   scripts/baseline/fixtures/{shopId}/*.html  - Saved HTML per shop
- *   scripts/baseline/fixtures/_baseline.json   - Golden results + watchlist + timing
+ *   scripts/baseline/fixtures/{shopId}/*.html  - Saved HTML per shop (not in compare mode)
+ *   scripts/baseline/fixtures/_baseline.json   - Golden results + timing (not in compare mode)
  */
 
 import * as dotenv from 'dotenv';
@@ -278,7 +278,8 @@ async function record() {
 
     // Create baseline infrastructure
     const fixturesDir = path.join(__dirname, 'fixtures');
-    const fixtureStore = new FixtureStore(fixturesDir);
+    // In compare mode, make FixtureStore readonly (don't save new fixtures)
+    const fixtureStore = new FixtureStore(fixturesDir, compareMode);
     const timingTracker = new TimingTracker();
     const factory = new BaselineScraperFactory('record', fixtureStore, timingTracker);
     const resultBuffer = new ResultBuffer();
@@ -326,7 +327,7 @@ async function record() {
 
       const duration = Math.round((Date.now() - startTime) / 1000);
       console.log(`\n⏱️  Comparison completed in ${duration}s`);
-      console.log(colors.gray + '\nNote: Baseline was NOT modified (compare mode)\n' + colors.reset);
+      console.log(colors.gray + '\nNote: No files were modified (compare mode is readonly)\n' + colors.reset);
 
       return; // Exit without saving
     }

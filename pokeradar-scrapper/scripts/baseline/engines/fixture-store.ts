@@ -26,12 +26,15 @@ import * as crypto from 'crypto';
  */
 export class FixtureStore {
   private fixturesDir: string;
+  private readonly: boolean;
 
   /**
    * @param baseDir - Base directory for fixtures (default: scripts/baseline/fixtures)
+   * @param readonly - If true, saveHtml becomes a no-op (used in compare mode)
    */
-  constructor(baseDir?: string) {
+  constructor(baseDir?: string, readonly: boolean = false) {
     this.fixturesDir = baseDir || path.join(__dirname, '..', 'fixtures');
+    this.readonly = readonly;
     this.ensureDir(this.fixturesDir);
   }
 
@@ -44,6 +47,11 @@ export class FixtureStore {
    * @param html - HTML content to save
    */
   saveHtml(shopId: string, url: string, html: string): void {
+    // Skip saving in readonly mode (e.g., compare mode)
+    if (this.readonly) {
+      return;
+    }
+
     const shopDir = path.join(this.fixturesDir, shopId);
     this.ensureDir(shopDir);
 

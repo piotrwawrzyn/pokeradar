@@ -77,16 +77,16 @@ To measure if your code changes improved or degraded performance, you have three
 
 ### Option 1: Quick In-Memory Comparison (Recommended)
 
-Compare against the current baseline without modifying it:
+Compare against the current baseline without modifying any files:
 
 ```bash
 # Make your performance changes (optimize queries, add concurrency, etc.)
 
-# Record and compare in one step (does NOT save new baseline)
+# Record and compare in one step (readonly mode - no files modified)
 npm run baseline:record:compare
 ```
 
-This shows the timing comparison immediately and doesn't modify the baseline. If you're happy with the results, run `npm run baseline:record` to save the new baseline.
+This runs live scraping to measure timing, compares against the baseline, but **does not save any files** (neither fixtures nor baseline.json). If you're happy with the results, run `npm run baseline:record` to save the new baseline.
 
 ### Option 2: Compare Two Saved Baselines
 
@@ -132,7 +132,7 @@ npm run baseline:record
 # Record specific shops only
 npm run baseline:record -- --shops letsgotry,basanti
 
-# Record and compare timing (does NOT save baseline)
+# Record and compare timing (readonly - no files modified)
 npm run baseline:record:compare
 
 # Check for regressions (offline, fast)
