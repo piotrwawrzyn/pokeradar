@@ -353,21 +353,38 @@ async function record() {
     }
 
     // Build baseline snapshot
-    const snapshot: BaselineSnapshot = {
-      recordedAt: new Date().toISOString(),
-      products,
-      productSets: Array.from(setMap.entries()).map(([id, data]) => ({
-        id,
-        name: data.name,
-        series: data.series,
-      })),
-      results: results.map(r => ({
+    // Sort results by shopId, then productId for deterministic git diffs
+    const sortedResults = results
+      .map(r => ({
         productId: r.productId,
         shopId: r.shopId,
         productUrl: r.productUrl,
         price: r.price,
         isAvailable: r.isAvailable,
-      })),
+      }))
+      .sort((a, b) => {
+        // First sort by shopId
+        if (a.shopId !== b.shopId) {
+          return a.shopId.localeCompare(b.shopId);
+        }
+        // Then by productId
+        return a.productId.localeCompare(b.productId);
+      });
+
+    // Sort productSets by id for deterministic output
+    const sortedProductSets = Array.from(setMap.entries())
+      .map(([id, data]) => ({
+        id,
+        name: data.name,
+        series: data.series,
+      }))
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    const snapshot: BaselineSnapshot = {
+      recordedAt: new Date().toISOString(),
+      products,
+      productSets: sortedProductSets,
+      results: sortedResults,
       timing: currentTiming,
     };
 
