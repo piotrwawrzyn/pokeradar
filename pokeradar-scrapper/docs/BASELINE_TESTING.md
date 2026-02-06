@@ -2,7 +2,7 @@
 
 This project now includes a comprehensive baseline testing framework to catch regressions in the scrapper.
 
-## Quick Start
+## Quick Start Guide
 
 ### Record a baseline (first time):
 ```bash
