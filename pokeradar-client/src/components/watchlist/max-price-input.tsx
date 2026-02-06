@@ -117,7 +117,7 @@ export function MaxPriceInput({
   const hasSlider = currentBestPrice !== null;
 
   return (
-    <div className="space-y-1.5 pt-1">
+    <div className="space-y-1.5 pt-2.5">
       {priceLabel}
       <div className={hasSlider ? undefined : 'invisible'}>
         <Slider

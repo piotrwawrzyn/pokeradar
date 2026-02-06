@@ -15,7 +15,7 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
   const isWatched = !!entry;
 
   return (
-    <Card className="overflow-hidden border-0 shadow-none bg-background rounded-lg flex flex-col">
+    <Card className="overflow-hidden border-0 shadow-none bg-background rounded-lg flex flex-col py-3 gap-0">
       <div className="aspect-[5/4] relative overflow-hidden">
         <img
           src={product.imageUrl}
@@ -29,12 +29,12 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
           </Badge>
         )}
       </div>
-      <CardContent className="px-3 py-2 space-y-2 flex flex-col flex-1">
+      <CardContent className="px-3 py-1.5 space-y-1.5 flex flex-col flex-1">
         <h3 className="font-medium text-xs leading-tight line-clamp-2 min-h-[2rem]">
           {product.name}
         </h3>
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-start justify-between gap-2">
           {product.currentBestUrl ? (
             <a
               href={product.currentBestUrl}

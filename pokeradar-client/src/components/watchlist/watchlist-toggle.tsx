@@ -48,7 +48,7 @@ export function WatchlistToggle({ product, entry, disabled }: WatchlistTogglePro
       className={cn(
         'h-7 text-xs',
         isWatched ? 'w-8 p-0' : 'gap-1.5 px-2.5',
-        isWatched && 'bg-primary text-primary-foreground',
+        isWatched && 'bg-primary text-primary-foreground border border-primary',
       )}
       aria-label={`Obserwuj ${product.name}`}
       role="switch"
