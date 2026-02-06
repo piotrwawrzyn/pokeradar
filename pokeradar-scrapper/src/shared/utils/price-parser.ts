@@ -2,6 +2,8 @@
  * Price parsing utilities for various formats.
  */
 
+// Test comment to verify pre-commit hook
+
 import { PriceFormat } from '../types';
 
 /**
