@@ -13,6 +13,13 @@ import { ResultBuffer } from './result-buffer';
 const CHEERIO_CONCURRENCY = 10;
 const PRODUCT_CONCURRENCY = 3;
 
+function countTotalProducts(
+  setGroups: SetGroup[],
+  ungroupedProducts: WatchlistProductInternal[]
+): number {
+  return setGroups.reduce((sum, g) => sum + g.products.length, 0) + ungroupedProducts.length;
+}
+
 async function runWithConcurrency(
   tasks: (() => Promise<void>)[],
   limit: number
@@ -93,7 +100,7 @@ export class ScanCycleRunner {
       return;
     }
 
-    const totalProducts = setGroups.reduce((sum, g) => sum + g.products.length, 0) + ungroupedProducts.length;
+    const totalProducts = countTotalProducts(setGroups, ungroupedProducts);
 
     this.config.logger.info('Starting Cheerio scan cycle', {
       shops: cheerioShops.length,
@@ -128,7 +135,7 @@ export class ScanCycleRunner {
       return;
     }
 
-    const totalProducts = setGroups.reduce((sum, g) => sum + g.products.length, 0) + ungroupedProducts.length;
+    const totalProducts = countTotalProducts(setGroups, ungroupedProducts);
 
     this.config.logger.info('Starting Playwright scan cycle', {
       shops: playwrightShops.length,
