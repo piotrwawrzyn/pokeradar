@@ -5,6 +5,7 @@
 export interface AppConfig {
   mongodbUri: string;
   telegramBotToken: string;
+  appUrl: string;
   logLevel: 'info' | 'debug';
   retry: {
     maxAttempts: number;
@@ -28,9 +29,15 @@ export function loadConfig(): AppConfig {
     throw new Error('TELEGRAM_BOT_TOKEN is not set in environment');
   }
 
+  const appUrl = process.env.APP_URL;
+  if (!appUrl) {
+    throw new Error('APP_URL is not set in environment');
+  }
+
   return {
     mongodbUri,
     telegramBotToken,
+    appUrl,
     logLevel: (process.env.LOG_LEVEL as 'info' | 'debug') || 'info',
     retry: {
       maxAttempts: 5,

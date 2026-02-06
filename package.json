@@ -8,8 +8,7 @@
     "pokeradar-api",
     "pokeradar-client",
     "pokeradar-scrapper",
-    "pokeradar-notifications",
-    "pokeradar-bot"
+    "pokeradar-notifications"
   ],
   "scripts": {
     "build:shared": "npm run build -w @pokeradar/shared",
@@ -17,13 +16,11 @@
     "build:client": "npm run build -w pokeradar-client",
     "build:scrapper": "npm run build -w pokeradar-scrapper",
     "build:notifications": "npm run build -w pokeradar-notifications",
-    "build:bot": "npm run build -w pokeradar-bot",
-    "build": "npm run build:shared && npm run build:api & npm run build:client & npm run build:scrapper & npm run build:notifications & npm run build:bot",
+    "build": "npm run build:shared && npm run build:api & npm run build:client & npm run build:scrapper & npm run build:notifications",
     "dev:api": "npm run dev -w pokeradar-api",
     "dev:client": "npm run dev -w pokeradar-client",
     "dev:notifications": "npm run dev -w pokeradar-notifications",
-    "dev:bot": "npm run dev -w pokeradar-bot",
-    "dev": "concurrently -n api,client,notif,bot -c blue,green,yellow,magenta \"npm run dev:api\" \"npm run dev:client\" \"npm run dev:notifications\" \"npm run dev:bot\"",
+    "dev": "concurrently -n api,client,notif -c blue,green,yellow \"npm run dev:api\" \"npm run dev:client\" \"npm run dev:notifications\"",
     "test": "npm run test --workspaces --if-present"
   },
   "devDependencies": {

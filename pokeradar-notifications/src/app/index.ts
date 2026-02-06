@@ -1,10 +1,10 @@
 /**
- * Main entry point for the Notification Delivery Service.
+ * Main entry point for the Notification & Bot Service.
  * Long-running daemon that:
- * 1. Recovers pending notifications from previous runs
- * 2. Watches for new notifications via MongoDB change streams
- * 3. Delivers notifications via registered channels (Telegram, etc.)
- * 4. Handles retries with exponential backoff and rate limiting
+ * 1. Starts bot platforms (Telegram, etc.) for interactive commands
+ * 2. Recovers pending notifications from previous runs
+ * 3. Watches for new notifications via MongoDB change streams
+ * 4. Delivers notifications via platform channels with retries and rate limiting
  *
  * Requires MongoDB replica set for change streams.
  */
@@ -12,9 +12,9 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { connectDB, disconnectDB } from '../infrastructure/database';
-import { TelegramChannel } from '../infrastructure/channels';
-import { NotificationProcessor, ChangeStreamWatcher, RateLimiter } from '../services';
+import { connectDB, disconnectDB } from '@pokeradar/shared';
+import { TelegramBotPlatform, IBotPlatform } from '../platforms';
+import { NotificationProcessor, ChangeStreamWatcher, RateLimiter } from '../notifications';
 import { Logger } from '../shared/logger';
 import { loadConfig } from '../config';
 
@@ -31,18 +31,29 @@ async function main() {
   await connectDB(config.mongodbUri);
   logger.info('Connected to MongoDB');
 
-  // Initialize Telegram channel
-  const telegramChannel = new TelegramChannel(config.telegramBotToken);
+  // Initialize bot platforms
+  const platforms: IBotPlatform[] = [
+    new TelegramBotPlatform(config.telegramBotToken, config.appUrl, logger),
+  ];
 
-  // Create rate limiter for Telegram (25 msgs per 1.1s)
-  const telegramRateLimiter = new RateLimiter(
-    config.rateLimiting.telegramBatchSize,
-    config.rateLimiting.telegramBatchIntervalMs
-  );
+  // Start all platforms (enables command polling)
+  for (const platform of platforms) {
+    await platform.start();
+    logger.info(`Platform started: ${platform.name}`);
+  }
 
   // Create notification processor
   const processor = new NotificationProcessor(config.retry, logger);
-  processor.registerChannel(telegramChannel, telegramRateLimiter);
+
+  // Register each platform's notification channel with its rate limiter
+  for (const platform of platforms) {
+    const channel = platform.asNotificationChannel();
+    const rateLimiter = new RateLimiter(
+      config.rateLimiting.telegramBatchSize,
+      config.rateLimiting.telegramBatchIntervalMs
+    );
+    processor.registerChannel(channel, rateLimiter);
+  }
 
   // Recover pending notifications from before this run
   const recoveredCount = await processor.recoverPending();
@@ -62,6 +73,11 @@ async function main() {
 
     await watcher.stop();
     await processor.drain();
+
+    for (const platform of platforms) {
+      await platform.stop();
+    }
+
     await disconnectDB();
 
     logger.info('Notification service stopped');
