@@ -8,3 +8,8 @@ logs/
 .DS_Store
 .railway
 .claude/
+
+# Baseline HTML fixtures (large, re-recordable)
+# Keep _baseline.json tracked, but ignore HTML fixture files
+pokeradar-scrapper/scripts/baseline/fixtures/**/
+!pokeradar-scrapper/scripts/baseline/fixtures/_baseline.json
