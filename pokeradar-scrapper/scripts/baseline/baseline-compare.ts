@@ -29,6 +29,7 @@ interface BaselineSnapshot {
   timing: {
     totalMs: number;
     perShop: Record<string, number>;
+    requestCounts?: Record<string, number>;
   };
 }
 
@@ -74,14 +75,19 @@ function printTimingReport(
   console.log(colors.bold + '  BASELINE TIMING COMPARISON' + colors.reset);
   console.log(colors.bold + '━'.repeat(60) + colors.reset + '\n');
 
+  const beforeTotalRequests = Object.values(before.timing.requestCounts || {}).reduce((sum, count) => sum + count, 0);
+  const afterTotalRequests = Object.values(after.timing.requestCounts || {}).reduce((sum, count) => sum + count, 0);
+
   console.log(colors.bold + 'BEFORE:' + colors.reset + ` ${beforeFile}`);
   console.log(`  Recorded: ${beforeDate}`);
   console.log(`  Total: ${(before.timing.totalMs / 1000).toFixed(1)}s`);
+  console.log(`  Requests: ${beforeTotalRequests}`);
   console.log(`  Shops: ${Object.keys(before.timing.perShop).length}\n`);
 
   console.log(colors.bold + 'AFTER:' + colors.reset + ` ${afterFile}`);
   console.log(`  Recorded: ${afterDate}`);
   console.log(`  Total: ${(after.timing.totalMs / 1000).toFixed(1)}s`);
+  console.log(`  Requests: ${afterTotalRequests}`);
   console.log(`  Shops: ${Object.keys(after.timing.perShop).length}\n`);
 
   // Calculate overall change
@@ -89,10 +95,20 @@ function printTimingReport(
   const totalChangeStr = totalChange >= 0 ? `+${totalChange.toFixed(1)}%` : `${totalChange.toFixed(1)}%`;
   const totalColor = Math.abs(totalChange) > 20 ? (totalChange > 0 ? colors.red : colors.green) : colors.blue;
 
+  const requestChange = beforeTotalRequests > 0
+    ? ((afterTotalRequests - beforeTotalRequests) / beforeTotalRequests) * 100
+    : 0;
+  const requestChangeStr = requestChange >= 0 ? `+${requestChange.toFixed(1)}%` : `${requestChange.toFixed(1)}%`;
+  const requestColor = Math.abs(requestChange) > 10 ? (requestChange > 0 ? colors.red : colors.green) : colors.blue;
+
   console.log(colors.bold + 'OVERALL:' + colors.reset);
   console.log(
     `  ${(before.timing.totalMs / 1000).toFixed(1)}s → ${(after.timing.totalMs / 1000).toFixed(1)}s ` +
-    totalColor + `(${totalChangeStr})` + colors.reset + '\n'
+    totalColor + `(${totalChangeStr})` + colors.reset
+  );
+  console.log(
+    `  ${beforeTotalRequests} → ${afterTotalRequests} requests ` +
+    requestColor + `(${requestChangeStr})` + colors.reset + '\n'
   );
 
   // Per-shop comparison
@@ -107,8 +123,8 @@ function printTimingReport(
   timingDiff.sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent));
 
   console.log(colors.bold + 'PER-SHOP TIMING:' + colors.reset);
-  console.log(colors.gray + 'Shop                 Before   After    Change    Status' + colors.reset);
-  console.log(colors.gray + '─'.repeat(60) + colors.reset);
+  console.log(colors.gray + 'Shop                 Before   After    Change    Requests  Status' + colors.reset);
+  console.log(colors.gray + '─'.repeat(75) + colors.reset);
 
   for (const t of timingDiff) {
     const beforeSec = (t.baselineMs / 1000).toFixed(1);
@@ -116,6 +132,14 @@ function printTimingReport(
     const changeStr = t.changePercent >= 0
       ? `+${t.changePercent.toFixed(0)}%`
       : `${t.changePercent.toFixed(0)}%`;
+
+    // Get request counts for this shop
+    const beforeReqs = before.timing.requestCounts?.[t.shop] || 0;
+    const afterReqs = after.timing.requestCounts?.[t.shop] || 0;
+    const reqDiff = afterReqs - beforeReqs;
+    const reqStr = reqDiff === 0 ? `${afterReqs}` :
+                   reqDiff > 0 ? `${afterReqs} (+${reqDiff})` :
+                   `${afterReqs} (${reqDiff})`;
 
     let color = colors.blue;
     let status = 'OK';
@@ -132,7 +156,7 @@ function printTimingReport(
 
     console.log(
       `${t.shop.padEnd(20)} ${beforeSec.padStart(6)}s  ${afterSec.padStart(6)}s  ` +
-      `${changeStr.padStart(8)}  ` +
+      `${changeStr.padStart(8)}  ${reqStr.padStart(10)}  ` +
       color + status.padEnd(10) + colors.reset
     );
   }

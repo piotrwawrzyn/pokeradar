@@ -47,6 +47,7 @@ interface BaselineSnapshot {
   timing: {
     totalMs: number;
     perShop: Record<string, number>;
+    requestCounts?: Record<string, number>;
   };
 }
 

@@ -57,6 +57,7 @@ interface BaselineSnapshot {
   timing: {
     totalMs: number;
     perShop: Record<string, number>;
+    requestCounts: Record<string, number>;
   };
 }
 
@@ -96,11 +97,11 @@ function parseArgs(): { shops?: string[]; compare?: boolean } {
 }
 
 /**
- * Prints timing comparison between baseline and current recording.
+ * Prints timing and request count comparison between baseline and current recording.
  */
 function printTimingComparison(
-  baselineTiming: { totalMs: number; perShop: Record<string, number> },
-  currentTiming: { totalMs: number; perShop: Record<string, number> }
+  baselineTiming: { totalMs: number; perShop: Record<string, number>; requestCounts: Record<string, number> },
+  currentTiming: { totalMs: number; perShop: Record<string, number>; requestCounts: Record<string, number> }
 ): void {
   console.log('\n' + colors.bold + '━'.repeat(60) + colors.reset);
   console.log(colors.bold + '  TIMING COMPARISON (BASELINE vs CURRENT)' + colors.reset);
@@ -111,11 +112,21 @@ function printTimingComparison(
   const totalChangeStr = totalChange >= 0 ? `+${totalChange.toFixed(1)}%` : `${totalChange.toFixed(1)}%`;
   const totalColor = Math.abs(totalChange) > 20 ? (totalChange > 0 ? colors.red : colors.green) : colors.blue;
 
+  // Calculate total request counts
+  const baselineTotalRequests = Object.values(baselineTiming.requestCounts || {}).reduce((sum, count) => sum + count, 0);
+  const currentTotalRequests = Object.values(currentTiming.requestCounts || {}).reduce((sum, count) => sum + count, 0);
+  const requestChange = baselineTotalRequests > 0
+    ? ((currentTotalRequests - baselineTotalRequests) / baselineTotalRequests) * 100
+    : 0;
+  const requestChangeStr = requestChange >= 0 ? `+${requestChange.toFixed(1)}%` : `${requestChange.toFixed(1)}%`;
+  const requestColor = Math.abs(requestChange) > 10 ? (requestChange > 0 ? colors.red : colors.green) : colors.blue;
+
   console.log(colors.bold + 'OVERALL:' + colors.reset);
   console.log(
-    `  Baseline: ${(baselineTiming.totalMs / 1000).toFixed(1)}s\n` +
-    `  Current:  ${(currentTiming.totalMs / 1000).toFixed(1)}s\n` +
-    `  Change:   ` + totalColor + totalChangeStr + colors.reset + '\n'
+    `  Baseline: ${(baselineTiming.totalMs / 1000).toFixed(1)}s (${baselineTotalRequests} requests)\n` +
+    `  Current:  ${(currentTiming.totalMs / 1000).toFixed(1)}s (${currentTotalRequests} requests)\n` +
+    `  Change:   ` + totalColor + totalChangeStr + colors.reset +
+    ` / ` + requestColor + requestChangeStr + ' requests' + colors.reset + '\n'
   );
 
   // Per-shop comparison
@@ -130,8 +141,8 @@ function printTimingComparison(
   timingDiff.sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent));
 
   console.log(colors.bold + 'PER-SHOP TIMING:' + colors.reset);
-  console.log(colors.gray + 'Shop                 Baseline  Current   Change    Status' + colors.reset);
-  console.log(colors.gray + '─'.repeat(60) + colors.reset);
+  console.log(colors.gray + 'Shop                 Baseline  Current   Change    Requests  Status' + colors.reset);
+  console.log(colors.gray + '─'.repeat(75) + colors.reset);
 
   for (const t of timingDiff) {
     const baselineSec = (t.baselineMs / 1000).toFixed(1);
@@ -139,6 +150,14 @@ function printTimingComparison(
     const changeStr = t.changePercent >= 0
       ? `+${t.changePercent.toFixed(0)}%`
       : `${t.changePercent.toFixed(0)}%`;
+
+    // Get request counts for this shop
+    const baselineReqs = baselineTiming.requestCounts?.[t.shop] || 0;
+    const currentReqs = currentTiming.requestCounts?.[t.shop] || 0;
+    const reqDiff = currentReqs - baselineReqs;
+    const reqStr = reqDiff === 0 ? `${currentReqs}` :
+                   reqDiff > 0 ? `${currentReqs} (+${reqDiff})` :
+                   `${currentReqs} (${reqDiff})`;
 
     let color = colors.blue;
     let status = 'OK';
@@ -155,7 +174,7 @@ function printTimingComparison(
 
     console.log(
       `${t.shop.padEnd(20)} ${baselineSec.padStart(8)}s  ${currentSec.padStart(8)}s  ` +
-      `${changeStr.padStart(8)}  ` +
+      `${changeStr.padStart(8)}  ${reqStr.padStart(10)}  ` +
       color + status.padEnd(10) + colors.reset
     );
   }
@@ -319,6 +338,7 @@ async function record() {
     const currentTiming = {
       totalMs: scanDuration,
       perShop: timingTracker.getAll(),
+      requestCounts: timingTracker.getAllRequestCounts(),
     };
 
     // If in compare mode, show timing comparison and exit without saving

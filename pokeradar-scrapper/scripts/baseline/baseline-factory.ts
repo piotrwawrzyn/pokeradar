@@ -29,17 +29,19 @@ import { RecordingPlaywrightEngine } from './engines/recording-playwright-engine
 import { ReplayEngine } from './engines/replay-engine';
 
 /**
- * Tracks timing per shop for performance regression detection.
+ * Tracks timing and request counts per shop for performance regression detection.
  */
 export class TimingTracker {
   private startTimes = new Map<string, number>();
   private durations = new Map<string, number>();
+  private requestCounts = new Map<string, number>();
 
   /**
    * Marks the start of scraping for a shop.
    */
   startShop(shopId: string): void {
     this.startTimes.set(shopId, Date.now());
+    this.requestCounts.set(shopId, 0);
   }
 
   /**
@@ -55,10 +57,25 @@ export class TimingTracker {
   }
 
   /**
+   * Increments the request count for a shop (called on each goto()).
+   */
+  incrementRequests(shopId: string): void {
+    const current = this.requestCounts.get(shopId) || 0;
+    this.requestCounts.set(shopId, current + 1);
+  }
+
+  /**
    * Gets all recorded durations.
    */
   getAll(): Record<string, number> {
     return Object.fromEntries(this.durations);
+  }
+
+  /**
+   * Gets all recorded request counts.
+   */
+  getAllRequestCounts(): Record<string, number> {
+    return Object.fromEntries(this.requestCounts);
   }
 
   /**
@@ -67,6 +84,7 @@ export class TimingTracker {
   clear(): void {
     this.startTimes.clear();
     this.durations.clear();
+    this.requestCounts.clear();
   }
 }
 
@@ -124,8 +142,9 @@ export class BaselineScraperFactory implements IScraperFactory {
   }
 
   /**
-   * Wraps an engine to track timing without modifying the engine itself.
+   * Wraps an engine to track timing and request counts without modifying the engine itself.
    * Times from first goto() to close().
+   * Counts each goto() call as a network request.
    */
   private wrapWithTiming(engine: any, shopId: string): any {
     const tracker = this.timingTracker;
@@ -139,6 +158,7 @@ export class BaselineScraperFactory implements IScraperFactory {
         tracker.startShop(shopId);
         hasStarted = true;
       }
+      tracker.incrementRequests(shopId);
       return originalGoto(...args);
     };
 
