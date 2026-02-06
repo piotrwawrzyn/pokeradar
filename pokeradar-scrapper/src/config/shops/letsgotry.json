@@ -2,7 +2,7 @@
   "id": "letsgotry",
   "name": "LetsGoTry",
   "baseUrl": "https://letsgotry.pl",
-  "searchUrl": "/szukaj?controller=search&s=",
+  "searchUrl": "/szukaj?controller=search&s={query}&order=product.price.desc",
   "selectors": {
     "searchPage": {
       "article": {
