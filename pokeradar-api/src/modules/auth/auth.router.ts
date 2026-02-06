@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import passport from 'passport';
 import { AuthController } from './auth.controller';
-import { authMiddleware } from '../../shared/middleware';
+import { authMiddleware, authRateLimiter } from '../../shared/middleware';
 import { SignupsDisabledError, LoginDisabledError } from '../../config/passport';
 import { env } from '../../config/env';
 
@@ -10,13 +10,14 @@ const controller = new AuthController();
 
 router.get(
   '/google',
+  authRateLimiter,
   passport.authenticate('google', {
     scope: ['profile', 'email'],
     session: false,
   })
 );
 
-router.get('/google/callback', (req, res, next) => {
+router.get('/google/callback', authRateLimiter, (req, res, next) => {
   passport.authenticate('google', { session: false }, (err: Error | null, user: Express.User | false) => {
     if (err instanceof SignupsDisabledError) {
       return res.redirect(`${env.CORS_ORIGIN}/auth/callback?error=signups_disabled`);

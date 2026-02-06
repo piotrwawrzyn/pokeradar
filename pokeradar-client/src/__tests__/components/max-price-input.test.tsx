@@ -41,86 +41,71 @@ describe('MaxPriceInput', () => {
     localStorage.setItem(TOKEN_KEY, 'test-token');
   });
 
-  it('renders with the current max price', () => {
+  it('renders slider with the current max price displayed', () => {
     render(
       <Wrapper>
         <MaxPriceInput entryId="watch-1" currentMaxPrice={150} currentBestPrice={179.99} />
       </Wrapper>,
     );
-    const input = screen.getByLabelText('Maksymalna cena');
+
+    expect(screen.getByText('Limit cenowy:')).toBeInTheDocument();
+    expect(screen.getByText(/150,00/)).toBeInTheDocument();
+    expect(screen.getByRole('slider')).toBeInTheDocument();
+  });
+
+  it('renders slider element with correct attributes', () => {
+    render(
+      <Wrapper>
+        <MaxPriceInput entryId="watch-1" currentMaxPrice={150} currentBestPrice={179.99} />
+      </Wrapper>,
+    );
+
+    const slider = screen.getByRole('slider');
+    expect(slider).toHaveAttribute('aria-valuemin', '1');
+    expect(slider).toHaveAttribute('aria-valuemax', '179.99');
+    expect(slider).toHaveAttribute('aria-valuenow', '150');
+  });
+
+  it('hides slider visually but reserves space when best price is null', () => {
+    render(
+      <Wrapper>
+        <MaxPriceInput entryId="watch-1" currentMaxPrice={150} currentBestPrice={null} />
+      </Wrapper>,
+    );
+
+    // Slider is not accessible (hidden from screen readers)
+    expect(screen.queryByRole('slider')).not.toBeInTheDocument();
+    // But the tappable price label is still visible
+    expect(screen.getByText(/150,00/)).toBeInTheDocument();
+  });
+
+  it('extends slider max when saved maxPrice exceeds current best price', () => {
+    render(
+      <Wrapper>
+        <MaxPriceInput entryId="watch-1" currentMaxPrice={1000} currentBestPrice={500} />
+      </Wrapper>,
+    );
+
+    const slider = screen.getByRole('slider');
+    expect(slider).toHaveAttribute('aria-valuemax', '1000');
+    expect(slider).toHaveAttribute('aria-valuenow', '1000');
+  });
+
+  it('opens inline input when clicking the price label', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <Wrapper>
+        <MaxPriceInput entryId="watch-1" currentMaxPrice={150} currentBestPrice={179.99} />
+      </Wrapper>,
+    );
+
+    const priceButton = screen.getByText(/150,00/);
+    await user.click(priceButton);
+
+    const input = screen.getByLabelText('Wpisz maksymalną cenę');
+    expect(input).toBeInTheDocument();
     expect(input).toHaveValue(150);
-  });
-
-  it('shows validation error when value exceeds current best price', async () => {
-    render(
-      <Wrapper>
-        <MaxPriceInput entryId="watch-1" currentMaxPrice={150} currentBestPrice={179.99} />
-      </Wrapper>,
-    );
-
-    const input = screen.getByLabelText('Maksymalna cena');
-    await userEvent.clear(input);
-    await userEvent.type(input, '200');
-
-    await waitFor(
-      () => {
-        expect(screen.getByText(/nie moze przekraczac/)).toBeInTheDocument();
-      },
-      { timeout: 2000 },
-    );
-  });
-
-  it('shows validation error for invalid (non-positive) values', async () => {
-    render(
-      <Wrapper>
-        <MaxPriceInput entryId="watch-1" currentMaxPrice={150} currentBestPrice={179.99} />
-      </Wrapper>,
-    );
-
-    const input = screen.getByLabelText('Maksymalna cena');
-    await userEvent.clear(input);
-    await userEvent.type(input, '0');
-
-    await waitFor(
-      () => {
-        expect(screen.getByText(/Podaj prawidlowa kwote/)).toBeInTheDocument();
-      },
-      { timeout: 2000 },
-    );
-  });
-
-  it('sends PATCH request after debounce with valid value', async () => {
-    let patchCalled = false;
-    let patchBody: Record<string, unknown> | null = null;
-    server.use(
-      http.patch('http://localhost:3000/watchlist/watch-1', async ({ request }) => {
-        patchCalled = true;
-        patchBody = (await request.json()) as Record<string, unknown>;
-        return HttpResponse.json({
-          id: 'watch-1',
-          productId: 'prod-1',
-          maxPrice: 120,
-        });
-      }),
-    );
-
-    render(
-      <Wrapper>
-        <MaxPriceInput entryId="watch-1" currentMaxPrice={150} currentBestPrice={179.99} />
-      </Wrapper>,
-    );
-
-    const input = screen.getByLabelText('Maksymalna cena');
-    await userEvent.clear(input);
-    await userEvent.type(input, '120');
-
-    await waitFor(
-      () => {
-        expect(patchCalled).toBe(true);
-      },
-      { timeout: 2000 },
-    );
-    expect(patchBody).toEqual({ maxPrice: 120 });
   });
 
   it('does not send PATCH if value equals current max price', async () => {

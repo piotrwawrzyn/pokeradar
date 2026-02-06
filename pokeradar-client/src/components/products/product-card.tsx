@@ -15,7 +15,7 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
   const isWatched = !!entry;
 
   return (
-    <Card className="overflow-hidden border-0 shadow-none bg-background rounded-lg">
+    <Card className="overflow-hidden border-0 shadow-none bg-background rounded-lg flex flex-col">
       <div className="aspect-[5/4] relative overflow-hidden">
         <img
           src={product.imageUrl}
@@ -29,7 +29,7 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
           </Badge>
         )}
       </div>
-      <CardContent className="px-3 py-2 space-y-2">
+      <CardContent className="px-3 py-2 space-y-2 flex flex-col flex-1">
         <h3 className="font-medium text-xs leading-tight line-clamp-2 min-h-[2rem]">
           {product.name}
         </h3>
@@ -86,12 +86,14 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
         </div>
 
         {isWatched && (
-          <MaxPriceInput
-            entryId={entry.id}
-            currentMaxPrice={entry.maxPrice}
-            currentBestPrice={product.currentBestPrice}
-            disabled={watchlistDisabled || !!product.disabled}
-          />
+          <div className="mt-auto">
+            <MaxPriceInput
+              entryId={entry.id}
+              currentMaxPrice={entry.maxPrice}
+              currentBestPrice={product.currentBestPrice}
+              disabled={watchlistDisabled || !!product.disabled}
+            />
+          </div>
         )}
       </CardContent>
     </Card>

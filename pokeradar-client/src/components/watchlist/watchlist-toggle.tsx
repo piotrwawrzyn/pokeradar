@@ -23,7 +23,9 @@ export function WatchlistToggle({ product, entry, disabled }: WatchlistTogglePro
     if (isDisabled) return;
 
     if (!isWatched) {
-      const initialMaxPrice = product.currentBestPrice ?? 999;
+      const initialMaxPrice = product.currentBestPrice
+        ? Math.floor(product.currentBestPrice * 0.95)
+        : 999;
       addEntry.mutate(
         { productId: product.id, maxPrice: initialMaxPrice },
         {

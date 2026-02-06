@@ -10,7 +10,6 @@ import {
   adminMiddleware,
   errorMiddleware,
   globalRateLimiter,
-  authRateLimiter,
 } from './shared/middleware';
 
 import { getAppSettings } from './infrastructure/database/models';
@@ -45,7 +44,7 @@ app.get('/auth/signup-status', async (_req, res, next) => {
   }
 });
 
-app.use('/auth', authRateLimiter, authRouter);
+app.use('/auth', authRouter);
 app.use('/products', productsRouter);
 app.use('/product-sets', productSetsRouter);
 app.use('/watchlist', authMiddleware, watchlistRouter);
