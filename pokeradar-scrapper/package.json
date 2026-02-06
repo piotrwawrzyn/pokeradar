@@ -11,6 +11,7 @@
     "postinstall": "playwright install --with-deps chromium",
     "check": "tsx scripts/check-watchlist.ts",
     "baseline:record": "tsx scripts/baseline/baseline-record.ts",
+    "baseline:record:compare": "tsx scripts/baseline/baseline-record.ts --compare",
     "baseline:check": "tsx scripts/baseline/baseline-check.ts",
     "baseline:compare": "tsx scripts/baseline/baseline-compare.ts"
   },

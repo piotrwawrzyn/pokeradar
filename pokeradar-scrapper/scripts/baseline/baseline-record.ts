@@ -11,7 +11,7 @@
  * Usage:
  *   npm run baseline:record                    # Record all shops and save baseline
  *   npm run baseline:record -- --shops letsgotry,basanti  # Record specific shops
- *   npm run baseline:record -- --compare       # Compare timing vs existing baseline (no save)
+ *   npm run baseline:record:compare            # Compare timing vs existing baseline (no save)
  *
  * Output:
  *   scripts/baseline/fixtures/{shopId}/*.html  - Saved HTML per shop

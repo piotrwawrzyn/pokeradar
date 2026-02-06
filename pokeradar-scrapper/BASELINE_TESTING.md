@@ -83,7 +83,7 @@ Compare against the current baseline without modifying it:
 # Make your performance changes (optimize queries, add concurrency, etc.)
 
 # Record and compare in one step (does NOT save new baseline)
-npm run baseline:record -- --compare
+npm run baseline:record:compare
 ```
 
 This shows the timing comparison immediately and doesn't modify the baseline. If you're happy with the results, run `npm run baseline:record` to save the new baseline.
@@ -133,7 +133,7 @@ npm run baseline:record
 npm run baseline:record -- --shops letsgotry,basanti
 
 # Record and compare timing (does NOT save baseline)
-npm run baseline:record -- --compare
+npm run baseline:record:compare
 
 # Check for regressions (offline, fast)
 npm run baseline:check
@@ -161,7 +161,7 @@ npm run baseline:check             # Catch regressions
 **Performance optimization:**
 ```bash
 # Make optimization changes...
-npm run baseline:record -- --compare  # See if it's faster
+npm run baseline:record:compare  # See if it's faster
 # If happy with results:
-npm run baseline:record            # Save new baseline
+npm run baseline:record          # Save new baseline
 ```
