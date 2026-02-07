@@ -13,7 +13,7 @@
  * This is a standalone implementation to avoid modifying production code.
  */
 
-import { Browser, Page, Locator, BrowserContext } from 'playwright';
+import { Browser, Page, Locator, BrowserContext } from 'patchright';
 import { Selector, ExtractType } from '../../../src/shared/types';
 import { IEngine, IElement } from '../../../src/scraper/engines/engine.interface';
 import { PlaywrightElement } from '../../../src/scraper/engines/element/playwright-element';
@@ -135,6 +135,85 @@ export class RecordingPlaywrightEngine implements IEngine {
   /**
    * Extracts all elements matching the selector.
    */
+  /**
+   * WORKAROUND: Extract ALL elements in DOM order by bypassing Playwright's locator.nth().
+   *
+   * Problem:
+   * --------
+   * Playwright's locator.nth(i) does NOT preserve DOM order, despite what the documentation
+   * suggests. When extracting multiple elements with the same selector, nth() returns them
+   * in an unpredictable order that differs from document.querySelectorAll().
+   *
+   * This causes non-deterministic behavior when comparing with Cheerio, which correctly
+   * returns elements in DOM order. The same HTML produces different element orders:
+   * - Playwright nth(): [25086, 25082, 25080, 25084, 25087, 25088, ...]
+   * - Cheerio (DOM):    [25086, 25082, 25083, 25089, 25085, 25218, ...]
+   *
+   * How this workaround works:
+   * -------------------------
+   * 1. Use page.evaluate() with document.querySelectorAll() to get ALL elements in order
+   *    (querySelectorAll() is guaranteed by DOM spec to return elements in document order)
+   * 2. Assign temporary unique data attributes (data-pw-dom-index="0", "1", etc.) to each element
+   * 3. Create Playwright locators by filtering for each specific data attribute
+   * 4. Clean up temporary attributes after creating locators
+   * 5. This ensures locators are created in exact DOM order, regardless of content
+   *
+   * Why temporary attributes instead of text/href:
+   * ----------------------------------------------
+   * - Text content might not be unique (e.g., multiple "Product A" items)
+   * - Not all elements have hrefs
+   * - Temporary attributes guarantee uniqueness for any element
+   *
+   * Why not just use querySelectorAll():
+   * ------------------------------------
+   * We need Playwright Locators (not ElementHandles) because PlaywrightElement expects them.
+   * Converting ElementHandle → Locator is not straightforward in Playwright's API.
+   *
+   * Limitation:
+   * -----------
+   * Only works with CSS selectors. XPath and text selectors cannot be used with
+   * querySelectorAll(), so they fall back to extractAllWithNth() which does NOT
+   * guarantee DOM order.
+   *
+   * @param selector - The CSS selector to query
+   * @returns Array of PlaywrightElements in DOM order (CSS selectors only)
+   */
+  private async extractAllInDomOrder(selector: string): Promise<IElement[]> {
+    // Assign temporary unique IDs to preserve DOM order
+    const count = await this.page!.evaluate((sel) => {
+      const elements = Array.from(document.querySelectorAll(sel));
+      elements.forEach((el, index) => {
+        (el as HTMLElement).setAttribute('data-pw-dom-index', String(index));
+      });
+      return elements.length;
+    }, selector);
+
+    if (count === 0) {
+      return [];
+    }
+
+    // Create locators using the temporary unique IDs
+    const baseLocator = this.page!.locator(selector);
+    const elements: IElement[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const locator = baseLocator.filter({
+        has: this.page!.locator(`[data-pw-dom-index="${i}"]`)
+      });
+      elements.push(new PlaywrightElement(locator.first(), this.logger));
+    }
+
+    // Clean up temporary attributes
+    await this.page!.evaluate((sel) => {
+      const elements = Array.from(document.querySelectorAll(sel));
+      elements.forEach(el => {
+        (el as HTMLElement).removeAttribute('data-pw-dom-index');
+      });
+    }, selector);
+
+    return elements;
+  }
+
   async extractAll(selector: Selector): Promise<IElement[]> {
     if (!this.page) {
       throw new Error('No page loaded. Call goto() first.');
@@ -144,28 +223,54 @@ export class RecordingPlaywrightEngine implements IEngine {
 
     for (const selectorValue of selectors) {
       try {
-        const locator = this.createLocator(selector.type, selectorValue);
-        const count = await locator.evaluateAll((els) => els.length).catch(() => 0);
+        const elements = selector.type === 'css'
+          ? await this.extractAllInDomOrder(selectorValue)
+          : await this.extractAllWithNth(selector.type, selectorValue);
 
-        if (count === 0) {
-          continue;
+        if (elements.length > 0) {
+          return elements;
         }
-
-        const elements: IElement[] = [];
-        for (let i = 0; i < count; i++) {
-          elements.push(new PlaywrightElement(locator.nth(i), this.logger));
-        }
-        return elements;
       } catch (error) {
         this.logger?.debug('RecordingPlaywrightEngine.extractAll failed', {
           selector: selectorValue,
           error: error instanceof Error ? error.message : String(error),
         });
-        continue;
       }
     }
 
     return [];
+  }
+
+  /**
+   * Fallback for non-CSS selectors (xpath, text).
+   *
+   * ⚠️ WARNING: Does NOT preserve DOM order! ⚠️
+   * -------------------------------------------
+   * This method uses Playwright's locator.nth(i) which does NOT return elements
+   * in DOM order. This is a known Playwright bug that affects xpath and text selectors.
+   *
+   * For deterministic baseline testing, prefer CSS selectors which use extractAllInDomOrder().
+   *
+   * Why not fix this:
+   * - document.querySelectorAll() only works with CSS selectors
+   * - Converting xpath/text to CSS at runtime is complex and error-prone
+   * - Most selectors in shop configs are CSS-based
+   *
+   * @param type - Selector type (xpath or text)
+   * @param value - Selector value
+   * @returns Array of PlaywrightElements in UNPREDICTABLE order (non-deterministic)
+   */
+  private async extractAllWithNth(type: string, value: string): Promise<IElement[]> {
+    const locator = this.createLocator(type, value);
+    const count = await locator.evaluateAll((els) => els.length).catch(() => 0);
+
+    if (count === 0) {
+      return [];
+    }
+
+    return Array.from({ length: count }, (_, i) =>
+      new PlaywrightElement(locator.nth(i), this.logger)
+    );
   }
 
   /**
@@ -228,25 +333,19 @@ export class RecordingPlaywrightEngine implements IEngine {
       this.page = await this.context.newPage();
       this.ownsBrowser = false;
     } else {
-      const { chromium } = await import('playwright');
+      const { chromium } = await import('patchright');
       this.browser = await chromium.launch({
+        channel: 'chrome',
         headless: true,
         args: [
-          '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--disable-extensions',
           '--no-sandbox',
-          '--disable-background-networking',
-          '--disable-default-apps',
-          '--disable-sync',
-          '--disable-translate',
-          '--metrics-recording-only',
-          '--mute-audio',
-          '--no-first-run',
-          '--safebrowsing-disable-auto-update',
+          '--disable-setuid-sandbox',
         ],
       });
-      this.page = await this.browser.newPage();
+      this.context = await this.browser.newContext({
+        viewport: null,
+      });
+      this.page = await this.context.newPage();
       this.ownsBrowser = true;
     }
 

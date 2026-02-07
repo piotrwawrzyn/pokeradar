@@ -12,7 +12,7 @@
     "searchPage": {
       "article": {
         "type": "css",
-        "value": "div.product-container"
+        "value": "main div.product-container"
       },
       "productUrl": {
         "type": "css",
@@ -27,7 +27,7 @@
     "productPage": {
       "price": {
         "type": "css",
-        "value": "div.primary_block span#our_price_display",
+        "value": "span#our_price_display",
         "format": "european"
       },
       "available": {
