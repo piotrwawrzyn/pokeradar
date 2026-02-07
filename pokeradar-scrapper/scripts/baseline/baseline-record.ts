@@ -380,16 +380,61 @@ async function record() {
       }))
       .sort((a, b) => a.id.localeCompare(b.id));
 
-    const snapshot: BaselineSnapshot = {
-      recordedAt: new Date().toISOString(),
-      products,
-      productSets: sortedProductSets,
-      results: sortedResults,
-      timing: currentTiming,
-    };
+    const baselinePath = path.join(fixturesDir, '_baseline.json');
+
+    // When filtering to specific shops, merge into existing baseline
+    let snapshot: BaselineSnapshot;
+    if (shopFilter && fs.existsSync(baselinePath)) {
+      const existing: BaselineSnapshot = JSON.parse(fs.readFileSync(baselinePath, 'utf-8'));
+      const filteredShopIds = new Set(shopFilter);
+
+      // Remove old results for filtered shops, add new ones
+      const mergedResults = existing.results
+        .filter(r => !filteredShopIds.has(r.shopId))
+        .concat(sortedResults)
+        .sort((a, b) => {
+          if (a.shopId !== b.shopId) return a.shopId.localeCompare(b.shopId);
+          return a.productId.localeCompare(b.productId);
+        });
+
+      // Merge timing: keep existing shops, update filtered ones
+      const mergedPerShop = { ...existing.timing.perShop };
+      const mergedRequestCounts = { ...existing.timing.requestCounts };
+      for (const shopId of filteredShopIds) {
+        if (currentTiming.perShop[shopId] !== undefined) {
+          mergedPerShop[shopId] = currentTiming.perShop[shopId];
+        }
+        if (currentTiming.requestCounts[shopId] !== undefined) {
+          mergedRequestCounts[shopId] = currentTiming.requestCounts[shopId];
+        }
+      }
+
+      snapshot = {
+        recordedAt: existing.recordedAt,
+        products: existing.products,
+        productSets: existing.productSets.length >= sortedProductSets.length
+          ? existing.productSets
+          : sortedProductSets,
+        results: mergedResults,
+        timing: {
+          totalMs: existing.timing.totalMs,
+          perShop: mergedPerShop,
+          requestCounts: mergedRequestCounts,
+        },
+      };
+
+      console.log(`🔀 Merged results for ${shopFilter.join(', ')} into existing baseline\n`);
+    } else {
+      snapshot = {
+        recordedAt: new Date().toISOString(),
+        products,
+        productSets: sortedProductSets,
+        results: sortedResults,
+        timing: currentTiming,
+      };
+    }
 
     // Save baseline
-    const baselinePath = path.join(fixturesDir, '_baseline.json');
     fs.writeFileSync(baselinePath, JSON.stringify(snapshot, null, 2), 'utf-8');
 
     console.log(`💾 Saved baseline to: ${baselinePath}\n`);

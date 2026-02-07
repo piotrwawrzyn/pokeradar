@@ -41,7 +41,9 @@ export class TimingTracker {
    */
   startShop(shopId: string): void {
     this.startTimes.set(shopId, Date.now());
-    this.requestCounts.set(shopId, 0);
+    if (!this.requestCounts.has(shopId)) {
+      this.requestCounts.set(shopId, 0);
+    }
   }
 
   /**
