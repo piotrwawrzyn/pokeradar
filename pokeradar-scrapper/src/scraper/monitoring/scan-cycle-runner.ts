@@ -4,7 +4,7 @@
  * with individual fallback for unmatched or ungrouped products.
  */
 
-import { Browser } from 'playwright';
+import { Browser } from 'patchright';
 import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../shared/types';
 import { SetGroup } from '../../shared/utils/product-utils';
 import { IScraper } from '../scrapers/base/base-scraper';
@@ -75,6 +75,11 @@ interface ProductTask {
   product: WatchlistProductInternal;
   /** If set, skip search and go directly to this URL. */
   resolvedUrl?: string;
+  /** If present, skip product page visit entirely and use this data. */
+  searchPageData?: {
+    price: number | null;
+    isAvailable: boolean;
+  };
 }
 
 /**
@@ -148,23 +153,15 @@ export class ScanCycleRunner {
     let browser: Browser | null = null;
 
     try {
-      const { chromium } = await import('playwright');
+      const { chromium } = await import('patchright');
       browser = await chromium.launch({
-        headless: true,
+        channel: 'chrome',  // Patchright best practice: use real Chrome
+        headless: true,     // Headless for Railway compatibility
         args: [
-          '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--disable-extensions',
           '--no-sandbox',
-          '--disable-background-networking',
-          '--disable-default-apps',
-          '--disable-sync',
-          '--disable-translate',
-          '--metrics-recording-only',
-          '--mute-audio',
-          '--no-first-run',
-          '--safebrowsing-disable-auto-update',
+          '--disable-setuid-sandbox',
         ],
+        // No custom userAgent - let Chrome use its natural fingerprint
       });
 
       for (const shop of playwrightShops) {
@@ -196,7 +193,15 @@ export class ScanCycleRunner {
     const tasks = productTasks.map((task) => async () => {
       const scraper = this.config.scraperFactory.create(shop, this.config.logger);
       try {
-        if (task.resolvedUrl) {
+        if (task.searchPageData) {
+          // Use search page data directly - no HTTP request needed
+          const result = scraper.createResultFromSearchData(
+            task.product,
+            task.resolvedUrl!,
+            task.searchPageData
+          );
+          this.handleResult(task.product, result, shop);
+        } else if (task.resolvedUrl) {
           const result = await scraper.scrapeProductWithUrl(task.product, task.resolvedUrl);
           this.handleResult(task.product, result, shop);
         } else {
@@ -214,7 +219,9 @@ export class ScanCycleRunner {
       }
     });
 
-    await runWithConcurrency(tasks, PRODUCT_CONCURRENCY);
+    // Use per-shop concurrency if configured, otherwise use default
+    const concurrency = shop.antiBot?.maxConcurrency ?? PRODUCT_CONCURRENCY;
+    await runWithConcurrency(tasks, concurrency);
   }
 
   /**
@@ -273,9 +280,13 @@ export class ScanCycleRunner {
           });
 
           for (const product of setGroup.products) {
-            const matchedUrl = navigator.matchProductFromCandidates(product, candidates);
-            if (matchedUrl) {
-              tasks.push({ product, resolvedUrl: matchedUrl });
+            const match = navigator.matchProductFromCandidates(product, candidates);
+            if (match) {
+              tasks.push({
+                product,
+                resolvedUrl: match.url,
+                searchPageData: match.searchPageData,
+              });
             } else {
               this.config.logger.info('Product not found in set search', {
                 shop: shop.id,
@@ -334,11 +345,21 @@ export class ScanCycleRunner {
 
       for (const product of setGroup.products) {
         try {
-          const matchedUrl = navigator.matchProductFromCandidates(product, candidates);
+          const match = navigator.matchProductFromCandidates(product, candidates);
 
-          if (matchedUrl) {
-            const result = await scraper.scrapeProductWithUrl(product, matchedUrl);
-            this.handleResult(product, result, shop);
+          if (match) {
+            if (match.searchPageData) {
+              // Use search page data directly - no HTTP request needed
+              const result = scraper.createResultFromSearchData(
+                product,
+                match.url,
+                match.searchPageData
+              );
+              this.handleResult(product, result, shop);
+            } else {
+              const result = await scraper.scrapeProductWithUrl(product, match.url);
+              this.handleResult(product, result, shop);
+            }
           } else {
             this.config.logger.info('Product not found in set search', {
               shop: shop.id,

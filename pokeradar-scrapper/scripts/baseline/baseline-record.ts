@@ -215,10 +215,43 @@ async function record() {
   // Parse arguments
   const { shops: shopFilter, compare: compareMode } = parseArgs();
 
+  const fixturesDir = path.join(__dirname, 'fixtures');
+
+  // Always clean fixtures before recording (unless in compare mode which is readonly)
+  // This ensures fixtures and baseline are always in sync
+  if (!compareMode && fs.existsSync(fixturesDir)) {
+    if (shopFilter) {
+      // Clean only specified shops
+      console.log(`🧹 Cleaning fixtures for shops: ${shopFilter.join(', ')}...\n`);
+      for (const shopId of shopFilter) {
+        const shopDir = path.join(fixturesDir, shopId);
+        if (fs.existsSync(shopDir)) {
+          fs.rmSync(shopDir, { recursive: true, force: true });
+          console.log(`  ✓ Deleted fixtures for: ${shopId}`);
+        }
+      }
+      console.log('');
+    } else {
+      // Clean all shops
+      console.log('🧹 Cleaning all old fixtures...\n');
+      const entries = fs.readdirSync(fixturesDir);
+      for (const entry of entries) {
+        const fullPath = path.join(fixturesDir, entry);
+        const stat = fs.statSync(fullPath);
+
+        // Delete directories (shop fixtures) but keep _baseline.json for now
+        if (stat.isDirectory()) {
+          fs.rmSync(fullPath, { recursive: true, force: true });
+          console.log(`  ✓ Deleted fixtures for: ${entry}`);
+        }
+      }
+      console.log('');
+    }
+  }
+
   // Load existing baseline if in compare mode
   let existingBaseline: BaselineSnapshot | null = null;
   if (compareMode) {
-    const fixturesDir = path.join(__dirname, 'fixtures');
     const baselinePath = path.join(fixturesDir, '_baseline.json');
 
     if (!fs.existsSync(baselinePath)) {
@@ -296,7 +329,6 @@ async function record() {
     console.log(`📊 Grouped into ${setGroups.length} sets + ${ungrouped.length} ungrouped\n`);
 
     // Create baseline infrastructure
-    const fixturesDir = path.join(__dirname, 'fixtures');
     // In compare mode, make FixtureStore readonly (don't save new fixtures)
     const fixtureStore = new FixtureStore(fixturesDir, compareMode);
     const timingTracker = new TimingTracker();

@@ -22,6 +22,10 @@ export interface ProductCandidate {
   title: string;
   url: string;
   score: number;
+  searchPageData?: {
+    price: number | null;
+    isAvailable: boolean;
+  };
 }
 
 /**

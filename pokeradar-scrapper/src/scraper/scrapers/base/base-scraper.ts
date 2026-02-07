@@ -26,6 +26,11 @@ export interface IScraperLogger {
 export interface IScraper {
   scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult>;
   scrapeProductWithUrl(product: WatchlistProductInternal, productUrl: string): Promise<ProductResult>;
+  createResultFromSearchData(
+    product: WatchlistProductInternal,
+    productUrl: string,
+    searchPageData: { price: number | null; isAvailable: boolean }
+  ): ProductResult;
   getNavigator(): SearchNavigator;
   close(): Promise<void>;
 }
@@ -64,7 +69,12 @@ export abstract class BaseScraper implements IScraper {
         return this.createNullResult(product);
       }
 
-      const { url: productUrl, isDirectHit } = searchResult;
+      const { url: productUrl, isDirectHit, searchPageData } = searchResult;
+
+      // If search page data is available, use it directly (skip product page visit)
+      if (searchPageData) {
+        return this.createResultFromSearchData(product, productUrl, searchPageData);
+      }
 
       // Step 2: Navigate to product page (skip if direct hit - already there)
       if (!isDirectHit) {
@@ -195,6 +205,33 @@ export abstract class BaseScraper implements IScraper {
       });
       return this.createNullResult(product);
     }
+  }
+
+  /**
+   * Creates a ProductResult directly from search page data, bypassing product page visit.
+   * Synchronous method - no HTTP requests.
+   */
+  createResultFromSearchData(
+    product: WatchlistProductInternal,
+    productUrl: string,
+    searchPageData: { price: number | null; isAvailable: boolean }
+  ): ProductResult {
+    this.logger?.info('Using search page data (skipping product page visit)', {
+      shop: this.config.id,
+      product: product.id,
+      price: searchPageData.price,
+      available: searchPageData.isAvailable,
+      url: productUrl,
+    });
+
+    return {
+      productId: product.id,
+      shopId: this.config.id,
+      productUrl,
+      price: searchPageData.price,
+      isAvailable: searchPageData.isAvailable,
+      timestamp: new Date(),
+    };
   }
 
   /**

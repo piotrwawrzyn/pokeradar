@@ -1,8 +1,9 @@
 /**
  * Playwright element wrapper implementing IElement interface.
+ * Uses Patchright types.
  */
 
-import { Locator } from 'playwright';
+import { Locator } from 'patchright';
 import { Selector } from '../../../shared/types';
 import { IElement } from '../engine.interface';
 

@@ -1,6 +1,11 @@
 {
   "id": "xjoy",
   "name": "xjoy",
+  "engine": "playwright",
+  "antiBot": {
+    "requestDelayMs": 2000,
+    "maxConcurrency": 1
+  },
   "baseUrl": "https://www.xjoy.pl",
   "searchUrl": "/search?controller=search&orderby=position&orderway=desc&search_query=",
   "selectors": {

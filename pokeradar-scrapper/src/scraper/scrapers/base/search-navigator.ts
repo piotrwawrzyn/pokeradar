@@ -3,9 +3,10 @@
  */
 
 import { ShopConfig, WatchlistProductInternal } from '../../../shared/types';
-import { IEngine } from '../../engines/engine.interface';
+import { IEngine, IElement } from '../../engines/engine.interface';
 import { normalizeUrl, buildSearchUrl } from '../../../shared/utils/url-normalizer';
 import { ProductMatcher, ProductCandidate } from './product-matcher';
+import { PriceParser } from '../../../shared/utils/price-parser';
 
 /**
  * Logger interface for search navigation.
@@ -21,12 +22,29 @@ interface ILogger {
 export interface SearchResult {
   url: string;
   isDirectHit: boolean;
+  searchPageData?: {
+    price: number | null;
+    isAvailable: boolean;
+  };
+}
+
+/**
+ * Result of matching a product from pre-extracted candidates.
+ */
+export interface MatchResult {
+  url: string;
+  searchPageData?: {
+    price: number | null;
+    isAvailable: boolean;
+  };
 }
 
 /**
  * Handles product search and URL discovery.
  */
 export class SearchNavigator {
+  private priceParser = new PriceParser();
+
   constructor(
     private config: ShopConfig,
     private engine: IEngine,
@@ -56,9 +74,13 @@ export class SearchNavigator {
       }
 
       // Get all product articles from search results
-      const productUrl = await this.findInSearchResults(product, phrase);
-      if (productUrl) {
-        return { url: normalizeUrl(productUrl, this.config.baseUrl), isDirectHit: false };
+      const result = await this.findInSearchResults(product, phrase);
+      if (result) {
+        return {
+          url: normalizeUrl(result.url, this.config.baseUrl),
+          isDirectHit: false,
+          searchPageData: result.searchPageData,
+        };
       }
     }
 
@@ -158,7 +180,7 @@ export class SearchNavigator {
   private async findInSearchResults(
     product: WatchlistProductInternal,
     phrase: string
-  ): Promise<string | null> {
+  ): Promise<{ url: string; searchPageData?: { price: number | null; isAvailable: boolean } } | null> {
     const articles = await this.engine.extractAll(
       this.config.selectors.searchPage.article
     );
@@ -195,12 +217,27 @@ export class SearchNavigator {
       if (title && productUrl) {
         const score = this.matcher.validateTitle(title, phrase, product, this.config.id);
         if (score !== null) {
-          candidates.push({ title, url: productUrl, score });
+          const searchPageData = await this.extractSearchPageData(article);
+
+          candidates.push({
+            title,
+            url: productUrl,
+            score,
+            searchPageData: searchPageData ?? undefined,
+          });
         }
       }
     }
 
-    return this.matcher.selectBestCandidate(candidates, product, phrase, this.config.id);
+    const bestUrl = this.matcher.selectBestCandidate(candidates, product, phrase, this.config.id);
+    if (bestUrl) {
+      const matchedCandidate = candidates.find(c => c.url === bestUrl);
+      return {
+        url: bestUrl,
+        searchPageData: matchedCandidate?.searchPageData,
+      };
+    }
+    return null;
   }
 
   /**
@@ -250,10 +287,13 @@ export class SearchNavigator {
       const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
 
       if (title && productUrl) {
+        const searchPageData = await this.extractSearchPageData(article);
+
         candidates.push({
           title,
           url: normalizeUrl(productUrl, this.config.baseUrl),
           score: 0,
+          searchPageData: searchPageData ?? undefined,
         });
       }
     }
@@ -264,12 +304,12 @@ export class SearchNavigator {
   /**
    * Matches a specific product against pre-extracted search candidates.
    * Tries each of the product's search phrases against the candidates.
-   * Returns the best matching URL or null. No HTTP requests.
+   * Returns the best matching result or null. No HTTP requests.
    */
   matchProductFromCandidates(
     product: WatchlistProductInternal,
     candidates: ProductCandidate[]
-  ): string | null {
+  ): MatchResult | null {
     for (const phrase of product.search.phrases) {
       const scoredCandidates: ProductCandidate[] = [];
 
@@ -294,11 +334,106 @@ export class SearchNavigator {
       );
 
       if (bestUrl) {
-        return bestUrl;
+        const matchedCandidate = scoredCandidates.find(c => c.url === bestUrl);
+        return {
+          url: bestUrl,
+          searchPageData: matchedCandidate?.searchPageData,
+        };
       }
     }
 
     return null;
+  }
+
+  /**
+   * Attempts to extract price and availability from a search page article element.
+   * Returns enriched data if BOTH price and availability can be determined, null otherwise.
+   */
+  private async extractSearchPageData(
+    article: IElement
+  ): Promise<{ price: number | null; isAvailable: boolean } | null> {
+    const searchSelectors = this.config.selectors.searchPage;
+
+    // Must have at least one availability selector AND price selector
+    const hasAvailabilitySelector = !!searchSelectors.available || !!searchSelectors.unavailable;
+    const hasPriceSelector = !!searchSelectors.price;
+
+    if (!hasAvailabilitySelector || !hasPriceSelector) {
+      return null;
+    }
+
+    // Determine availability
+    let isAvailable: boolean | null = null;
+
+    // Check available selectors first
+    if (searchSelectors.available) {
+      const availSelectors = Array.isArray(searchSelectors.available)
+        ? searchSelectors.available
+        : [searchSelectors.available];
+
+      for (const selector of availSelectors) {
+        const element = await article.find(selector);
+        if (element) {
+          isAvailable = true;
+          break;
+        }
+      }
+    }
+
+    // If still null, check unavailable selectors
+    if (isAvailable === null && searchSelectors.unavailable) {
+      const unavailSelectors = Array.isArray(searchSelectors.unavailable)
+        ? searchSelectors.unavailable
+        : [searchSelectors.unavailable];
+
+      for (const selector of unavailSelectors) {
+        const element = await article.find(selector);
+        if (element) {
+          isAvailable = false;
+          break;
+        }
+      }
+    }
+
+    // If we couldn't determine availability, bail out
+    if (isAvailable === null) {
+      this.logger?.debug('Search page extraction: could not determine availability', {
+        shop: this.config.id,
+      });
+      return null;
+    }
+
+    // Extract price
+    const priceSelector = searchSelectors.price!;
+    const priceElement = await article.find(priceSelector);
+    let price: number | null = null;
+
+    if (priceElement) {
+      let priceText: string | null = null;
+      if (priceSelector.extract && priceSelector.extract !== 'text') {
+        priceText = await priceElement.getAttribute(priceSelector.extract);
+      } else {
+        priceText = await priceElement.getText();
+      }
+
+      if (priceText) {
+        const format = priceSelector.format || 'european';
+        try {
+          price = this.priceParser.parse(priceText, format);
+        } catch (error) {
+          this.logger?.debug('Search page extraction: price parsing failed', {
+            shop: this.config.id,
+            priceText,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          // Fall through to null price
+        }
+      }
+    }
+
+    // Price can be null even on success (element not found or parse failure)
+    // This is consistent with productPage behavior
+    return { price, isAvailable };
   }
 
   /**

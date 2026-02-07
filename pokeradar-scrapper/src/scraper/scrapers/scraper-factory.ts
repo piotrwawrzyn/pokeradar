@@ -2,7 +2,7 @@
  * Factory for creating scrapers with appropriate engines.
  */
 
-import { Browser } from 'playwright';
+import { Browser } from 'patchright';
 import { ShopConfig } from '../../shared/types';
 import { CheerioEngine } from '../engines/cheerio-engine';
 import { PlaywrightEngine } from '../engines/playwright-engine';
@@ -30,8 +30,8 @@ export class ScraperFactory {
     browser?: Browser
   ): IScraper {
     const engine = shop.engine === 'playwright'
-      ? new PlaywrightEngine(browser, logger)
-      : new CheerioEngine(logger);
+      ? new PlaywrightEngine(shop, browser, logger)
+      : new CheerioEngine(shop, logger);
 
     return new DefaultScraper(shop, engine, logger);
   }

@@ -18,12 +18,21 @@
       "title": {
         "type": "css",
         "value": "h3.product__title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.product__price",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Produkt niedostępny"
       }
     },
     "productPage": {
       "price": {
         "type": "css",
-        "value": "span.price",
+        "value": "span.h1 span.price",
         "format": "european"
       },
       "available": [

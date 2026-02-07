@@ -8,7 +8,7 @@
     "copy-configs": "node -e \"require('fs').cpSync('src/config', 'dist/config', {recursive: true})\"",
     "start": "node dist/app/index.js",
     "dev": "ts-node src/app/index.ts",
-    "postinstall": "playwright install --with-deps chromium",
+    "postinstall": "npx patchright install chrome",
     "check": "tsx scripts/check-watchlist.ts",
     "baseline:record": "tsx scripts/baseline/baseline-record.ts",
     "baseline:record:compare": "tsx scripts/baseline/baseline-record.ts --compare",
@@ -35,6 +35,6 @@
     "dotenv": "^17.2.3",
     "fuzzball": "^2.2.3",
     "mongoose": "^9.1.5",
-    "playwright": "^1.57.0"
+    "patchright": "^1.57.0"
   }
 }

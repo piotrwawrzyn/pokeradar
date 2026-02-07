@@ -1,10 +1,11 @@
 /**
  * Playwright-based engine with full browser automation.
  * Supports JavaScript rendering and complex interactions.
+ * Uses Patchright for anti-detection.
  */
 
-import { Browser, Page, Locator, BrowserContext } from 'playwright';
-import { Selector, ExtractType } from '../../shared/types';
+import { Browser, Page, Locator, BrowserContext } from 'patchright';
+import { Selector, ExtractType, ShopConfig } from '../../shared/types';
 import { IEngine, IElement } from './engine.interface';
 import { PlaywrightElement } from './element/playwright-element';
 import { safeClose } from '../../shared/utils/safe-close';
@@ -34,7 +35,7 @@ const BLOCKED_DOMAINS = [
 ];
 
 /**
- * Playwright-based scraping engine.
+ * Playwright-based scraping engine (uses Patchright).
  */
 export class PlaywrightEngine implements IEngine {
   private page: Page | null = null;
@@ -45,20 +46,87 @@ export class PlaywrightEngine implements IEngine {
   private readonly NAVIGATION_TIMEOUT = 15000;
   private readonly ACTION_TIMEOUT = 5000;
 
-  constructor(private existingBrowser?: Browser, private logger?: ILogger) {}
+  constructor(
+    private shop: ShopConfig,
+    private existingBrowser?: Browser,
+    private logger?: ILogger
+  ) {}
 
   async goto(url: string): Promise<void> {
     if (!this.page) {
       await this.initializePage();
     }
 
-    await this.page!.goto(url, {
-      waitUntil: 'networkidle',
-      timeout: this.NAVIGATION_TIMEOUT,
+    // Apply jittered delay if configured
+    await this.applyJitteredDelay();
+
+    // Retry with exponential backoff (up to 3 attempts)
+    await this.retryWithBackoff(async () => {
+      await this.page!.goto(url, {
+        waitUntil: 'networkidle',
+        timeout: this.NAVIGATION_TIMEOUT,
+      });
     });
 
     // Short wait for dynamic content to settle
     await this.page!.waitForTimeout(500);
+  }
+
+  /**
+   * Apply jittered delay before request if configured.
+   */
+  private async applyJitteredDelay(): Promise<void> {
+    const baseDelay = this.shop.antiBot?.requestDelayMs ?? 0;
+    if (baseDelay > 0) {
+      const jitter = baseDelay * 0.3; // ±30% jitter
+      const delay = baseDelay + (Math.random() * 2 - 1) * jitter;
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  /**
+   * Retry a request with exponential backoff.
+   * Attempt 1: immediate
+   * Attempt 2: wait 2s
+   * Attempt 3: wait 5s
+   */
+  private async retryWithBackoff<T>(
+    fn: () => Promise<T>
+  ): Promise<T> {
+    // Read from env var, default to 1 retry (2 total attempts)
+    const maxRetries = parseInt(process.env.MAX_RETRY_ATTEMPTS || '1', 10);
+    const maxAttempts = 1 + maxRetries;
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error as Error;
+
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+
+        // Exponential backoff: 2s, 5s
+        const waitMs = attempt === 1 ? 2000 : 5000;
+
+        // Use warn level for retries - this is important operational info
+        if (this.logger && 'warn' in this.logger) {
+          (this.logger as any).warn('Navigation failed, retrying with backoff', {
+            shop: this.shop.id,
+            attempt,
+            maxAttempts,
+            waitMs,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+      }
+    }
+
+    throw lastError;
   }
 
   getCurrentUrl(): string | null {
@@ -179,28 +247,22 @@ export class PlaywrightEngine implements IEngine {
       if (!this.existingBrowser.isConnected()) {
         throw new Error('Shared browser is already closed');
       }
-  
-      this.context = await this.existingBrowser.newContext();
+
+      this.context = await this.existingBrowser.newContext({
+        viewport: null, // Patchright best practice: natural viewport
+      });
       this.page = await this.context.newPage();
       this.ownsBrowser = false;
     } else {
-      const { chromium } = await import('playwright');
+      const { chromium } = await import('patchright');
       this.browser = await chromium.launch({
-        headless: true,
+        channel: 'chrome',  // Patchright best practice: use real Chrome
+        headless: true,     // Headless for Railway compatibility
         args: [
-          '--disable-gpu',
-          '--disable-dev-shm-usage',
-          '--disable-extensions',
           '--no-sandbox',
-          '--disable-background-networking',
-          '--disable-default-apps',
-          '--disable-sync',
-          '--disable-translate',
-          '--metrics-recording-only',
-          '--mute-audio',
-          '--no-first-run',
-          '--safebrowsing-disable-auto-update',
+          '--disable-setuid-sandbox',
         ],
+        // No custom userAgent - let Chrome use its natural fingerprint
       });
       this.page = await this.browser.newPage();
       this.ownsBrowser = true;

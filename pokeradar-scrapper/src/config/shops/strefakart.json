@@ -1,6 +1,11 @@
 {
     "id": "strefakart",
     "name": "strefakart.pl",
+    "engine": "playwright",
+    "antiBot": {
+      "requestDelayMs": 2000,
+      "maxConcurrency": 1
+    },
     "baseUrl": "https://strefakart.pl",
     "searchUrl": "/wszystkie-produkty/?s=",
     "selectors": {

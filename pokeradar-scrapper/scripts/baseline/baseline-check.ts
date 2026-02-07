@@ -207,6 +207,36 @@ async function check() {
 
   const resultDiff = diffResults(baselineResults, filteredCurrentResults);
 
+  // Get current request counts (meaningful even in replay mode - shows fixture access reduction)
+  const currentRequestCounts = timingTracker.getAllRequestCounts();
+  const baselineRequestCounts = baseline.timing.requestCounts || {};
+
+  // Compare request counts
+  console.log('━'.repeat(60));
+  console.log('  REQUEST COUNT COMPARISON');
+  console.log('━'.repeat(60) + '\n');
+
+  const baselineTotalReqs = Object.values(baselineRequestCounts).reduce((sum, count) => sum + count, 0);
+  const currentTotalReqs = Object.values(currentRequestCounts).reduce((sum, count) => sum + count, 0);
+
+  if (baselineTotalReqs > 0 || currentTotalReqs > 0) {
+    console.log(`Overall: ${baselineTotalReqs} → ${currentTotalReqs} (${currentTotalReqs - baselineTotalReqs >= 0 ? '+' : ''}${currentTotalReqs - baselineTotalReqs})\n`);
+
+    // Per-shop comparison
+    const allShopIds = new Set([...Object.keys(baselineRequestCounts), ...Object.keys(currentRequestCounts)]);
+    for (const shopId of Array.from(allShopIds).sort()) {
+      const baselineReqs = baselineRequestCounts[shopId] || 0;
+      const currentReqs = currentRequestCounts[shopId] || 0;
+      const diff = currentReqs - baselineReqs;
+      if (diff !== 0 || baselineReqs > 0 || currentReqs > 0) {
+        console.log(`  ${shopId.padEnd(20)} ${baselineReqs} → ${currentReqs} (${diff >= 0 ? '+' : ''}${diff})`);
+      }
+    }
+    console.log('');
+  } else {
+    console.log('No request count data available\n');
+  }
+
   // Note: Timing comparison is disabled for replay mode since replay is always faster
   // (fixtures from disk vs real HTTP). Timing is only useful for record-vs-record comparison.
   const timingDiff: any[] = [];
