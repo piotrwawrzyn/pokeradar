@@ -1,13 +1,13 @@
 # Baseline Regression Testing
 
-This project now includes a comprehensive baseline testing framework to catch regressions in the scrapper.
+This project includes a simple baseline testing system to catch regressions in the scrapper.
 
 ## Quick Start
 
 ### Record a baseline (first time):
 ```bash
 cd pokeradar-scrapper
-npm run baseline:record
+npm run baseline
 ```
 
 ### Check for regressions (after code changes):
@@ -26,40 +26,34 @@ npm run baseline:check
 - ✅ Price parsing bugs (format handling, null values)
 - ✅ Engine-level regressions (extraction, fallback selectors)
 - ✅ Set-based search bugs (grouping, exclusions)
-- ✅ Performance regressions (timing >200% increase)
 
 ## How It Works
 
+The baseline system runs your **production scraping code** (no custom test engines) and saves/compares results:
+
 **Recording:**
-- Hits real shops (HTTP + Playwright)
-- Saves HTML fixtures for every page
-- Creates `_baseline.json` with golden results
+- Runs real production scraping against live shops (both Cheerio and Playwright)
+- Saves results to `_baseline.json` (committed to git)
+- No HTML fixtures - just the results
 
 **Checking:**
-- Replays saved HTML through current code (offline, fast)
-- Compares results against baseline
+- Runs production scraping again
+- Compares results against `_baseline.json`
 - Reports differences with color-coded output
+- Exit 0 (pass) or 1 (fail)
 
-**Zero production code changes** — all test code lives in [scripts/baseline/](scripts/baseline/).
+## Commands
 
-## Full Documentation
+```bash
+# Record baseline from live shops (saves to _baseline.json)
+npm run baseline
 
-See [scripts/baseline/README.md](scripts/baseline/README.md) for:
-- Complete architecture details
-- Usage examples
-- Troubleshooting guide
-- CI/CD integration
-- Development guide
+# Check for regressions (compares current scraping against baseline)
+npm run baseline:check
 
-## CI/CD Integration
-
-Add to your pipeline:
-```yaml
-- name: Run baseline check
-  run: npm run baseline:check
+# Check single shop only (faster when working on one shop's config)
+npm run baseline:check basanti
 ```
-
-Requires `scripts/baseline/fixtures/_baseline.json` to be committed to git.
 
 ## When to Re-Record
 
@@ -71,97 +65,47 @@ Re-record the baseline when **inputs** change:
 
 Do **NOT** re-record when **code** changes — that's what `check` is for!
 
-## Performance Testing (A/B Comparison)
-
-To measure if your code changes improved or degraded performance, you have three options:
-
-### Option 1: Quick In-Memory Comparison (Recommended)
-
-Compare against the current baseline without modifying any files:
-
-```bash
-# Make your performance changes (optimize queries, add concurrency, etc.)
-
-# Record and compare in one step (readonly mode - no files modified)
-npm run baseline:record:compare
-```
-
-This runs live scraping to measure timing, compares against the baseline, but **does not save any files** (neither fixtures nor baseline.json). If you're happy with the results, run `npm run baseline:record` to save the new baseline.
-
-### Option 2: Compare Two Saved Baselines
-
-Save the current baseline, make changes, record a new one, and compare:
-
-```bash
-# Save current baseline
-cp scripts/baseline/fixtures/_baseline.json _baseline-old.json
-
-# Make changes and record new baseline
-npm run baseline:record
-
-# Compare the two
-npm run baseline:compare _baseline-old.json scripts/baseline/fixtures/_baseline.json
-```
-
-### Option 3: Compare Against Git
-
-Compare against the baseline from a previous commit:
-
-```bash
-# Make your performance changes
-
-# Record new timing
-npm run baseline:record
-
-# Compare against previous commit
-npm run baseline:compare <(git show HEAD:scripts/baseline/fixtures/_baseline.json) scripts/baseline/fixtures/_baseline.json
-```
-
-All comparison methods show per-shop timing and highlight:
-- 🔴 Regressions (>200% slower)
-- 🟢 Improvements (>50% faster)
-
-## Quick Reference
-
-### Commands
-
-```bash
-# Record baseline from live shops (saves to _baseline.json)
-npm run baseline:record
-
-# Record specific shops only
-npm run baseline:record -- --shops letsgotry,basanti
-
-# Record and compare timing (readonly - no files modified)
-npm run baseline:record:compare
-
-# Check for regressions (offline, fast)
-npm run baseline:check
-
-# Compare two saved baselines
-npm run baseline:compare <before.json> <after.json>
-```
-
-### Typical Workflows
+## Typical Workflows
 
 **Initial setup:**
 ```bash
-npm run baseline:record           # Record baseline
-npm run baseline:check             # Verify (should show 0 differences)
-git add scripts/baseline/fixtures/_baseline.json
+npm run baseline                  # Record baseline
+npm run baseline:check            # Verify (should show 0 differences)
+git add scripts/_baseline.json
 git commit -m "Add baseline"
 ```
 
 **Making code changes:**
 ```bash
 # Make your changes...
-npm run baseline:check             # Catch regressions
+npm run baseline:check            # Catch regressions
 ```
 
-**Performance optimization:**
+**Working on a single shop config:**
 ```bash
-# Make optimization changes...
-npm run baseline:record:compare  # See if it's faster
-# If happy with results:
-npm run baseline:record          # Save new baseline
+# Edit shop config...
+npm run baseline:check pokesmart  # Fast check for just that shop
+# If good, record full baseline:
+npm run baseline                  # Updates entire baseline
 ```
+
+## What Gets Compared
+
+For each `(shopId, productId)` pair:
+- **Price** - did it change unexpectedly?
+- **Availability** - did it change unexpectedly?
+- **Product URL** - did routing change?
+- **Lost results** - products that were found before but not now (regression)
+- **Gained results** - products that are newly found (might be good or bad)
+
+Price and availability changes are **warnings** (shops update inventory), but URL changes and lost results are typically **regressions** indicating scraper bugs.
+
+## CI/CD Integration
+
+Add to your pipeline:
+```yaml
+- name: Run baseline check
+  run: npm run baseline:check
+```
+
+Requires `scripts/_baseline.json` to be committed to git.

@@ -10,10 +10,8 @@
     "dev": "ts-node src/app/index.ts",
     "postinstall": "npx patchright install chrome",
     "check": "tsx scripts/check-watchlist.ts",
-    "baseline:record": "tsx scripts/baseline/baseline-record.ts",
-    "baseline:record:compare": "tsx scripts/baseline/baseline-record.ts --compare",
-    "baseline:check": "tsx scripts/baseline/baseline-check.ts",
-    "baseline:compare": "tsx scripts/baseline/baseline-compare.ts"
+    "baseline": "tsx scripts/baseline.ts",
+    "baseline:check": "tsx scripts/baseline.ts --check"
   },
   "keywords": [],
   "author": "",
