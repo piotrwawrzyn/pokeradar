@@ -2,7 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm ci && npm run build:shared && npm run build -w pokeradar-api"
+    "buildCommand": "npm install --prefer-offline && npm run build:shared && npm run build -w pokeradar-api"
   },
   "deploy": {
     "startCommand": "node pokeradar-api/dist/server.js",
