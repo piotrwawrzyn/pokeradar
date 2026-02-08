@@ -22,6 +22,9 @@ import adminRouter from './modules/admin/admin.router';
 
 const app = express();
 
+// Trust Railway proxy for rate limiting and client IP detection
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
 app.use(express.json());
