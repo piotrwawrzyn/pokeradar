@@ -1,0 +1,50 @@
+{
+  "id": "rebel",
+  "name": "Rebel.pl",
+  "engine": "playwright",
+  "baseUrl": "https://www.rebel.pl",
+  "searchUrl": "/site/search?phrase=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product__title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.product__price",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Produkt niedostępny"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.h1 span.price",
+        "format": "european"
+      },
+      "available": [
+        {
+          "type": "text",
+          "value": "Produkt dostępny w magazynie"
+        },
+        {
+          "type": "text",
+          "value": "Produkt w przedsprzedaży"
+        }
+      ]
+    }
+  }
+}

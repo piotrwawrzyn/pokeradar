@@ -1,38 +1,31 @@
 {
-  "name": "pokebot_2.0",
+  "name": "pokeradar",
   "version": "1.0.0",
-  "description": "",
-  "main": "dist/app/index.js",
+  "private": true,
+  "description": "Pokemon price monitor monorepo",
+  "workspaces": [
+    "packages/*",
+    "pokeradar-api",
+    "pokeradar-client",
+    "pokeradar-scrapper",
+    "pokeradar-notifications"
+  ],
   "scripts": {
-    "build": "tsc && npm run copy-configs",
-    "copy-configs": "node -e \"require('fs').cpSync('src/config', 'dist/config', {recursive: true})\"",
-    "start": "node dist/app/index.js",
-    "summary": "node dist/app/summary.js",
-    "dev": "ts-node src/app/index.ts",
-    "postinstall": "playwright install --with-deps chromium",
-    "check": "tsx scripts/check-watchlist.ts"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "engines": {
-    "node": ">=18.0.0"
+    "build:shared": "npm run build -w @pokeradar/shared",
+    "build:api": "npm run build -w pokeradar-api",
+    "build:client": "npm run build -w pokeradar-client",
+    "build:scrapper": "npm run build -w pokeradar-scrapper",
+    "build:notifications": "npm run build -w pokeradar-notifications",
+    "build": "npm run build:shared && npm run build:api & npm run build:client & npm run build:scrapper & npm run build:notifications",
+    "dev:api": "npm run dev -w pokeradar-api",
+    "dev:client": "npm run dev -w pokeradar-client",
+    "dev:notifications": "npm run dev -w pokeradar-notifications",
+    "dev": "concurrently -n api,client,notif -c blue,green,yellow \"npm run dev:api\" \"npm run dev:client\" \"npm run dev:notifications\"",
+    "test": "npm run test --workspaces --if-present",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "@types/cheerio": "^1.0.0",
-    "@types/node": "^25.0.9",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "@types/node-telegram-bot-api": "^0.64.13",
-    "axios": "^1.13.2",
-    "cheerio": "^1.1.2",
-    "dotenv": "^17.2.3",
-    "fuzzball": "^2.2.3",
-    "mongoose": "^9.1.5",
-    "node-telegram-bot-api": "^0.67.0",
-    "playwright": "^1.57.0"
+    "concurrently": "^9.1.2",
+    "husky": "^9.1.7"
   }
 }

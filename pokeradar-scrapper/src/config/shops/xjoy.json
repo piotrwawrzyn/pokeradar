@@ -1,0 +1,52 @@
+{
+  "id": "xjoy",
+  "name": "xjoy",
+  "engine": "playwright",
+  "antiBot": {
+    "requestDelayMs": 1000,
+    "maxConcurrency": 1
+  },
+  "baseUrl": "https://www.xjoy.pl",
+  "searchUrl": "/search?controller=search&orderby=position&orderway=desc&search_query=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "main div.product-container"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a.product-name",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "a.product-name"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.product-price",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "span.label-danger"
+      },
+      "available": {
+        "type": "css",
+        "value": "span.label-success"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span#our_price_display",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.box-cart-bottom div:not(.unvisible) button.btn-add-to-cart:not([disabled])"
+      }
+    }
+  }
+}
