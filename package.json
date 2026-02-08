@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Pokemon price monitor monorepo",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
   "workspaces": [
     "packages/*",
     "pokeradar-api",
