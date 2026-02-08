@@ -194,42 +194,53 @@ export class SearchNavigator {
       return null;
     }
 
-    // Extract titles and URLs, find best match using fuzzy matching
-    // Only check first 5 results to avoid processing irrelevant items
-    const candidates: ProductCandidate[] = [];
-    const articlesToCheck = articles.slice(0, 5);
-
-    for (const article of articlesToCheck) {
+    // Extract titles and URLs in parallel for all articles
+    const candidatePromises = articles.map(async (article): Promise<ProductCandidate | null> => {
       const titleSelector = this.config.selectors.searchPage.title;
-      let title: string | null = null;
 
-      // If title selector has "extract" property, get attribute instead of text
-      if ('extract' in titleSelector && titleSelector.extract) {
-        title = await article.getAttribute(titleSelector.extract);
-      } else {
-        const titleElement = await article.find(titleSelector);
-        title = titleElement ? await titleElement.getText() : null;
-      }
+      // Parallelize all element lookups for this article
+      const [titleResult, urlElement, searchPageData] = await Promise.all([
+        // Get title (either attribute or text)
+        'extract' in titleSelector && titleSelector.extract
+          ? article.getAttribute(titleSelector.extract)
+          : article.find(titleSelector).then(el => el?.getText() ?? null),
+        // Get URL
+        article.find(this.config.selectors.searchPage.productUrl),
+        // Get search page data (price, availability)
+        this.extractSearchPageData(article),
+      ]);
 
-      const urlElement = await article.find(this.config.selectors.searchPage.productUrl);
+      const title = titleResult;
       const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
 
-      if (title && productUrl) {
-        const score = this.matcher.validateTitle(title, phrase, product, this.config.id);
-        if (score !== null) {
-          const searchPageData = await this.extractSearchPageData(article);
-
-          candidates.push({
-            title,
-            url: productUrl,
-            score,
-            searchPageData: searchPageData ?? undefined,
-          });
-        }
+      if (!title || !productUrl) {
+        return null;
       }
-    }
+
+      const score = this.matcher.validateTitle(title, phrase, product, this.config.id);
+      if (score === null) {
+        return null;
+      }
+
+      const candidate: ProductCandidate = {
+        title,
+        url: productUrl,
+        score,
+      };
+
+      if (searchPageData) {
+        candidate.searchPageData = searchPageData;
+      }
+
+      return candidate;
+    });
+
+    // Wait for all articles to be processed in parallel
+    const results = await Promise.all(candidatePromises);
+    const candidates: ProductCandidate[] = results.filter((c): c is ProductCandidate => c !== null);
 
     const bestUrl = this.matcher.selectBestCandidate(candidates, product, phrase, this.config.id);
+
     if (bestUrl) {
       const matchedCandidate = candidates.find(c => c.url === bestUrl);
       return {
@@ -269,36 +280,44 @@ export class SearchNavigator {
       return [];
     }
 
-    const candidates: ProductCandidate[] = [];
-    for (const article of articles) {
+    // Process all articles in parallel
+    const candidatePromises = articles.map(async (article): Promise<ProductCandidate | null> => {
       const titleSelector = this.config.selectors.searchPage.title;
-      let title: string | null = null;
 
-      // If title selector has "extract" property, get attribute instead of text
-      if ('extract' in titleSelector && titleSelector.extract) {
-        // For attribute extraction from article itself, don't use find()
-        title = await article.getAttribute(titleSelector.extract);
-      } else {
-        const titleElement = await article.find(titleSelector);
-        title = titleElement ? await titleElement.getText() : null;
-      }
+      // Parallelize all element lookups for this article
+      const [titleResult, urlElement, searchPageData] = await Promise.all([
+        // Get title (either attribute or text)
+        'extract' in titleSelector && titleSelector.extract
+          ? article.getAttribute(titleSelector.extract)
+          : article.find(titleSelector).then(el => el?.getText() ?? null),
+        // Get URL
+        article.find(this.config.selectors.searchPage.productUrl),
+        // Get search page data (price, availability)
+        this.extractSearchPageData(article),
+      ]);
 
-      const urlElement = await article.find(this.config.selectors.searchPage.productUrl);
+      const title = titleResult;
       const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
 
-      if (title && productUrl) {
-        const searchPageData = await this.extractSearchPageData(article);
-
-        candidates.push({
-          title,
-          url: normalizeUrl(productUrl, this.config.baseUrl),
-          score: 0,
-          searchPageData: searchPageData ?? undefined,
-        });
+      if (!title || !productUrl) {
+        return null;
       }
-    }
 
-    return candidates;
+      const candidate: ProductCandidate = {
+        title,
+        url: normalizeUrl(productUrl, this.config.baseUrl),
+        score: 0,
+      };
+
+      if (searchPageData) {
+        candidate.searchPageData = searchPageData;
+      }
+
+      return candidate;
+    });
+
+    const results = await Promise.all(candidatePromises);
+    return results.filter((c): c is ProductCandidate => c !== null);
   }
 
   /**
@@ -362,37 +381,33 @@ export class SearchNavigator {
       return null;
     }
 
-    // Determine availability
+    // Parallelize all selector lookups
+    const availSelectors = searchSelectors.available
+      ? (Array.isArray(searchSelectors.available) ? searchSelectors.available : [searchSelectors.available])
+      : [];
+    const unavailSelectors = searchSelectors.unavailable
+      ? (Array.isArray(searchSelectors.unavailable) ? searchSelectors.unavailable : [searchSelectors.unavailable])
+      : [];
+    const priceSelector = searchSelectors.price!;
+
+    // Run all find operations in parallel
+    const [availElements, unavailElements, priceElement] = await Promise.all([
+      Promise.all(availSelectors.map(selector => article.find(selector))),
+      Promise.all(unavailSelectors.map(selector => article.find(selector))),
+      article.find(priceSelector),
+    ]);
+
+    // Determine availability from results
     let isAvailable: boolean | null = null;
 
-    // Check available selectors first
-    if (searchSelectors.available) {
-      const availSelectors = Array.isArray(searchSelectors.available)
-        ? searchSelectors.available
-        : [searchSelectors.available];
-
-      for (const selector of availSelectors) {
-        const element = await article.find(selector);
-        if (element) {
-          isAvailable = true;
-          break;
-        }
-      }
+    // Check if any available element was found
+    if (availElements.some(el => el !== null)) {
+      isAvailable = true;
     }
 
-    // If still null, check unavailable selectors
-    if (isAvailable === null && searchSelectors.unavailable) {
-      const unavailSelectors = Array.isArray(searchSelectors.unavailable)
-        ? searchSelectors.unavailable
-        : [searchSelectors.unavailable];
-
-      for (const selector of unavailSelectors) {
-        const element = await article.find(selector);
-        if (element) {
-          isAvailable = false;
-          break;
-        }
-      }
+    // If still null, check unavailable elements
+    if (isAvailable === null && unavailElements.some(el => el !== null)) {
+      isAvailable = false;
     }
 
     // If we couldn't determine availability, bail out
@@ -404,8 +419,6 @@ export class SearchNavigator {
     }
 
     // Extract price
-    const priceSelector = searchSelectors.price!;
-    const priceElement = await article.find(priceSelector);
     let price: number | null = null;
 
     if (priceElement) {

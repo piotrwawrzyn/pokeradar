@@ -2,7 +2,7 @@
  * Factory for creating scrapers with appropriate engines.
  */
 
-import { Browser } from 'patchright';
+import { Browser } from 'playwright';
 import { ShopConfig } from '../../shared/types';
 import { CheerioEngine } from '../engines/cheerio-engine';
 import { PlaywrightEngine } from '../engines/playwright-engine';

@@ -1,10 +1,9 @@
 /**
  * Playwright-based engine with full browser automation.
  * Supports JavaScript rendering and complex interactions.
- * Uses Patchright for anti-detection.
  */
 
-import { Browser, Page, Locator, BrowserContext } from 'patchright';
+import { Browser, Page, Locator, BrowserContext, chromium } from 'playwright';
 import { Selector, ExtractType, ShopConfig } from '../../shared/types';
 import { IEngine, IElement } from './engine.interface';
 import { PlaywrightElement } from './element/playwright-element';
@@ -43,8 +42,8 @@ export class PlaywrightEngine implements IEngine {
   private ownsBrowser: boolean = false;
   private browser: Browser | null = null;
 
-  private readonly NAVIGATION_TIMEOUT = 15000;
-  private readonly ACTION_TIMEOUT = 5000;
+  private readonly NAVIGATION_TIMEOUT = 10000;  // Reduced from 15s to 10s
+  private readonly ACTION_TIMEOUT = 500;  // Reduced from 1000ms to 500ms
 
   constructor(
     private shop: ShopConfig,
@@ -63,13 +62,14 @@ export class PlaywrightEngine implements IEngine {
     // Retry with exponential backoff (up to 3 attempts)
     await this.retryWithBackoff(async () => {
       await this.page!.goto(url, {
-        waitUntil: 'networkidle',
+        waitUntil: 'networkidle',  // Even faster than domcontentloaded - just wait for navigation to commit
         timeout: this.NAVIGATION_TIMEOUT,
       });
     });
 
+
     // Short wait for dynamic content to settle
-    await this.page!.waitForTimeout(500);
+    await this.page!.waitForTimeout(100);
   }
 
   /**
@@ -143,9 +143,11 @@ export class PlaywrightEngine implements IEngine {
     for (const selectorValue of selectors) {
       try {
         const locator = this.createLocator(selector.type, selectorValue);
-        const count = await locator.evaluateAll((els) => els.length).catch(() => 0);
 
-        if (count === 0) {
+        // Use all() which returns immediately
+        const elements = await locator.all();
+
+        if (elements.length === 0) {
           continue;
         }
 
@@ -166,32 +168,40 @@ export class PlaywrightEngine implements IEngine {
   }
 
   async extractAll(selector: Selector): Promise<IElement[]> {
+    const startTime = Date.now();
     if (!this.page) {
       throw new Error('No page loaded. Call goto() first.');
     }
 
-    const selectors = Array.isArray(selector.value) ? selector.value : [selector.value];
+    const selectors = Array.isArray(selector.value)
+      ? selector.value
+      : [selector.value];
 
     for (const selectorValue of selectors) {
       try {
+        const countStart = Date.now();
         const locator = this.createLocator(selector.type, selectorValue);
-        const count = await locator.evaluateAll((els) => els.length).catch(() => 0);
 
-        if (count === 0) {
-          continue;
-        }
+        // Use all() which returns immediately without waiting
+        const rawElements = await locator.all();
 
-        const elements: IElement[] = [];
-        for (let i = 0; i < count; i++) {
-          elements.push(new PlaywrightElement(locator.nth(i), this.logger));
-        }
+        const countTime = Date.now() - countStart;
+
+        if (rawElements.length === 0) continue;
+
+        const elements: IElement[] = Array.from(
+          { length: rawElements.length },
+          (_, i) => new PlaywrightElement(locator.nth(i), this.logger)
+        );
+
+        const totalTime = Date.now() - startTime;
+        console.log(`[TIMING] extractAll: ${totalTime}ms (all: ${countTime}ms, found: ${rawElements.length}) - ${selectorValue.substring(0, 60)}`);
         return elements;
       } catch (error) {
         this.logger?.debug('PlaywrightEngine.extractAll failed', {
           selector: selectorValue,
           error: error instanceof Error ? error.message : String(error),
         });
-        continue;
       }
     }
 
@@ -208,9 +218,11 @@ export class PlaywrightEngine implements IEngine {
     for (const selectorValue of selectors) {
       try {
         const locator = this.createLocator(selector.type, selectorValue);
-        const count = await locator.evaluateAll((els) => els.length).catch(() => 0);
 
-        if (count > 0) {
+        // Use all() which returns immediately
+        const elements = await locator.all();
+
+        if (elements.length > 0) {
           return true;
         }
       } catch (error) {
@@ -248,21 +260,16 @@ export class PlaywrightEngine implements IEngine {
         throw new Error('Shared browser is already closed');
       }
 
-      this.context = await this.existingBrowser.newContext({
-        viewport: null, // Patchright best practice: natural viewport
-      });
+      this.context = await this.existingBrowser.newContext();
       this.page = await this.context.newPage();
       this.ownsBrowser = false;
     } else {
-      const { chromium } = await import('patchright');
       this.browser = await chromium.launch({
-        channel: 'chrome',  // Patchright best practice: use real Chrome
-        headless: true,     // Headless for Railway compatibility
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
         ],
-        // No custom userAgent - let Chrome use its natural fingerprint
       });
       this.page = await this.browser.newPage();
       this.ownsBrowser = true;

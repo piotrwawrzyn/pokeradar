@@ -4,7 +4,7 @@
  * with individual fallback for unmatched or ungrouped products.
  */
 
-import { Browser } from 'patchright';
+import { Browser } from 'playwright';
 import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../shared/types';
 import { SetGroup } from '../../shared/utils/product-utils';
 import { IScraper } from '../scrapers/base/base-scraper';
@@ -153,15 +153,13 @@ export class ScanCycleRunner {
     let browser: Browser | null = null;
 
     try {
-      const { chromium } = await import('patchright');
+      const { chromium } = await import('playwright');
       browser = await chromium.launch({
-        channel: 'chrome',  // Patchright best practice: use real Chrome
-        headless: true,     // Headless for Railway compatibility
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
         ],
-        // No custom userAgent - let Chrome use its natural fingerprint
       });
 
       for (const shop of playwrightShops) {

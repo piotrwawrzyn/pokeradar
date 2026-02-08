@@ -3,7 +3,7 @@
   "name": "xjoy",
   "engine": "playwright",
   "antiBot": {
-    "requestDelayMs": 2000,
+    "requestDelayMs": 1000,
     "maxConcurrency": 1
   },
   "baseUrl": "https://www.xjoy.pl",
@@ -22,6 +22,19 @@
       "title": {
         "type": "css",
         "value": "a.product-name"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.product-price",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "span.label-danger"
+      },
+      "available": {
+        "type": "css",
+        "value": "span.label-success"
       }
     },
     "productPage": {

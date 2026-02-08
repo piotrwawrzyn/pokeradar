@@ -1,9 +1,8 @@
 /**
  * Playwright element wrapper implementing IElement interface.
- * Uses Patchright types.
  */
 
-import { Locator } from 'patchright';
+import { Locator } from 'playwright';
 import { Selector } from '../../../shared/types';
 import { IElement } from '../engine.interface';
 
@@ -46,10 +45,13 @@ export class PlaywrightElement implements IElement {
 
   async find(selector: Selector): Promise<IElement | null> {
     try {
-      const locator = this.createLocator(selector);
-      const count = await locator.evaluateAll((els) => els.length).catch(() => 0);
+      const selectorString = this.getSelectorString(selector);
+      const locator = this.locator.locator(selectorString);
 
-      if (count === 0) {
+      // Use all() which returns immediately without waiting
+      const elements = await locator.all();
+
+      if (elements.length === 0) {
         return null;
       }
 
@@ -65,18 +67,17 @@ export class PlaywrightElement implements IElement {
 
   async findAll(selector: Selector): Promise<IElement[]> {
     try {
-      const locator = this.createLocator(selector);
-      const count = await locator.evaluateAll((els) => els.length).catch(() => 0);
+      const locator = this.locator.locator(this.getSelectorString(selector));
 
-      if (count === 0) {
+      // Use all() which returns immediately
+      const rawElements = await locator.all();
+
+      if (rawElements.length === 0) {
         return [];
       }
 
-      const elements: IElement[] = [];
-      for (let i = 0; i < count; i++) {
-        elements.push(new PlaywrightElement(locator.nth(i), this.logger));
-      }
-      return elements;
+      // Wrap each raw locator in PlaywrightElement
+      return rawElements.map((_, i) => new PlaywrightElement(locator.nth(i), this.logger));
     } catch (error) {
       this.logger?.debug('PlaywrightElement.findAll failed', {
         selector: selector.value,
@@ -86,16 +87,16 @@ export class PlaywrightElement implements IElement {
     }
   }
 
-  private createLocator(selector: Selector): Locator {
+  private getSelectorString(selector: Selector): string {
     const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;
 
     switch (selector.type) {
       case 'css':
-        return this.locator.locator(value);
+        return value;
       case 'xpath':
-        return this.locator.locator(`xpath=${value}`);
+        return `xpath=${value}`;
       case 'text':
-        return this.locator.locator(`text=${value}`);
+        return `text=${value}`;
       default:
         throw new Error(`Unknown selector type: ${selector.type}`);
     }

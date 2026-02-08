@@ -19,6 +19,19 @@
       "title": {
         "type": "css",
         "value": ".goods-tile__title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.goods-tile__price-value",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.goods-tile__availability--unavailable"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.goods-tile__availability--available"
       }
     },
     "productPage": {
