@@ -2,7 +2,7 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "chmod +x build.sh && ./build.sh"
+    "buildCommand": "cd .. && npm ci && npm run build:shared && cd $RAILWAY_SERVICE_NAME && npm run build && npx patchright install chrome"
   },
   "deploy": {
     "startCommand": "node dist/app/index.js",
