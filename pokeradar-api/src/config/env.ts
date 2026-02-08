@@ -12,9 +12,28 @@ const envSchema = z.object({
   GOOGLE_CALLBACK_URL: z.string().url('GOOGLE_CALLBACK_URL must be a valid URL'),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   JWT_EXPIRES_IN: z.string().default('7d'),
-  CORS_ORIGIN: z.string().default('http://localhost:5173'),
+  CLIENT_DOMAIN: z.string().default('localhost:5173'),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
   RATE_LIMIT_MAX: z.coerce.number().default(100),
 });
 
-export const env = envSchema.parse(process.env);
+const parsedEnv = envSchema.parse(process.env);
+
+// Construct URLs from CLIENT_DOMAIN
+const isLocalhost = parsedEnv.CLIENT_DOMAIN.includes('localhost');
+const protocol = isLocalhost ? 'http' : 'https';
+const frontendUrl = `${protocol}://${parsedEnv.CLIENT_DOMAIN}`;
+
+// For CORS, allow both www and non-www versions in production
+const allowedOrigins = isLocalhost
+  ? [frontendUrl]
+  : [
+      `https://www.${parsedEnv.CLIENT_DOMAIN}`,
+      `https://${parsedEnv.CLIENT_DOMAIN}`,
+    ];
+
+export const env = {
+  ...parsedEnv,
+  FRONTEND_URL: frontendUrl,
+  ALLOWED_ORIGINS: allowedOrigins,
+};

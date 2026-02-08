@@ -9,7 +9,7 @@ export class AuthController {
   googleCallback(req: Request, res: Response): void {
     const passportUser = req.user as Express.User & { _doc: IUserDoc };
     const token = authService.generateToken(passportUser._doc);
-    res.redirect(`${env.CORS_ORIGIN}/auth/callback?token=${token}`);
+    res.redirect(`${env.FRONTEND_URL}/auth/callback?token=${token}`);
   }
 
   async getMe(req: Request, res: Response, next: NextFunction): Promise<void> {

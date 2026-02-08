@@ -20,13 +20,13 @@ router.get(
 router.get('/google/callback', authRateLimiter, (req, res, next) => {
   passport.authenticate('google', { session: false }, (err: Error | null, user: Express.User | false) => {
     if (err instanceof SignupsDisabledError) {
-      return res.redirect(`${env.CORS_ORIGIN}/auth/callback?error=signups_disabled`);
+      return res.redirect(`${env.FRONTEND_URL}/auth/callback?error=signups_disabled`);
     }
     if (err instanceof LoginDisabledError) {
-      return res.redirect(`${env.CORS_ORIGIN}/auth/callback?error=login_disabled`);
+      return res.redirect(`${env.FRONTEND_URL}/auth/callback?error=login_disabled`);
     }
     if (err || !user) {
-      return res.redirect(`${env.CORS_ORIGIN}/auth/callback?error=auth_failed`);
+      return res.redirect(`${env.FRONTEND_URL}/auth/callback?error=auth_failed`);
     }
     req.user = user;
     controller.googleCallback(req, res);

@@ -27,15 +27,14 @@ app.set('trust proxy', 1);
 
 app.use(helmet());
 
-// Parse CORS_ORIGIN as comma-separated list to support multiple origins
-const allowedOrigins = env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+// CORS configuration with allowed origins
 app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      if (env.ALLOWED_ORIGINS.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
