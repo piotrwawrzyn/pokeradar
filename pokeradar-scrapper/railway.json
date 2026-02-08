@@ -2,10 +2,10 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd .. && npm ci && npm run build:shared && cd pokeradar-scrapper && npm run build && npx patchright install chrome"
+    "buildCommand": "npm ci && npm run build:shared && npm run build -w pokeradar-scrapper && npx patchright install chrome"
   },
   "deploy": {
-    "startCommand": "node dist/app/index.js",
+    "startCommand": "node pokeradar-scrapper/dist/app/index.js",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }

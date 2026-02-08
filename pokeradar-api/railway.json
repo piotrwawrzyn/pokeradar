@@ -2,10 +2,10 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "cd .. && npm ci && npm run build:shared && cd pokeradar-api && npm run build"
+    "buildCommand": "npm ci && npm run build:shared && npm run build -w pokeradar-api"
   },
   "deploy": {
-    "startCommand": "node dist/server.js",
+    "startCommand": "node pokeradar-api/dist/server.js",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
