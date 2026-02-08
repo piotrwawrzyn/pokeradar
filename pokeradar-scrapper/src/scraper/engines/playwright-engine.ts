@@ -194,8 +194,6 @@ export class PlaywrightEngine implements IEngine {
           (_, i) => new PlaywrightElement(locator.nth(i), this.logger)
         );
 
-        const totalTime = Date.now() - startTime;
-        console.log(`[TIMING] extractAll: ${totalTime}ms (all: ${countTime}ms, found: ${rawElements.length}) - ${selectorValue.substring(0, 60)}`);
         return elements;
       } catch (error) {
         this.logger?.debug('PlaywrightEngine.extractAll failed', {
