@@ -9,6 +9,10 @@ logs/
 .railway
 .claude/
 
+# Railway environment files (contain production secrets!)
+railway-env-*.json
+railway-env-variables.md
+
 # Baseline HTML fixtures (large, re-recordable)
 # Keep _baseline.json tracked, but ignore HTML fixture files
 pokeradar-scrapper/scripts/baseline/fixtures/**/

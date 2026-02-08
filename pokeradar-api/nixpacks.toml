@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["echo 'Skipping automatic install - using custom build command'"]
+
+[phases.build]
+cmds = [
+  "cd ..",
+  "npm ci",
+  "npm run build:shared",
+  "cd pokeradar-api",
+  "npm run build"
+]
+
+[start]
+cmd = "node dist/server.js"

@@ -1,0 +1,18 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["echo 'Skipping automatic install - using custom build command'"]
+
+[phases.build]
+cmds = [
+  "cd ..",
+  "npm ci",
+  "npm run build:shared",
+  "cd pokeradar-scrapper",
+  "npm run build",
+  "npx patchright install chrome"
+]
+
+[start]
+cmd = "node dist/app/index.js"
