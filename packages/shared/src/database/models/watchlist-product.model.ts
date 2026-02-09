@@ -1,7 +1,5 @@
 /**
- * Read-only mirror of the scraper's WatchlistProduct model.
- * Must use model name 'WatchlistProduct' to map to existing 'watchlistproducts' collection.
- * Schema must be identical to the scraper's to avoid index conflicts.
+ * WatchlistProduct MongoDB model (unified across API and scrapper).
  */
 
 import mongoose, { Schema, Document } from 'mongoose';
@@ -11,11 +9,13 @@ export interface IWatchlistProductDoc extends Document {
   name: string;
   imageUrl: string;
   productSetId?: string;
-  search: {
-    phrases: string[];
+  productTypeId?: string;
+  search?: {
+    phrases?: string[];
     exclude?: string[];
+    override?: boolean;
   };
-  price: {
+  price?: {
     max: number;
     min?: number;
   };
@@ -27,13 +27,21 @@ const WatchlistProductSchema = new Schema<IWatchlistProductDoc>({
   name: { type: String, required: true },
   imageUrl: { type: String, required: true },
   productSetId: { type: String },
+  productTypeId: { type: String },
   search: {
-    phrases: { type: [String], required: true },
-    exclude: { type: [String], default: [] },
+    type: {
+      phrases: { type: [String] },
+      exclude: { type: [String] },
+      override: { type: Boolean },
+    },
+    required: false,
   },
   price: {
-    max: { type: Number, required: true },
-    min: { type: Number },
+    type: {
+      max: { type: Number, required: true },
+      min: { type: Number },
+    },
+    required: false,
   },
   disabled: { type: Boolean },
 });

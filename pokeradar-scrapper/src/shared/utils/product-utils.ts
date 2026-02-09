@@ -102,9 +102,9 @@ function createSetGroupWithExclusions(
   const membersWithExcludes = members.map(product => ({
     ...product,
     search: {
-      ...product.search,
-      phrases: product.search.phrases || [],
-      exclude: [...(product.search.exclude || []), ...otherSetsInSeries],
+      ...(product.search ?? {}),
+      phrases: product.search?.phrases ?? [],
+      exclude: [...(product.search?.exclude ?? []), ...otherSetsInSeries],
     },
   }));
 

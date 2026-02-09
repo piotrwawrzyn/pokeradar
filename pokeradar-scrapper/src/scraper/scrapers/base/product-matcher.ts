@@ -48,9 +48,9 @@ export class ProductMatcher {
     shopId: string
   ): number | null {
     // Check exclude list
-    if (product.search.exclude && product.search.exclude.length > 0) {
+    if (product.search?.exclude && product.search?.exclude.length > 0) {
       const titleLower = title.toLowerCase();
-      const isExcluded = product.search.exclude.some((word) =>
+      const isExcluded = product.search?.exclude.some((word) =>
         titleLower.includes(word.toLowerCase())
       );
       if (isExcluded) {
@@ -58,7 +58,7 @@ export class ProductMatcher {
           shop: shopId,
           product: product.id,
           title,
-          exclude: product.search.exclude,
+          exclude: product.search?.exclude,
         });
         return null;
       }

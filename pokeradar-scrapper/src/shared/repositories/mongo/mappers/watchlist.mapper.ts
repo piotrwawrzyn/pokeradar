@@ -2,21 +2,8 @@
  * Mapper for WatchlistProduct document to domain model conversion.
  */
 
+import { IWatchlistProductDoc } from '@pokeradar/shared';
 import { WatchlistProductInternal } from '../../../types';
-
-/**
- * WatchlistProduct document interface (from MongoDB).
- */
-export interface IWatchlistProductDoc {
-  id: string;
-  name: string;
-  productSetId?: string;
-  search: {
-    phrases: string[];
-    exclude?: string[];
-  };
-  disabled?: boolean;
-}
 
 /**
  * Maps a MongoDB document to WatchlistProductInternal domain model.
@@ -26,10 +13,14 @@ export function toWatchlistProduct(doc: IWatchlistProductDoc): WatchlistProductI
     id: doc.id,
     name: doc.name,
     productSetId: doc.productSetId,
-    search: {
-      phrases: doc.search.phrases,
-      exclude: doc.search.exclude,
-    },
+    productTypeId: doc.productTypeId,
+    search: doc.search
+      ? {
+          phrases: doc.search.phrases,
+          exclude: doc.search.exclude,
+          override: doc.search.override,
+        }
+      : undefined,
     disabled: doc.disabled,
   };
 }
@@ -44,15 +35,19 @@ export function toWatchlistProductArray(docs: IWatchlistProductDoc[]): Watchlist
 /**
  * Maps a WatchlistProductInternal domain model to MongoDB document fields.
  */
-export function toWatchlistProductDoc(product: WatchlistProductInternal): IWatchlistProductDoc {
+export function toWatchlistProductDoc(product: WatchlistProductInternal): Partial<IWatchlistProductDoc> {
   return {
     id: product.id,
     name: product.name,
     productSetId: product.productSetId,
-    search: {
-      phrases: product.search.phrases,
-      exclude: product.search.exclude,
-    },
+    productTypeId: product.productTypeId,
+    search: product.search
+      ? {
+          phrases: product.search.phrases,
+          exclude: product.search.exclude,
+          override: product.search.override,
+        }
+      : undefined,
     disabled: product.disabled,
   };
 }

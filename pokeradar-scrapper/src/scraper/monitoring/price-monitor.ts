@@ -9,6 +9,7 @@ import { NotificationStateService } from '../../shared/notification';
 import { ResultBuffer, IProductResultRepository } from './result-buffer';
 import { ScanCycleRunner, IScraperFactory, IScanLogger } from './scan-cycle-runner';
 import { groupProductsBySet, SetGroup } from '../../shared/utils/product-utils';
+import { loadAndResolveProducts } from '../../shared/utils/search-resolver';
 import { ProductSetModel } from '../../infrastructure/database/models';
 
 /**
@@ -113,6 +114,22 @@ export class PriceMonitor {
       setMap.set(doc.id, { name: doc.name, series: doc.series });
     }
 
+    // Resolve search config for each product (merge with ProductType + set name)
+    const { resolved: resolvedProducts, productTypeCount } = await loadAndResolveProducts(
+      this.products,
+      setMap,
+      this.config.logger
+    );
+
+    const unresolvedCount = this.products.length - resolvedProducts.length;
+    if (unresolvedCount > 0) {
+      this.config.logger.info('Products with no resolvable search config skipped', {
+        skipped: unresolvedCount,
+      });
+    }
+
+    this.products = resolvedProducts;
+
     // Group products by set for optimized searching
     const { setGroups, ungrouped } = groupProductsBySet(this.products, setMap);
     this.setGroups = setGroups;
@@ -121,6 +138,7 @@ export class PriceMonitor {
     this.config.logger.info('Price Monitor initialized', {
       shops: this.shops.length,
       products: this.products.length,
+      productTypes: productTypeCount,
       setGroups: setGroups.length,
       productsInSets: this.products.length - ungrouped.length,
       ungrouped: ungrouped.length,

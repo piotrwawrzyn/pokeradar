@@ -58,7 +58,7 @@ export class SearchNavigator {
   async findProductUrl(
     product: WatchlistProductInternal
   ): Promise<SearchResult | null> {
-    for (const phrase of product.search.phrases) {
+    for (const phrase of product.search!.phrases!) {
       const searchUrl = buildSearchUrl(
         this.config.baseUrl,
         this.config.searchUrl,
@@ -329,7 +329,7 @@ export class SearchNavigator {
     product: WatchlistProductInternal,
     candidates: ProductCandidate[]
   ): MatchResult | null {
-    for (const phrase of product.search.phrases) {
+    for (const phrase of product.search!.phrases!) {
       const scoredCandidates: ProductCandidate[] = [];
 
       for (const candidate of candidates) {

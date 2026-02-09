@@ -21,6 +21,7 @@ import { FileShopRepository } from '../src/shared/repositories/file/file-shop.re
 import { MongoWatchlistRepository } from '../src/shared/repositories/mongo/watchlist.repository';
 import { Logger } from '../src/shared/logger';
 import { groupProductsBySet } from '../src/shared/utils/product-utils';
+import { loadAndResolveProducts } from '../src/shared/utils/search-resolver';
 import { ScanCycleRunner, IScraperFactory, IMultiUserDispatcher } from '../src/scraper/monitoring/scan-cycle-runner';
 import { ResultBuffer } from '../src/scraper/monitoring/result-buffer';
 import { ScraperFactory } from '../src/scraper/scrapers/scraper-factory';
@@ -704,11 +705,20 @@ async function main() {
 
     console.log(`🎴 Loaded ${setMap.size} product sets\n`);
 
+    // Resolve search config for each product (merge with ProductType + set name)
+    const { resolved: resolvedProducts } = await loadAndResolveProducts(products, setMap, logger);
+    const unresolvedCount = products.length - resolvedProducts.length;
+    if (unresolvedCount > 0) {
+      console.log(`⚠️  Skipped ${unresolvedCount} products with no resolvable search config\n`);
+    }
+
+    console.log(`🔍 Resolved search config for ${resolvedProducts.length} products\n`);
+
     // Disconnect from MongoDB (no longer needed)
     await disconnectDB();
 
     // Run scraping
-    const scrapingResult = await runScraping(shops, products, setMap, logger);
+    const scrapingResult = await runScraping(shops, resolvedProducts, setMap, logger);
 
     if (check) {
       // Check mode: compare against baseline

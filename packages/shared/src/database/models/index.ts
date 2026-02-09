@@ -18,3 +18,9 @@ export type { IAppSettingsDoc } from './app-settings.model';
 
 export { ProductSetModel } from './product-set.model';
 export type { IProductSetDoc } from './product-set.model';
+
+export { ProductTypeModel } from './product-type.model';
+export type { IProductTypeDoc } from './product-type.model';
+
+export { WatchlistProductModel } from './watchlist-product.model';
+export type { IWatchlistProductDoc } from './watchlist-product.model';

@@ -6,8 +6,9 @@
  * Search configuration for a product.
  */
 export interface SearchConfig {
-  phrases: string[];
-  exclude?: string[]; // Words that invalidate a match if found in title
+  phrases?: string[];
+  exclude?: string[];
+  override?: boolean;
 }
 
 /**
@@ -16,7 +17,8 @@ export interface SearchConfig {
 export interface WatchlistProduct {
   name: string;
   productSetId?: string;
-  search: SearchConfig;
+  productTypeId?: string;
+  search?: SearchConfig;
   disabled?: boolean;
 }
 
@@ -24,7 +26,18 @@ export interface WatchlistProduct {
  * Internal product representation with auto-generated ID.
  */
 export interface WatchlistProductInternal extends WatchlistProduct {
-  id: string; // Auto-generated from name (kebab-case)
+  id: string;
+}
+
+/**
+ * A product with fully resolved search config (guaranteed non-optional).
+ * Produced by search-resolver after merging ProductType + product search.
+ */
+export interface ResolvedWatchlistProduct extends WatchlistProductInternal {
+  search: {
+    phrases: string[];
+    exclude: string[];
+  };
 }
 
 /**
