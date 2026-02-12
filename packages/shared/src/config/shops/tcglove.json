@@ -3,11 +3,14 @@
   "name": "TCG Love",
   "baseUrl": "https://www.tcglove.pl",
   "searchUrl": "/pl/c/Wszystkie/29/1/full/4/searchquery/",
+  "antiBot": {
+    "maxConcurrency": 1
+  },
   "selectors": {
     "searchPage": {
       "article": {
         "type": "css",
-        "value": "product-link"
+        "value": "product-tile"
       },
       "productUrl": {
         "type": "css",
