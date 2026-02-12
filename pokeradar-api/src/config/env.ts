@@ -24,13 +24,7 @@ const isLocalhost = parsedEnv.CLIENT_DOMAIN.includes('localhost');
 const protocol = isLocalhost ? 'http' : 'https';
 const frontendUrl = `${protocol}://${parsedEnv.CLIENT_DOMAIN}`;
 
-// For CORS, allow both www and non-www versions in production
-const allowedOrigins = isLocalhost
-  ? [frontendUrl]
-  : [
-      `https://www.${parsedEnv.CLIENT_DOMAIN}`,
-      `https://${parsedEnv.CLIENT_DOMAIN}`,
-    ];
+const allowedOrigins = [frontendUrl];
 
 export const env = {
   ...parsedEnv,

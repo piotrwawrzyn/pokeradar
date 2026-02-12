@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .getMe()
       .then(setUser)
       .catch(() => {
-        logout();
+        // 401 handled by response interceptor. Other errors shouldn't clear the session.
       })
       .finally(() => setIsLoading(false));
   }, [token, logout]);
