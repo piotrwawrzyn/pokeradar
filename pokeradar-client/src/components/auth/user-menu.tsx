@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
+import { useIsAdmin } from '@/hooks/use-admin';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,10 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Settings, LogOut, User } from 'lucide-react';
+import { Settings, LogOut, User, Shield } from 'lucide-react';
 
 export function UserMenu() {
   const { user, logout } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   if (!user) return null;
@@ -31,6 +33,15 @@ export function UserMenu() {
           <p className="text-xs text-muted-foreground">{user.email}</p>
         </div>
         <DropdownMenuSeparator />
+        {isAdmin && (
+          <>
+            <DropdownMenuItem onClick={() => navigate('/admin')}>
+              <Shield className="mr-2 h-4 w-4" />
+              Panel admina
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem onClick={() => navigate('/ustawienia')}>
           <Settings className="mr-2 h-4 w-4" />
           Ustawienia

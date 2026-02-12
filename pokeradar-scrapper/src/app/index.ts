@@ -8,7 +8,6 @@
 console.log('[BOOT] Process starting', { pid: process.pid, node: process.version, cwd: process.cwd() });
 
 import * as dotenv from 'dotenv';
-import * as path from 'path';
 
 // Infrastructure
 import { connectDB, disconnectDB } from '../infrastructure/database';
@@ -26,6 +25,7 @@ import {
   IShopRepository,
   IWatchlistRepository,
 } from '../shared/repositories';
+import { getShopConfigDir } from '@pokeradar/shared';
 import { Logger } from '../shared/logger';
 import { NotificationStateService, MultiUserNotificationDispatcher } from '../shared/notification';
 
@@ -36,9 +36,9 @@ import { ScraperFactory } from '../scraper/scrapers';
 // Load environment variables
 dotenv.config();
 
-// Create file-based repositories (shops always from files per requirements)
+// Create file-based repositories (shops loaded from @pokeradar/shared config)
 const shopRepository: IShopRepository = new FileShopRepository(
-  path.join(__dirname, '../config/shops')
+  getShopConfigDir()
 );
 
 async function main() {

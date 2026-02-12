@@ -4,6 +4,14 @@ import { AdminService } from './admin.service';
 const adminService = new AdminService();
 
 export class AdminController {
+  async getMe(
+    _req: Request,
+    res: Response,
+    _next: NextFunction
+  ): Promise<void> {
+    res.json({ isAdmin: true });
+  }
+
   async getSettings(
     _req: Request,
     res: Response,

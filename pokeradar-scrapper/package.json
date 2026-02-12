@@ -4,8 +4,7 @@
   "description": "",
   "main": "dist/app/index.js",
   "scripts": {
-    "build": "tsc && npm run copy-configs",
-    "copy-configs": "node -e \"require('fs').cpSync('src/config', 'dist/config', {recursive: true})\"",
+    "build": "tsc",
     "start": "node dist/app/index.js",
     "dev": "ts-node src/app/index.ts",
     "postinstall": "npx patchright install chrome",

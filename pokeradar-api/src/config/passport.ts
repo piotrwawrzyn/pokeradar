@@ -43,6 +43,9 @@ passport.use(
           return done(new LoginDisabledError(), undefined);
         }
 
+        user.lastLogin = new Date();
+        await user.save();
+
         // Pass as Express.User with the fields needed by our auth system
         // The auth controller will use _doc to access the full Mongoose document
         const expressUser = {

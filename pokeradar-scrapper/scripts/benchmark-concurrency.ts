@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-import * as path from 'path';
+import { getShopConfigDir } from '@pokeradar/shared';
 import { ShopConfig, WatchlistProductInternal, ProductResult } from '../src/shared/types';
 import { ScraperFactory } from '../src/scraper/scrapers';
 import { Logger } from '../src/shared/logger';
@@ -8,7 +8,7 @@ import { connectDB, disconnectDB } from '../src/infrastructure/database';
 
 dotenv.config();
 
-const shopRepository = new FileShopRepository(path.join(__dirname, '../src/config/shops'));
+const shopRepository = new FileShopRepository(getShopConfigDir());
 
 async function runWithConcurrency(
   tasks: (() => Promise<void>)[],

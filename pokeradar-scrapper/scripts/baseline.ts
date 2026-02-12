@@ -15,6 +15,7 @@
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
+import { getShopConfigDir } from '@pokeradar/shared';
 import { connectDB, disconnectDB } from '../src/infrastructure/database';
 import { ProductSetModel } from '../src/infrastructure/database/models';
 import { FileShopRepository } from '../src/shared/repositories/file/file-shop.repository';
@@ -669,7 +670,7 @@ async function main() {
   try {
     // Load shops from files
     const shopRepository = new FileShopRepository(
-      path.join(__dirname, '../src/config/shops')
+      getShopConfigDir()
     );
     let shops = await shopRepository.getEnabled();
 

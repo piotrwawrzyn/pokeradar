@@ -18,6 +18,15 @@
       "title": {
         "type": "css",
         "value": "h2 a.product__name"
+      },
+      "price": {
+        "type": "css",
+        "value": "strong.price",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Sold out"
       }
     },
     "productPage": {

@@ -22,6 +22,15 @@
         "title": {
           "type": "css",
           "value": "h2"
+        },
+        "price": {
+          "type": "css",
+          "value": "span.price",
+          "format": "european"
+        },
+        "unavailable": {
+          "type": "text",
+          "value": "Brak w magazynie"
         }
       },
       "productPage": {
