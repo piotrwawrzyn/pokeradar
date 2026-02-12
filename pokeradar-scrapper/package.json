@@ -7,7 +7,7 @@
     "build": "tsc",
     "start": "node dist/app/index.js",
     "dev": "ts-node src/app/index.ts",
-    "postinstall": "npx patchright install chrome",
+    "postinstall": "npx playwright install",
     "check": "tsx scripts/check-watchlist.ts",
     "baseline": "tsx scripts/baseline.ts",
     "baseline:check": "tsx scripts/baseline.ts --check"
