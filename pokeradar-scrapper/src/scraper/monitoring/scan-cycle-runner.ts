@@ -428,21 +428,13 @@ export class ScanCycleRunner {
   }
 
   /**
-   * Handles a scrape result: logs, buffers, and dispatches notifications.
+   * Handles a scrape result: buffers and dispatches notifications.
    */
   private handleResult(
     product: WatchlistProductInternal,
     result: ProductResult,
     shop: ShopConfig
   ): void {
-    this.config.logger.info('Product scanned', {
-      product: product.id,
-      shop: shop.id,
-      price: result.price,
-      available: result.isAvailable,
-      url: result.productUrl,
-    });
-
     this.config.resultBuffer.add(result);
     this.config.dispatcher.processResult(product, result, shop);
   }
