@@ -2,6 +2,7 @@
   "id": "strefamarzen",
   "name": "Strefa Marzeń",
   "engine": "playwright",
+  "fetchingTier": "super-slow",
   "baseUrl": "https://strefamarzen.pl",
   "searchUrl": "/en/search?text=",
   "selectors": {

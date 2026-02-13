@@ -15,12 +15,9 @@ export class FileShopRepository implements IShopRepository {
     const all = await this.getAll();
     const enabled = all.filter((shop) => !shop.disabled);
 
-    const engineFilter = process.env.SHOP_ENGINE?.toLowerCase();
-    if (engineFilter === 'cheerio') {
-      return enabled.filter((shop) => !shop.engine || shop.engine === 'cheerio');
-    }
-    if (engineFilter === 'playwright') {
-      return enabled.filter((shop) => shop.engine === 'playwright');
+    const tierFilter = process.env.FETCHING_TIER?.toLowerCase();
+    if (tierFilter && tierFilter !== 'all') {
+      return enabled.filter((shop) => (shop.fetchingTier ?? 'fast') === tierFilter);
     }
 
     return enabled;

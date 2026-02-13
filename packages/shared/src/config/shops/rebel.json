@@ -2,6 +2,7 @@
   "id": "rebel",
   "name": "Rebel.pl",
   "engine": "playwright",
+  "fetchingTier": "super-slow",
   "baseUrl": "https://www.rebel.pl",
   "searchUrl": "/site/search?phrase=",
   "selectors": {

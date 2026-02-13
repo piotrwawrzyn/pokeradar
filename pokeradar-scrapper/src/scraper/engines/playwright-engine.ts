@@ -73,30 +73,6 @@ export class PlaywrightEngine implements IEngine {
 
     // Short wait for dynamic content to settle
     await this.page!.waitForTimeout(100);
-
-    // Handle JS anti-bot challenge pages (e.g. "One moment, please..." with timed reload)
-    await this.waitForChallengeIfNeeded();
-  }
-
-  /**
-   * Detect and wait through JS anti-bot challenge pages that reload after a delay.
-   */
-  private async waitForChallengeIfNeeded(): Promise<void> {
-    const CHALLENGE_TITLES = ['one moment, please', 'just a moment'];
-    const title = (await this.page!.title()).toLowerCase();
-
-    if (!CHALLENGE_TITLES.some((t) => title.includes(t))) {
-      return;
-    }
-
-    this.logger?.debug('Challenge page detected, waiting for reload', {
-      shop: this.shop.id,
-      title,
-    });
-
-    // Wait for the challenge reload to complete (typically 5-10s)
-    await this.page!.waitForEvent('load', { timeout: 15000 });
-    await this.page!.waitForLoadState('networkidle');
   }
 
   /**
@@ -304,10 +280,15 @@ export class PlaywrightEngine implements IEngine {
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',
+          '--disable-blink-features=AutomationControlled',
         ],
         ...proxyOption,
       });
-      this.page = await this.browser.newPage();
+      const contextOptions = this.proxyConfig
+        ? { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+        : {};
+      this.context = await this.browser.newContext(contextOptions);
+      this.page = await this.context.newPage();
       this.ownsBrowser = true;
     }
 

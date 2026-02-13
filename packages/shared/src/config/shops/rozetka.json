@@ -2,6 +2,7 @@
   "id": "rozetka",
   "name": "Rozetka.pl",
   "engine": "playwright",
+  "fetchingTier": "super-slow",
   "baseUrl": "https://rozetka.pl",
   "searchUrl": "/search/?text=",
   "directHitPattern": "/\\d+/p\\d+/",

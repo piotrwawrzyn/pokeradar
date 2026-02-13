@@ -5,6 +5,7 @@
 import { Selector } from './selector.types';
 
 export type ScrapingEngine = 'cheerio' | 'playwright';
+export type FetchingTier = 'super-slow' | 'slow' | 'fast' | 'super-fast';
 
 /**
  * Anti-bot detection configuration for shops.
@@ -20,6 +21,7 @@ export interface ShopConfig {
   name: string;
   disabled?: boolean; // Optional: exclude shop from scraping
   engine?: ScrapingEngine; // Optional: scraping engine (default: 'cheerio')
+  fetchingTier?: FetchingTier; // Optional: speed tier for cron grouping (default: 'fast')
   antiBot?: AntiBotConfig; // Optional: anti-bot detection settings
   baseUrl: string;
   searchUrl: string; // Use {query} placeholder for search term

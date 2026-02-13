@@ -4,6 +4,7 @@
   "disabled": true,
   "baseUrl": "https://battlestash.pl",
   "engine": "playwright",
+  "fetchingTier": "super-slow",
   "searchUrl": "/?post_type=product&s=",
   "selectors": {
     "searchPage": {
