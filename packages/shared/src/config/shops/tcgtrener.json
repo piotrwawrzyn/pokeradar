@@ -7,27 +7,27 @@
     "searchPage": {
       "article": {
         "type": "css",
-        "value": "div.products div.product"
+        "value": "product-list product-tile"
       },
       "productUrl": {
         "type": "css",
-        "value": "a.prodname",
+        "value": "product-link a",
         "extract": "href"
       },
       "title": {
         "type": "css",
-        "value": "span.productname"
+        "value": "h3.product-tile__name"
       }
     },
     "productPage": {
       "price": {
         "type": "css",
-        "value": "div.price__container em.main-price",
+        "value": "span.price__value",
         "format": "european"
       },
       "available": {
-        "type": "css",
-        "value": "fieldset.addtobasket-container:not(.none)"
+        "type": "text",
+        "value": "Dodaj do koszyka"
       }
     }
   }

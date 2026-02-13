@@ -638,6 +638,43 @@ function compareResults(baseline: BaselineResult[], current: BaselineResult[], s
 }
 
 /**
+ * Prints detailed product results: availability, price, and URL for each product.
+ */
+function printProductDetails(
+  results: BaselineResult[],
+  _allProducts: WatchlistProductInternal[],
+  shopFilter?: string
+): void {
+  const filtered = shopFilter ? results.filter(r => r.shopId === shopFilter) : results;
+
+  if (filtered.length === 0) return;
+
+  console.log(colors.bold + '━'.repeat(60) + colors.reset);
+  console.log(colors.bold + '  PRODUCT DETAILS' + colors.reset);
+  console.log(colors.bold + '━'.repeat(60) + colors.reset + '\n');
+
+  const shopIds = [...new Set(filtered.map(r => r.shopId))].sort();
+
+  for (const shopId of shopIds) {
+    const shopResults = filtered.filter(r => r.shopId === shopId);
+
+    console.log(colors.bold + `  ${shopId}` + colors.reset +
+      colors.gray + ` (${shopResults.length} found)` + colors.reset);
+
+    for (const r of shopResults) {
+      const status = r.isAvailable
+        ? colors.green + 'AVAILABLE' + colors.reset
+        : colors.red + 'UNAVAILABLE' + colors.reset;
+      const price = r.price !== null ? `${r.price} PLN` : 'no price';
+      console.log(`    ${status}  ${colors.yellow}${price.padEnd(12)}${colors.reset}  ${r.productId}`);
+      console.log(`${colors.gray}${''.padEnd(36)}${r.productUrl}${colors.reset}`);
+    }
+
+    console.log('');
+  }
+}
+
+/**
  * Main function.
  */
 async function main() {
@@ -725,6 +762,9 @@ async function main() {
       // Check mode: compare against baseline
       const baseline = loadBaseline();
       const hasDifferences = compareResults(baseline.results, scrapingResult.results, shopFilter);
+
+      // Print detailed product results
+      printProductDetails(scrapingResult.results, resolvedProducts, shopFilter);
 
       const duration = Math.round((Date.now() - startTime) / 1000);
       console.log(`⏱️  Check completed in ${duration}s\n`);
