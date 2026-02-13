@@ -17,6 +17,19 @@
       "title": {
         "type": "css",
         "value": "div.product_name"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Oczekiwanie na dostawę"
+      },
+      "available": {
+        "type": "css",
+        "value": "button[data-button-action=\"add-to-cart\"]:not([disabled])"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "us"
       }
     },
     "productPage": {
