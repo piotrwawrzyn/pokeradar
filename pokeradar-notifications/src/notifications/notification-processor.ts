@@ -67,6 +67,18 @@ export class NotificationProcessor {
    * Processes pending notifications from the database (startup recovery).
    */
   async recoverPending(): Promise<number> {
+    // Notifications stuck in 'sending' were already dispatched to Telegram
+    // but the process crashed before marking them as 'sent'. Just mark them sent.
+    const stuckSending = await NotificationModel.updateMany(
+      { status: 'sending' },
+      { $set: { status: 'sent', sentAt: new Date() } }
+    );
+    if (stuckSending.modifiedCount > 0) {
+      this.logger.info('Marked stuck sending notifications as sent', {
+        count: stuckSending.modifiedCount,
+      });
+    }
+
     const pendingDocs = await NotificationModel.find({ status: 'pending' })
       .sort({ createdAt: 1 })
       .lean();
@@ -109,17 +121,23 @@ export class NotificationProcessor {
     }
 
     const rateLimiter = this.rateLimiters.get(doc.channel);
+    let sent = false;
 
     for (let attempt = 1; attempt <= this.retryConfig.maxAttempts; attempt++) {
       try {
-        if (rateLimiter) {
-          await rateLimiter.acquire();
+        if (!sent) {
+          if (rateLimiter) {
+            await rateLimiter.acquire();
+          }
+
+          await this.markSending(doc);
+          await channel.send(doc.channelTarget, doc.payload);
+          sent = true;
         }
 
-        await channel.send(doc.channelTarget, doc.payload);
         await this.markSent(doc);
 
-        this.logger.debug('Notification delivered', {
+        this.logger.info('Notification delivered', {
           id: doc._id?.toString(),
           channel: doc.channel,
           attempt,
@@ -129,13 +147,22 @@ export class NotificationProcessor {
         const errorMsg = error instanceof Error ? error.message : String(error);
 
         if (attempt === this.retryConfig.maxAttempts) {
-          this.logger.error('Notification delivery failed permanently', {
-            id: doc._id?.toString(),
-            channel: doc.channel,
-            attempts: attempt,
-            error: errorMsg,
-          });
-          await this.markFailed(doc, errorMsg, attempt);
+          // If we already sent to Telegram but can't update DB, log it clearly
+          if (sent) {
+            this.logger.error('Notification was sent but failed to update DB status', {
+              id: doc._id?.toString(),
+              channel: doc.channel,
+              error: errorMsg,
+            });
+          } else {
+            this.logger.error('Notification delivery failed permanently', {
+              id: doc._id?.toString(),
+              channel: doc.channel,
+              attempts: attempt,
+              error: errorMsg,
+            });
+          }
+          await this.markFailed(doc, errorMsg, attempt).catch(() => {});
           return;
         }
 
@@ -144,7 +171,7 @@ export class NotificationProcessor {
           this.retryConfig.maxDelayMs
         );
 
-        this.logger.warn('Notification delivery failed, retrying', {
+        this.logger.warn(sent ? 'Failed to update DB status, retrying' : 'Notification delivery failed, retrying', {
           id: doc._id?.toString(),
           channel: doc.channel,
           attempt,
@@ -155,6 +182,13 @@ export class NotificationProcessor {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
+  }
+
+  private async markSending(doc: INotificationDoc): Promise<void> {
+    await NotificationModel.updateOne(
+      { _id: doc._id },
+      { $set: { status: 'sending' } }
+    );
   }
 
   private async markSent(doc: INotificationDoc): Promise<void> {

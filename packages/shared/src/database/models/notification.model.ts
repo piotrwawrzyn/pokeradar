@@ -14,7 +14,7 @@ export interface INotificationDoc extends Document {
   userId: string;
   channel: 'telegram';
   channelTarget: string;
-  status: 'pending' | 'sent' | 'failed';
+  status: 'pending' | 'sending' | 'sent' | 'failed';
   payload: INotificationPayload;
   attempts: number;
   error: string | null;
@@ -40,7 +40,7 @@ const NotificationSchema = new Schema<INotificationDoc>(
     userId: { type: String, required: true },
     channel: { type: String, required: true, enum: ['telegram'] },
     channelTarget: { type: String, required: true },
-    status: { type: String, required: true, enum: ['pending', 'sent', 'failed'], default: 'pending' },
+    status: { type: String, required: true, enum: ['pending', 'sending', 'sent', 'failed'], default: 'pending' },
     payload: { type: NotificationPayloadSchema, required: true },
     attempts: { type: Number, required: true, default: 0 },
     error: { type: String, default: null },
