@@ -17,12 +17,41 @@
       "title": {
         "type": "css",
         "value": "h3.product-tile__name"
-      }
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price__value",
+        "format": "european"
+      },
+      "unavailable": [
+        {
+          "type": "text",
+          "value": "tymczasowo niedostępny"
+        },
+        {
+          "type": "text",
+          "value": "spodziewana dostawa"
+        }
+      ],
+      "available": [
+        {
+          "type": "text",
+          "value": "na wyczerpaniu"
+        },
+        {
+          "type": "text",
+          "value": "duża ilość"
+        },
+        {
+          "type": "text",
+          "value": "średnia ilość"
+        }
+      ]
     },
     "productPage": {
       "price": {
         "type": "css",
-        "value": "span.price__value",
+        "value": "h-tab-panel.js__product-price-gross span.price__value",
         "format": "european"
       },
       "available": {
