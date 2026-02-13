@@ -85,7 +85,7 @@ export class CheerioEngine implements IEngine {
     const response = await this.retryWithBackoff(async () => {
       return await axios.get<string>(url, {
         headers: this.headers,
-        timeout: 30000,
+        timeout: 15000,
         maxRedirects: 5,
         responseType: 'text',
         ...(this.proxyAgent && {

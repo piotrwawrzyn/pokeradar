@@ -17,6 +17,19 @@
       "title": {
         "type": "css",
         "value": "h3"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Zapytaj o produkt"
+      },
+      "available": {
+        "type": "css",
+        "value": "span.DoKoszyka"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.Cena",
+        "format": "european"
       }
     },
     "productPage": {

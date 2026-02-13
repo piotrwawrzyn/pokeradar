@@ -9,6 +9,7 @@ import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../share
 import { SetGroup } from '../../shared/utils/product-utils';
 import { IScraper } from '../scrapers/base/base-scraper';
 import { ResultBuffer } from './result-buffer';
+import { ShopCircuitBreaker } from './shop-circuit-breaker';
 
 const CHEERIO_CONCURRENCY = 10;
 const PRODUCT_CONCURRENCY = 3;
@@ -115,14 +116,15 @@ export class ScanCycleRunner {
     });
 
     const startTime = Date.now();
+    const breaker = new ShopCircuitBreaker();
 
     const shopTasks = cheerioShops.map((shop) => async () => {
-      await this.scanShopConcurrent(shop, setGroups, ungroupedProducts);
+      await this.scanShopConcurrent(shop, setGroups, ungroupedProducts, breaker);
     });
 
     await runWithConcurrency(shopTasks, CHEERIO_CONCURRENCY);
 
-    this.logCycleCompletion('Cheerio', startTime);
+    this.logCycleCompletion('Cheerio', startTime, breaker);
   }
 
   /**
@@ -162,16 +164,18 @@ export class ScanCycleRunner {
         ],
       });
 
+      const breaker = new ShopCircuitBreaker();
+
       for (const shop of playwrightShops) {
-        await this.scanShopSequential(shop, setGroups, ungroupedProducts, browser);
+        await this.scanShopSequential(shop, setGroups, ungroupedProducts, browser, breaker);
       }
+
+      this.logCycleCompletion('Playwright', startTime, breaker);
     } finally {
       if (browser) {
         await browser.close();
       }
     }
-
-    this.logCycleCompletion('Playwright', startTime);
   }
 
   /**
@@ -182,16 +186,22 @@ export class ScanCycleRunner {
   private async scanShopConcurrent(
     shop: ShopConfig,
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[]
+    ungroupedProducts: WatchlistProductInternal[],
+    breaker: ShopCircuitBreaker
   ): Promise<void> {
     // Phase 1: Resolve set-based URLs using a single scraper
-    const productTasks = await this.resolveSetSearches(shop, setGroups, ungroupedProducts);
+    const productTasks = await this.resolveSetSearches(shop, setGroups, ungroupedProducts, breaker);
+
+    // If breaker tripped, skip Phase 2 — all products already marked not found
+    if (breaker.isTripped(shop.id)) {
+      return;
+    }
 
     // Phase 2: Execute all product tasks concurrently
     const tasks = productTasks.map((task) => async () => {
       const scraper = this.config.scraperFactory.create(shop, this.config.logger);
       try {
-        if (task.searchPageData) {
+        if (task.searchPageData && task.searchPageData.price !== null) {
           // Use search page data directly - no HTTP request needed
           const result = scraper.createResultFromSearchData(
             task.product,
@@ -238,14 +248,29 @@ export class ScanCycleRunner {
     shop: ShopConfig,
     setGroups: SetGroup[],
     ungroupedProducts: WatchlistProductInternal[],
-    browser: Browser
+    browser: Browser,
+    breaker: ShopCircuitBreaker
   ): Promise<void> {
     const scraper = this.config.scraperFactory.create(shop, this.config.logger, browser);
 
     try {
       // Scan set-grouped products
       for (const setGroup of setGroups) {
-        await this.scanSetGroup(scraper, shop, setGroup);
+        if (breaker.isTripped(shop.id)) {
+          for (const product of setGroup.products) {
+            this.handleNotFound(product, shop);
+          }
+          continue;
+        }
+        await this.scanSetGroup(scraper, shop, setGroup, breaker);
+      }
+
+      // If breaker tripped, skip ungrouped products
+      if (breaker.isTripped(shop.id)) {
+        for (const product of ungroupedProducts) {
+          this.handleNotFound(product, shop);
+        }
+        return;
       }
 
       // Scan ungrouped products
@@ -264,7 +289,8 @@ export class ScanCycleRunner {
   private async resolveSetSearches(
     shop: ShopConfig,
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[]
+    ungroupedProducts: WatchlistProductInternal[],
+    breaker: ShopCircuitBreaker
   ): Promise<ProductTask[]> {
     const tasks: ProductTask[] = [];
 
@@ -274,8 +300,16 @@ export class ScanCycleRunner {
       const navigator = searchScraper.getNavigator();
 
       for (const setGroup of setGroups) {
+        if (breaker.isTripped(shop.id)) {
+          for (const product of setGroup.products) {
+            this.handleNotFound(product, shop);
+          }
+          continue;
+        }
+
         try {
           const candidates = await navigator.extractSearchCandidates(setGroup.searchPhrase);
+          breaker.recordSuccess(shop.id);
 
           this.config.logger.info('Set search completed', {
             shop: shop.id,
@@ -313,10 +347,25 @@ export class ScanCycleRunner {
           for (const product of setGroup.products) {
             this.handleNotFound(product, shop);
           }
+
+          const justTripped = breaker.recordFailure(shop.id);
+          if (justTripped) {
+            this.config.logger.error('Circuit breaker tripped, skipping remaining searches', {
+              shop: shop.id,
+            });
+          }
         }
       }
     } finally {
       await searchScraper.close();
+    }
+
+    // If breaker tripped, mark ungrouped as not found and skip Phase 2
+    if (breaker.isTripped(shop.id)) {
+      for (const product of ungroupedProducts) {
+        this.handleNotFound(product, shop);
+      }
+      return [];
     }
 
     // Add ungrouped products (no set — will use individual search)
@@ -334,12 +383,14 @@ export class ScanCycleRunner {
   private async scanSetGroup(
     scraper: IScraper,
     shop: ShopConfig,
-    setGroup: SetGroup
+    setGroup: SetGroup,
+    breaker: ShopCircuitBreaker
   ): Promise<void> {
     const navigator = scraper.getNavigator();
 
     try {
       const candidates = await navigator.extractSearchCandidates(setGroup.searchPhrase);
+      breaker.recordSuccess(shop.id);
 
       this.config.logger.info('Set search completed', {
         shop: shop.id,
@@ -354,7 +405,7 @@ export class ScanCycleRunner {
           const match = navigator.matchProductFromCandidates(product, candidates);
 
           if (match) {
-            if (match.searchPageData) {
+            if (match.searchPageData && match.searchPageData.price !== null) {
               // Use search page data directly - no HTTP request needed
               const result = scraper.createResultFromSearchData(
                 product,
@@ -393,6 +444,13 @@ export class ScanCycleRunner {
 
       for (const product of setGroup.products) {
         this.handleNotFound(product, shop);
+      }
+
+      const justTripped = breaker.recordFailure(shop.id);
+      if (justTripped) {
+        this.config.logger.error('Circuit breaker tripped, skipping remaining searches', {
+          shop: shop.id,
+        });
       }
     }
   }
@@ -450,14 +508,16 @@ export class ScanCycleRunner {
   /**
    * Logs cycle completion with memory stats.
    */
-  private logCycleCompletion(engine: string, startTime: number): void {
+  private logCycleCompletion(engine: string, startTime: number, breaker?: ShopCircuitBreaker): void {
     const duration = Date.now() - startTime;
     const memUsage = process.memoryUsage();
+    const trippedShops = breaker?.getTrippedShops() ?? [];
     this.config.logger.info(`${engine} scan cycle completed`, {
       durationMs: duration,
       heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
       heapTotalMB: Math.round(memUsage.heapTotal / 1024 / 1024),
       rssMB: Math.round(memUsage.rss / 1024 / 1024),
+      ...(trippedShops.length > 0 && { circuitBreakerTripped: trippedShops }),
     });
   }
 }
