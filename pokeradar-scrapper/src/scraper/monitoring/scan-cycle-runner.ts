@@ -40,6 +40,7 @@ async function runWithConcurrency(
  */
 export interface IScanLogger {
   info(message: string, meta?: Record<string, unknown>): void;
+  debug(message: string, meta?: Record<string, unknown>): void;
   error(message: string, meta?: Record<string, unknown>): void;
 }
 
@@ -212,7 +213,7 @@ export class ScanCycleRunner {
         } else if (task.resolvedUrl) {
           // No search page data available (price/availability not extractable from search results),
           // making a separate request to the product page to get full details
-          this.config.logger.info('No search page data, visiting product page', {
+          this.config.logger.debug('No search page data, visiting product page', {
             product: task.product.id,
             shop: shop.id,
             url: task.resolvedUrl,
@@ -328,7 +329,7 @@ export class ScanCycleRunner {
                 searchPageData: match.searchPageData,
               });
             } else {
-              this.config.logger.info('Product not found in set search', {
+              this.config.logger.debug('Product not found in set search', {
                 shop: shop.id,
                 product: product.id,
                 setId: setGroup.setId,
@@ -418,7 +419,7 @@ export class ScanCycleRunner {
               this.handleResult(product, result, shop);
             }
           } else {
-            this.config.logger.info('Product not found in set search', {
+            this.config.logger.debug('Product not found in set search', {
               shop: shop.id,
               product: product.id,
               setId: setGroup.setId,
