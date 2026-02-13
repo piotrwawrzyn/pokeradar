@@ -12,6 +12,7 @@ export type ScrapingEngine = 'cheerio' | 'playwright';
 export interface AntiBotConfig {
   requestDelayMs?: number;  // Base delay (ms) before each request, with ±30% random jitter. Default: 0
   maxConcurrency?: number;  // Max concurrent product page requests for this shop. Default: PRODUCT_CONCURRENCY env var
+  useProxy?: boolean;       // Route requests through rotating proxy. Default: false
 }
 
 export interface ShopConfig {

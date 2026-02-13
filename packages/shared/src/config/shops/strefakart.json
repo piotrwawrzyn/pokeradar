@@ -4,7 +4,8 @@
     "engine": "playwright",
     "antiBot": {
       "requestDelayMs": 2000,
-      "maxConcurrency": 1
+      "maxConcurrency": 1,
+      "useProxy": true
     },
     "baseUrl": "https://strefakart.pl",
     "searchUrl": "/wszystkie-produkty/?s=",

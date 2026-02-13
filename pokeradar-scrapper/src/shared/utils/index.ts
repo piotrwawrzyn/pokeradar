@@ -8,3 +8,4 @@ export * from './url-normalizer';
 export * from './price-parser';
 export * from './product-utils';
 export * from './safe-close';
+export * from './proxy';

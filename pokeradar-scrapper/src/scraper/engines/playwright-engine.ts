@@ -5,6 +5,7 @@
 
 import { Browser, Page, Locator, BrowserContext, chromium } from 'playwright';
 import { Selector, ExtractType, ShopConfig } from '../../shared/types';
+import { getProxyConfig, ProxyConfig } from '../../shared/utils';
 import { IEngine, IElement } from './engine.interface';
 import { PlaywrightElement } from './element/playwright-element';
 import { safeClose } from '../../shared/utils/safe-close';
@@ -34,13 +35,14 @@ const BLOCKED_DOMAINS = [
 ];
 
 /**
- * Playwright-based scraping engine (uses Patchright).
+ * Playwright-based scraping engine.
  */
 export class PlaywrightEngine implements IEngine {
   private page: Page | null = null;
   private context: BrowserContext | null = null;
   private ownsBrowser: boolean = false;
   private browser: Browser | null = null;
+  private proxyConfig: ProxyConfig | null = null;
 
   private readonly NAVIGATION_TIMEOUT = 10000;  // Reduced from 15s to 10s
   private readonly ACTION_TIMEOUT = 500;  // Reduced from 1000ms to 500ms
@@ -49,7 +51,9 @@ export class PlaywrightEngine implements IEngine {
     private shop: ShopConfig,
     private existingBrowser?: Browser,
     private logger?: ILogger
-  ) {}
+  ) {
+    this.proxyConfig = getProxyConfig(shop);
+  }
 
   async goto(url: string): Promise<void> {
     if (!this.page) {
@@ -67,9 +71,32 @@ export class PlaywrightEngine implements IEngine {
       });
     });
 
-
     // Short wait for dynamic content to settle
     await this.page!.waitForTimeout(100);
+
+    // Handle JS anti-bot challenge pages (e.g. "One moment, please..." with timed reload)
+    await this.waitForChallengeIfNeeded();
+  }
+
+  /**
+   * Detect and wait through JS anti-bot challenge pages that reload after a delay.
+   */
+  private async waitForChallengeIfNeeded(): Promise<void> {
+    const CHALLENGE_TITLES = ['one moment, please', 'just a moment'];
+    const title = (await this.page!.title()).toLowerCase();
+
+    if (!CHALLENGE_TITLES.some((t) => title.includes(t))) {
+      return;
+    }
+
+    this.logger?.debug('Challenge page detected, waiting for reload', {
+      shop: this.shop.id,
+      title,
+    });
+
+    // Wait for the challenge reload to complete (typically 5-10s)
+    await this.page!.waitForEvent('load', { timeout: 15000 });
+    await this.page!.waitForLoadState('networkidle');
   }
 
   /**
@@ -253,7 +280,17 @@ export class PlaywrightEngine implements IEngine {
   }
 
   private async initializePage(): Promise<void> {
-    if (this.existingBrowser) {
+    const proxyOption = this.proxyConfig ? {
+      proxy: {
+        server: `http://${this.proxyConfig.host}:${this.proxyConfig.port}`,
+        username: this.proxyConfig.username,
+        password: this.proxyConfig.password,
+      },
+    } : {};
+
+    // When proxy is needed, always launch a dedicated browser instance.
+    // Chromium doesn't support per-context proxy unless the browser was launched with proxy.
+    if (this.existingBrowser && !this.proxyConfig) {
       if (!this.existingBrowser.isConnected()) {
         throw new Error('Shared browser is already closed');
       }
@@ -268,6 +305,7 @@ export class PlaywrightEngine implements IEngine {
           '--no-sandbox',
           '--disable-setuid-sandbox',
         ],
+        ...proxyOption,
       });
       this.page = await this.browser.newPage();
       this.ownsBrowser = true;

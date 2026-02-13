@@ -6,7 +6,9 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Selector, ExtractType, ShopConfig } from '../../shared/types';
+import { getProxyConfig } from '../../shared/utils';
 import { IEngine, IElement } from './engine.interface';
 import { CheerioElement } from './element/cheerio-element';
 import { toCssSelector } from './selector-utils';
@@ -56,6 +58,7 @@ export class CheerioEngine implements IEngine {
   private currentUrl: string | null = null;
   private userAgent: string;
   private headers: Record<string, string>;
+  private proxyAgent: HttpsProxyAgent<string> | null = null;
 
   constructor(private shop: ShopConfig, private logger?: ILogger) {
     // Pick a random User-Agent per engine instance
@@ -64,6 +67,12 @@ export class CheerioEngine implements IEngine {
       ...DEFAULT_HEADERS,
       'User-Agent': this.userAgent,
     };
+
+    // Configure proxy if enabled globally and for this shop
+    const proxyConfig = getProxyConfig(shop);
+    if (proxyConfig) {
+      this.proxyAgent = new HttpsProxyAgent(proxyConfig.url);
+    }
   }
 
   async goto(url: string): Promise<void> {
@@ -79,6 +88,11 @@ export class CheerioEngine implements IEngine {
         timeout: 30000,
         maxRedirects: 5,
         responseType: 'text',
+        ...(this.proxyAgent && {
+          httpAgent: this.proxyAgent,
+          httpsAgent: this.proxyAgent,
+          proxy: false,
+        }),
       });
     });
 

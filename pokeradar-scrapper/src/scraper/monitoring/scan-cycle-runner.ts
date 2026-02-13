@@ -200,11 +200,19 @@ export class ScanCycleRunner {
           );
           this.handleResult(task.product, result, shop);
         } else if (task.resolvedUrl) {
+          // No search page data available (price/availability not extractable from search results),
+          // making a separate request to the product page to get full details
+          this.config.logger.info('No search page data, visiting product page', {
+            product: task.product.id,
+            shop: shop.id,
+            url: task.resolvedUrl,
+          });
           const result = await scraper.scrapeProductWithUrl(task.product, task.resolvedUrl);
           this.handleResult(task.product, result, shop);
-        } else {
-          const result = await scraper.scrapeProduct(task.product);
-          this.handleResult(task.product, result, shop);
+        // } else {
+        //   // Individual fallback search — disabled for now (not optimal, too many requests)
+        //   const result = await scraper.scrapeProduct(task.product);
+        //   this.handleResult(task.product, result, shop);
         }
       } catch (error) {
         this.config.logger.error('Error scanning product', {
