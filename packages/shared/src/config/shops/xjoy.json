@@ -2,8 +2,9 @@
   "id": "xjoy",
   "name": "xjoy",
   "fetchingTier": "super-slow",
+  "engine": "playwright",
   "antiBot": {
-    "requestDelayMs": 2000,
+    "requestDelayMs": 1000,
     "maxConcurrency": 1,
     "useProxy": true
   },
