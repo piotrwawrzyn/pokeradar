@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-02-12T14:58:12.850Z",
+  "recordedAt": "2026-02-13T14:40:07.033Z",
   "results": [
     {
       "productId": "151-booster-bundle",
@@ -328,7 +328,7 @@
       "shopId": "pegaz",
       "productUrl": "https://pegaz-gry.pl/pokemon-tcg-ascended-heroes/7693-pokemon-tcg-mega-evolution-ascended-heroes-premium-poster-collection-mega-gardevoir-196214131156.html",
       "price": 349,
-      "isAvailable": true
+      "isAvailable": false
     },
     {
       "productId": "black-bolt-booster-bundle",
@@ -583,53 +583,88 @@
       "isAvailable": false
     },
     {
+      "productId": "destined-rivals-booster-box",
+      "shopId": "rozetka",
+      "productUrl": "https://rozetka.pl/497513389/p497513389/",
+      "price": 949,
+      "isAvailable": false
+    },
+    {
       "productId": "ascended-heroes-elite-trainer-box",
       "shopId": "skladgier",
-      "productUrl": "https://skladgier.pl/products/pokemon-tcg-mega-evolution-ascended-heroes-elite-trainer-box-dragonite?_pos=5&_sid=c4d93abde&_ss=r",
+      "productUrl": "https://skladgier.pl/products/pokemon-tcg-mega-evolution-ascended-heroes-elite-trainer-box-dragonite?_pos=3&_sid=bf2f0cff2&_ss=r",
       "price": 319.9,
       "isAvailable": false
     },
     {
       "productId": "ascended-heroes-premium-poster-collection",
       "shopId": "skladgier",
-      "productUrl": "https://skladgier.pl/products/pokemon-tcg-mega-evolution-ascended-heroes-premium-poster-collection-lucario?_pos=4&_sid=c4d93abde&_ss=r",
+      "productUrl": "https://skladgier.pl/products/pokemon-tcg-mega-evolution-ascended-heroes-premium-poster-collection-lucario?_pos=5&_sid=bf2f0cff2&_ss=r",
       "price": 319.9,
       "isAvailable": false
     },
     {
       "productId": "journey-together-booster-box",
       "shopId": "skladgier",
-      "productUrl": "https://skladgier.pl/products/pokemon-tcg-scarlet-violet-journey-together-enhanced-booster-box-36?_pos=1&_sid=ed2c54021&_ss=r",
+      "productUrl": "https://skladgier.pl/products/pokemon-tcg-scarlet-violet-journey-together-enhanced-booster-box-36?_pos=1&_sid=13eb7ad45&_ss=r",
       "price": 1399.9,
       "isAvailable": true
     },
     {
       "productId": "mega-evolution-booster-box",
       "shopId": "skladgier",
-      "productUrl": "https://skladgier.pl/products/pokemon-tcg-mega-evolution-booster-box-36-szt?_pos=7&_sid=25ea240e6&_ss=r",
+      "productUrl": "https://skladgier.pl/products/pokemon-tcg-mega-evolution-booster-box-36-szt?_pos=6&_sid=805a1831f&_ss=r",
       "price": 999.9,
       "isAvailable": true
     },
     {
       "productId": "phantasmal-flames-booster-bundle",
       "shopId": "skladgier",
-      "productUrl": "https://skladgier.pl/products/pokemon-tcg-phantasmal-flames-booster-bundle?_pos=1&_sid=17bd90d82&_ss=r",
+      "productUrl": "https://skladgier.pl/products/pokemon-tcg-phantasmal-flames-booster-bundle?_pos=1&_sid=9ce2529be&_ss=r",
       "price": 189.9,
       "isAvailable": true
     },
     {
       "productId": "prismatic-evolutions-booster-bundle",
       "shopId": "skladgier",
-      "productUrl": "https://skladgier.pl/products/pokemon-tcg-scarlet-violet-prismatic-evolutions-booster-bundle?_pos=21&_sid=3cb19e2d2&_ss=r",
+      "productUrl": "https://skladgier.pl/products/pokemon-tcg-scarlet-violet-prismatic-evolutions-booster-bundle?_pos=19&_sid=bab6272cc&_ss=r",
       "price": 299.9,
       "isAvailable": false
     },
     {
       "productId": "surging-sparks-booster-box",
       "shopId": "skladgier",
-      "productUrl": "https://skladgier.pl/products/pokemon-tcg-scarlet-violet-surging-sparks-booster-box-36szt?_pos=1&_sid=3437c8f39&_ss=r",
+      "productUrl": "https://skladgier.pl/products/pokemon-tcg-scarlet-violet-surging-sparks-booster-box-36szt?_pos=2&_sid=ee093b9fa&_ss=r",
       "price": 999.9,
       "isAvailable": true
+    },
+    {
+      "productId": "151-booster-bundle",
+      "shopId": "strefamarzen",
+      "productUrl": "https://strefamarzen.pl/en/products/pokemon-tcg-151-booster-bundle-21654",
+      "price": 279.99,
+      "isAvailable": false
+    },
+    {
+      "productId": "destined-rivals-booster-box",
+      "shopId": "strefamarzen",
+      "productUrl": "https://strefamarzen.pl/en/products/pokemon-tcg-scarlet-violet-destined-rivals-booster-display-box-21569",
+      "price": 799.99,
+      "isAvailable": false
+    },
+    {
+      "productId": "journey-together-booster-box",
+      "shopId": "strefamarzen",
+      "productUrl": "https://strefamarzen.pl/en/products/pokemon-tcg-scarlet-violet-journey-together-enchanced-booster-display-box-21241",
+      "price": 759.99,
+      "isAvailable": false
+    },
+    {
+      "productId": "prismatic-evolutions-booster-bundle",
+      "shopId": "strefamarzen",
+      "productUrl": "https://strefamarzen.pl/en/products/pokemon-tcg-prismatic-evolutions-booster-bundle-21374",
+      "price": 229.99,
+      "isAvailable": false
     },
     {
       "productId": "black-bolt-booster-bundle",
@@ -670,8 +705,8 @@
       "productId": "white-flare-booster-bundle",
       "shopId": "strefamtg",
       "productUrl": "https://strefamtg.pl/boostery-i-boxy-pokemon/109377-pokemon-sv105-tcg-black-bolt-and-white-flare-reshiram-booster-bundle-196214113343.html",
-      "price": 204,
-      "isAvailable": false
+      "price": 216,
+      "isAvailable": true
     },
     {
       "productId": "151-booster-bundle",
@@ -692,6 +727,13 @@
       "shopId": "tcglove",
       "productUrl": "https://www.tcglove.pl/pl/p/Pokemon-TCG-Scarlet-Violet-SV-10-Destined-Rivals-Booster-Box/2681",
       "price": 1499,
+      "isAvailable": false
+    },
+    {
+      "productId": "journey-together-booster-box",
+      "shopId": "tcglove",
+      "productUrl": "https://www.tcglove.pl/pl/p/Pokemon-TCG-Scarlet-Violet-SV-9-Journey-Together-Enhanced-Booster-Box/2688",
+      "price": 1099,
       "isAvailable": false
     },
     {
@@ -734,6 +776,97 @@
       "shopId": "tcglove",
       "productUrl": "https://www.tcglove.pl/pl/p/Pokemon-TCG-Scarlet-Violet-White-Flare-Booster-Bundle-Reshiram/2812",
       "price": 199,
+      "isAvailable": false
+    },
+    {
+      "productId": "151-booster-bundle",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/151-Booster-Bundle/148",
+      "price": 243.09,
+      "isAvailable": false
+    },
+    {
+      "productId": "151-mini-tin-display",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/151-Mini-Tin-Display/176",
+      "price": 893.5,
+      "isAvailable": false
+    },
+    {
+      "productId": "ascended-heroes-booster-bundle",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Ascended-Heroes-Booster-Bundle/281",
+      "price": 145.53,
+      "isAvailable": false
+    },
+    {
+      "productId": "ascended-heroes-elite-trainer-box",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Elite-Trainer-Box-Ascended-Heroes/235",
+      "price": 243.09,
+      "isAvailable": false
+    },
+    {
+      "productId": "ascended-heroes-mini-tin-display",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Ascended-Heroes-Mini-Tin-Display/236",
+      "price": 446.34,
+      "isAvailable": false
+    },
+    {
+      "productId": "ascended-heroes-premium-poster-collection",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Ascended-Heroes-Premium-Poster-Collection-Gardevoir/237",
+      "price": 284.55,
+      "isAvailable": false
+    },
+    {
+      "productId": "black-bolt-booster-bundle",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Black-Bolt-Booster-Bundle/153",
+      "price": 146.34,
+      "isAvailable": false
+    },
+    {
+      "productId": "destined-rivals-booster-box",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Pokemon-Destined-Rivals-Booster-Box/147",
+      "price": 730.89,
+      "isAvailable": false
+    },
+    {
+      "productId": "journey-together-booster-box",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Booster-Box-Journey-Together-/110",
+      "price": 730.89,
+      "isAvailable": true
+    },
+    {
+      "productId": "phantasmal-flames-booster-box",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Phantasmal-Flames-Booster/220",
+      "price": 20.33,
+      "isAvailable": false
+    },
+    {
+      "productId": "phantasmal-flames-booster-bundle",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Phantasmal-Flames-Booster/220",
+      "price": 20.33,
+      "isAvailable": false
+    },
+    {
+      "productId": "prismatic-evolutions-booster-bundle",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/Prismatic-Evolutions-Booster-Bundle-LIMIT-2/115",
+      "price": 299,
+      "isAvailable": false
+    },
+    {
+      "productId": "white-flare-booster-bundle",
+      "shopId": "tcgtrener",
+      "productUrl": "https://tcgtrener.pl/pl/p/White-Flare-Booster-Bundle/152",
+      "price": 146.34,
       "isAvailable": false
     },
     {
@@ -794,6 +927,27 @@
     },
     {
       "productId": "ascended-heroes-booster-bundle",
+      "shopId": "xjoy",
+      "productUrl": "https://www.xjoy.pl/zestawy-kolekcjonerskie/25090-pokemon-tcg-mega-evolution-25-ascended-heroes-booster-bundle.html?search_query=Ascended+Heroes&results=17",
+      "price": null,
+      "isAvailable": false
+    },
+    {
+      "productId": "ascended-heroes-elite-trainer-box",
+      "shopId": "xjoy",
+      "productUrl": "https://www.xjoy.pl/zestawy-kolekcjonerskie/25084-pokemon-tcg-mega-evolution-25-ascended-heroes-elite-trainer-box-dragonite.html?search_query=Ascended+Heroes&results=17",
+      "price": 349.99,
+      "isAvailable": false
+    },
+    {
+      "productId": "ascended-heroes-premium-poster-collection",
+      "shopId": "xjoy",
+      "productUrl": "https://www.xjoy.pl/zestawy-kolekcjonerskie/25087-pokemon-tcg-mega-evolution-25-ascended-heroes-premium-poster-collection-mega-gardevoir-ex.html?search_query=Ascended+Heroes&results=17",
+      "price": 349.99,
+      "isAvailable": false
+    },
+    {
+      "productId": "ascended-heroes-booster-bundle",
       "shopId": "xzone",
       "productUrl": "https://www.xzone.pl/gra-karciana-pokemon-tcg-mega-evolution-ascended-heroes-booster-bundle-6-boosterow",
       "price": 178,
@@ -808,34 +962,34 @@
     }
   ],
   "timing": {
-    "totalSeconds": 51.931,
+    "totalSeconds": 128.324,
     "perShop": {
-      "cardfan": 3.5,
-      "heartspub": 4.2,
-      "basanti": 5.8,
-      "poketrader": 5.2,
+      "cardfan": 1.5,
+      "pokesmart": 1.5,
+      "heartspub": 4.1,
       "lochyikoty": 3.1,
-      "pegaz": 4.5,
-      "pokesmart": 9,
-      "lootquest": 10.2,
-      "letsgotry": 21.6,
-      "flamberg": 22.3,
-      "przyczolek": 4,
+      "basanti": 6.1,
+      "pegaz": 5.2,
+      "poketrader": 6.8,
+      "lootquest": 9.7,
+      "flamberg": 10.9,
+      "przyczolek": 4.4,
       "skladgier": 4,
-      "tcglove": 15.6,
-      "strefamtg": 16.5,
-      "tcgtrener": 3.2,
-      "tcgumisia": 5.6,
-      "xzone": 4.2,
-      "rebel": 21.3,
-      "rozetka": 6.7,
-      "strefakart": 0,
-      "strefamarzen": 0,
-      "xjoy": 0
+      "letsgotry": 29.3,
+      "strefakart": 20,
+      "strefamtg": 34,
+      "tcgtrener": 2.2,
+      "tcglove": 5.7,
+      "tcgumisia": 3.8,
+      "xzone": 5.7,
+      "rebel": 21.5,
+      "rozetka": 17.6,
+      "strefamarzen": 16,
+      "xjoy": 34
     }
   },
   "productCounts": {
-    "total": 115,
+    "total": 137,
     "perShop": {
       "basanti": 9,
       "cardfan": 2,
@@ -849,20 +1003,20 @@
       "poketrader": 15,
       "przyczolek": 5,
       "rebel": 8,
+      "rozetka": 1,
       "skladgier": 7,
+      "strefamarzen": 4,
       "strefamtg": 6,
-      "tcglove": 9,
+      "tcglove": 10,
+      "tcgtrener": 13,
       "tcgumisia": 8,
+      "xjoy": 3,
       "xzone": 2,
-      "tcgtrener": 0,
-      "rozetka": 0,
-      "strefakart": 0,
-      "strefamarzen": 0,
-      "xjoy": 0
+      "strefakart": 0
     }
   },
   "requestCounts": {
-    "total": 327,
+    "total": 332,
     "perShop": {
       "basanti": 19,
       "cardfan": 12,
@@ -876,16 +1030,16 @@
       "poketrader": 25,
       "przyczolek": 15,
       "skladgier": 17,
+      "strefakart": 10,
       "strefamtg": 16,
-      "tcglove": 19,
-      "tcgtrener": 10,
+      "tcglove": 10,
+      "tcgtrener": 23,
       "tcgumisia": 18,
       "xzone": 12,
       "rebel": 10,
       "rozetka": 10,
-      "strefakart": 10,
       "strefamarzen": 10,
-      "xjoy": 10
+      "xjoy": 11
     }
   }
 }
