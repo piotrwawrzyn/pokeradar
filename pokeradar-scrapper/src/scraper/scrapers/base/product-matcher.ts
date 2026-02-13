@@ -64,8 +64,35 @@ export class ProductMatcher {
       }
     }
 
-    // Return fuzzy match score
-    return fuzz.token_set_ratio(title, phrase);
+    // Asymmetric containment: all phrase tokens must exist in title (extra title tokens are OK)
+    // Uses fuzzy matching per token so variations like "Boosters"/"Booster" still match
+    // Score = average of best per-token match ratios
+    const phraseTokens = phrase.toLowerCase().split(/\W+/).filter(Boolean);
+    const titleTokenArr = title.toLowerCase().split(/\W+/).filter(Boolean);
+
+    const TOKEN_THRESHOLD = 85;
+    const tokenScores = phraseTokens.map((pt) => {
+      const bestMatch = Math.max(...titleTokenArr.map((tt) => fuzz.ratio(pt, tt)));
+      return bestMatch;
+    });
+
+    const missingTokens = phraseTokens.filter(
+      (_, i) => tokenScores[i] < TOKEN_THRESHOLD
+    );
+
+    if (missingTokens.length > 0) {
+      this.logger?.debug('Title missing phrase tokens', {
+        shop: shopId,
+        product: product.id,
+        title,
+        phrase,
+        missingTokens,
+      });
+      return null;
+    }
+
+    // Score = average of best per-token fuzzy matches
+    return Math.round(tokenScores.reduce((sum, s) => sum + s, 0) / tokenScores.length);
   }
 
   /**

@@ -4,7 +4,7 @@
 
 import { ShopConfig, WatchlistProductInternal } from '../../../shared/types';
 import { IEngine, IElement } from '../../engines/engine.interface';
-import { normalizeUrl, buildSearchUrl } from '../../../shared/utils/url-normalizer';
+import { normalizeUrl, buildSearchUrl, extractTitleFromUrl } from '../../../shared/utils/url-normalizer';
 import { ProductMatcher, ProductCandidate } from './product-matcher';
 import { PriceParser } from '../../../shared/utils/price-parser';
 
@@ -197,21 +197,26 @@ export class SearchNavigator {
     // Extract titles and URLs in parallel for all articles
     const candidatePromises = articles.map(async (article): Promise<ProductCandidate | null> => {
       const titleSelector = this.config.selectors.searchPage.title;
+      const useTitleFromUrl = this.config.selectors.searchPage.titleFromUrl;
 
       // Parallelize all element lookups for this article
       const [titleResult, urlElement, searchPageData] = await Promise.all([
-        // Get title (either attribute or text)
-        'extract' in titleSelector && titleSelector.extract
-          ? article.getAttribute(titleSelector.extract)
-          : article.find(titleSelector).then(el => el?.getText() ?? null),
+        // Get title from DOM (skip if using URL slug)
+        useTitleFromUrl
+          ? Promise.resolve(null)
+          : titleSelector && 'extract' in titleSelector && titleSelector.extract
+            ? article.getAttribute(titleSelector.extract)
+            : titleSelector ? article.find(titleSelector).then(el => el?.getText() ?? null) : Promise.resolve(null),
         // Get URL
         article.find(this.config.selectors.searchPage.productUrl),
         // Get search page data (price, availability)
         this.extractSearchPageData(article),
       ]);
 
-      const title = titleResult;
       const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
+      const title = useTitleFromUrl && productUrl
+        ? extractTitleFromUrl(productUrl)
+        : titleResult;
 
       if (!title || !productUrl) {
         return null;
@@ -283,21 +288,26 @@ export class SearchNavigator {
     // Process all articles in parallel
     const candidatePromises = articles.map(async (article): Promise<ProductCandidate | null> => {
       const titleSelector = this.config.selectors.searchPage.title;
+      const useTitleFromUrl = this.config.selectors.searchPage.titleFromUrl;
 
       // Parallelize all element lookups for this article
       const [titleResult, urlElement, searchPageData] = await Promise.all([
-        // Get title (either attribute or text)
-        'extract' in titleSelector && titleSelector.extract
-          ? article.getAttribute(titleSelector.extract)
-          : article.find(titleSelector).then(el => el?.getText() ?? null),
+        // Get title from DOM (skip if using URL slug)
+        useTitleFromUrl
+          ? Promise.resolve(null)
+          : titleSelector && 'extract' in titleSelector && titleSelector.extract
+            ? article.getAttribute(titleSelector.extract)
+            : titleSelector ? article.find(titleSelector).then(el => el?.getText() ?? null) : Promise.resolve(null),
         // Get URL
         article.find(this.config.selectors.searchPage.productUrl),
         // Get search page data (price, availability)
         this.extractSearchPageData(article),
       ]);
 
-      const title = titleResult;
       const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
+      const title = useTitleFromUrl && productUrl
+        ? extractTitleFromUrl(productUrl)
+        : titleResult;
 
       if (!title || !productUrl) {
         return null;

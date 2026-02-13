@@ -30,7 +30,8 @@ export interface ShopConfig {
     searchPage: {
       article: Selector;
       productUrl: Selector;
-      title: Selector;
+      title?: Selector;
+      titleFromUrl?: boolean;
       price?: Selector;                       // Optional: price within article element
       available?: Selector | Selector[];      // Optional: any match = product is available
       unavailable?: Selector | Selector[];    // Optional: any match = product is unavailable

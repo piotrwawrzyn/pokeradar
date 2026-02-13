@@ -30,6 +30,25 @@ export function normalizeUrl(url: string, baseUrl: string): string {
 }
 
 /**
+ * Extracts a matchable title string from a product URL slug.
+ * Used when shop search pages truncate titles but the URL contains the full name.
+ *
+ * @example
+ * extractTitleFromUrl("https://hearts.pub/sklep/Karty/enhanced-booster-box-mega-evolution")
+ * // => "enhanced booster box mega evolution"
+ */
+export function extractTitleFromUrl(url: string): string | null {
+  try {
+    const path = new URL(url, 'https://placeholder.com').pathname;
+    const slug = path.split('/').pop();
+    if (!slug) return null;
+    return slug.replace(/-/g, ' ');
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Builds a search URL from template and query.
  *
  * @param baseUrl - The base URL of the shop

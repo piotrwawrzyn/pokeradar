@@ -14,10 +14,7 @@
         "value": "h2.product-title a",
         "extract": "href"
       },
-      "title": {
-        "type": "css",
-        "value": "h2.product-title"
-      }
+      "titleFromUrl": true
     },
     "productPage": {
       "price": {
