@@ -77,7 +77,7 @@ export class WatchlistService {
     // Cascade delete: remove all notifications and notification states for this user+product
     await Promise.all([
       NotificationStateModel.deleteMany({ userId, productId: entry.productId }),
-      NotificationModel.deleteMany({ userId, 'payload.productId': entry.productId }),
+      NotificationModel.deleteMany({ userId, 'payload.productId': entry.productId, status: 'pending' }),
     ]);
   }
 }
