@@ -21,6 +21,7 @@ export class NotificationProcessor {
   private rateLimiters: Map<string, RateLimiter> = new Map();
   private processing = false;
   private queue: INotificationDoc[] = [];
+  private processedIds = new Set<string>();
   private drainResolve: (() => void) | null = null;
 
   constructor(
@@ -41,6 +42,10 @@ export class NotificationProcessor {
    * Enqueues a notification for processing.
    */
   enqueue(doc: INotificationDoc): void {
+    const id = doc._id?.toString();
+    if (id && this.processedIds.has(id)) {
+      return;
+    }
     this.queue.push(doc);
     this.processQueue();
   }
@@ -118,6 +123,11 @@ export class NotificationProcessor {
       });
       await this.markFailed(doc, `Unknown channel: ${doc.channel}`, 1);
       return;
+    }
+
+    const id = doc._id?.toString();
+    if (id) {
+      this.processedIds.add(id);
     }
 
     const rateLimiter = this.rateLimiters.get(doc.channel);
