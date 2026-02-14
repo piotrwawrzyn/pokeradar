@@ -216,7 +216,7 @@ export abstract class BaseScraper implements IScraper {
     productUrl: string,
     searchPageData: { price: number | null; isAvailable: boolean }
   ): ProductResult {
-    this.logger?.info('Using search page data (skipping product page visit)', {
+    this.logger?.debug('Using search page data (skipping product page visit)', {
       shop: this.config.id,
       product: product.id,
       price: searchPageData.price,

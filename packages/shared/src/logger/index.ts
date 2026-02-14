@@ -59,15 +59,16 @@ export class Logger implements ILogger {
     fs.appendFileSync(this.logFile, fullLog);
 
     if (!this.silent) {
+      const output = meta ? `${logLine} ${JSON.stringify(meta)}` : logLine;
       switch (level) {
         case 'error':
-          console.error(logLine, meta || '');
+          console.error(output);
           break;
         case 'warn':
-          console.warn(logLine, meta || '');
+          console.warn(output);
           break;
         default:
-          console.log(logLine, meta || '');
+          console.log(output);
       }
     }
   }

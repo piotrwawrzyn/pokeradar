@@ -278,7 +278,7 @@ export class SearchNavigator {
     );
 
     if (articles.length === 0) {
-      this.logger?.info('No articles found for set search', {
+      this.logger?.debug('No articles found for set search', {
         shop: this.config.id,
         phrase: searchPhrase,
       });

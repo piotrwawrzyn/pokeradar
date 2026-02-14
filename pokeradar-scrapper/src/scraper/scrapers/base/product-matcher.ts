@@ -141,7 +141,7 @@ export class ProductMatcher {
       return null;
     }
 
-    this.logger?.info('Found product match', {
+    this.logger?.debug('Found product match', {
       shop: shopId,
       product: product.id,
       title: bestMatch.title,

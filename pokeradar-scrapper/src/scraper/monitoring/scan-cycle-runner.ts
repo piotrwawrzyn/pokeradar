@@ -312,7 +312,7 @@ export class ScanCycleRunner {
           const candidates = await navigator.extractSearchCandidates(setGroup.searchPhrase);
           breaker.recordSuccess(shop.id);
 
-          this.config.logger.info('Set search completed', {
+          this.config.logger.debug('Set search completed', {
             shop: shop.id,
             setId: setGroup.setId,
             searchPhrase: setGroup.searchPhrase,
@@ -393,7 +393,7 @@ export class ScanCycleRunner {
       const candidates = await navigator.extractSearchCandidates(setGroup.searchPhrase);
       breaker.recordSuccess(shop.id);
 
-      this.config.logger.info('Set search completed', {
+      this.config.logger.debug('Set search completed', {
         shop: shop.id,
         setId: setGroup.setId,
         searchPhrase: setGroup.searchPhrase,
