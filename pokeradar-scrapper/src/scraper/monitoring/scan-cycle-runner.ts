@@ -85,11 +85,35 @@ interface ProductTask {
 }
 
 /**
+ * Statistics for a shop scan.
+ */
+interface ShopStats {
+  shopId: string;
+  found: number;
+  notFound: number;
+}
+
+/**
  * Runs scan cycles for Cheerio and Playwright engines.
  * Uses set-based searching to reduce HTTP requests.
  */
 export class ScanCycleRunner {
+  private shopStats = new Map<string, ShopStats>();
+
   constructor(private config: ScanCycleConfig) {}
+
+  private getOrCreateStats(shopId: string): ShopStats {
+    let stats = this.shopStats.get(shopId);
+    if (!stats) {
+      stats = { shopId, found: 0, notFound: 0 };
+      this.shopStats.set(shopId, stats);
+    }
+    return stats;
+  }
+
+  private resetStats(): void {
+    this.shopStats.clear();
+  }
 
   /**
    * Runs Cheerio scan cycle with set-based search optimization.
@@ -118,6 +142,7 @@ export class ScanCycleRunner {
 
     const startTime = Date.now();
     const breaker = new ShopCircuitBreaker();
+    this.resetStats();
 
     const shopTasks = cheerioShops.map((shop) => async () => {
       await this.scanShopConcurrent(shop, setGroups, ungroupedProducts, breaker);
@@ -166,6 +191,7 @@ export class ScanCycleRunner {
       });
 
       const breaker = new ShopCircuitBreaker();
+      this.resetStats();
 
       for (const shop of playwrightShops) {
         await this.scanShopSequential(shop, setGroups, ungroupedProducts, browser, breaker);
@@ -488,9 +514,11 @@ export class ScanCycleRunner {
    */
   private handleNotFound(
     _product: WatchlistProductInternal,
-    _shop: ShopConfig
+    shop: ShopConfig
   ): void {
     // Intentionally empty — transient failures should not affect notification state
+    const stats = this.getOrCreateStats(shop.id);
+    stats.notFound++;
   }
 
   /**
@@ -503,15 +531,19 @@ export class ScanCycleRunner {
   ): void {
     this.config.resultBuffer.add(result);
     this.config.dispatcher.processResult(product, result, shop);
+    const stats = this.getOrCreateStats(shop.id);
+    stats.found++;
   }
 
   /**
-   * Logs cycle completion with memory stats.
+   * Logs cycle completion with memory stats and per-shop results summary.
    */
   private logCycleCompletion(engine: string, startTime: number, breaker?: ShopCircuitBreaker): void {
     const duration = Date.now() - startTime;
     const memUsage = process.memoryUsage();
     const trippedShops = breaker?.getTrippedShops() ?? [];
+
+    // Log overall completion
     this.config.logger.info(`${engine} scan cycle completed`, {
       durationMs: duration,
       heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
@@ -519,5 +551,20 @@ export class ScanCycleRunner {
       rssMB: Math.round(memUsage.rss / 1024 / 1024),
       ...(trippedShops.length > 0 && { circuitBreakerTripped: trippedShops }),
     });
+
+    // Log per-shop results summary
+    const statsArray = Array.from(this.shopStats.values())
+      .filter(s => s.found > 0 || s.notFound > 0)
+      .sort((a, b) => a.shopId.localeCompare(b.shopId));
+
+    if (statsArray.length > 0) {
+      for (const stats of statsArray) {
+        this.config.logger.info('Shop scan results', {
+          shop: stats.shopId,
+          found: stats.found,
+          notFound: stats.notFound,
+        });
+      }
+    }
   }
 }
