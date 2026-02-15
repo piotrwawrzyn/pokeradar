@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ProductCatalog } from '@/components/products/product-catalog';
+import { ListPlus, Target, BellRing } from 'lucide-react';
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   signups_disabled: 'Rejestracja nowych kont jest tymczasowo wstrzymana',
@@ -23,22 +24,56 @@ export function WatchlistPage() {
 
   return (
     <div>
-      <div className="relative mb-6 overflow-hidden rounded-xl bg-card px-5 py-5 sm:px-6 sm:py-6">
-        <h1 className="text-lg font-bold sm:text-xl tracking-tight">
-          Pokeradar sprawdza ceny Pokémon TCG za Ciebie
-        </h1>
-        <div className="text-muted-foreground mt-2 text-xs sm:text-sm leading-relaxed space-y-1.5">
-          <p>
-            Pokeradar na bieżąco sprawdza ceny tych samych produktów Pokémon TCG
-            w <span className="text-foreground font-medium">ponad 50 sklepach</span> w Polsce.
+      <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-br from-card to-card/50 px-6 py-6 sm:px-8 sm:py-8 border border-border/50">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+
+        <div className="relative">
+          <h1 className="text-xl font-bold sm:text-2xl tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            Nie przegap żadnej okazji na Pokémon TCG
+          </h1>
+          <p className="text-muted-foreground mt-3 text-sm sm:text-base leading-relaxed">
+            Monitorujemy ceny w <span className="text-foreground font-semibold">ponad 100 polskich sklepach</span> i wysyłamy
+            <span className="text-foreground font-semibold"> natychmiastowe powiadomienia</span>.
           </p>
-          <p>
-            Ty po prostu wybierasz, co Cię interesuje i ile maksymalnie chcesz zapłacić.
-          </p>
-          <p>
-            Gdy gdzieś pojawi się dobra oferta, wiesz o tym od razu
-            — bez odświeżania stron, bez porównywarek i bez przegapionych okazji.
-          </p>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <ListPlus className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Wybierz produkty</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Dodaj pokemony do prywatnej watchlisty
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Target className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Ustaw alert cenowy</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Określ maksymalną kwotę, jaką chcesz zapłacić
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 items-start">
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <BellRing className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-foreground">Otrzymuj powiadomienia</p>
+                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                  Dowiedz się natychmiast, gdy pojawi się okazja
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <ProductCatalog />
