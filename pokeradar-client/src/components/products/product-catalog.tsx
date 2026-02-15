@@ -88,10 +88,10 @@ export function ProductCatalog() {
       <div className="space-y-6">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="space-y-3">
-            <Skeleton className="h-16 w-full rounded-lg" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {Array.from({ length: 4 }).map((_, j) => (
-                <Skeleton key={j} className="h-80 rounded-lg" />
+            <Skeleton className="h-14 w-full rounded-lg" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
+              {Array.from({ length: 6 }).map((_, j) => (
+                <Skeleton key={j} className="h-64 rounded-lg" />
               ))}
             </div>
           </div>

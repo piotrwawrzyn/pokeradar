@@ -255,14 +255,6 @@ function ProductsTab() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <Card className="p-6">
-        <Skeleton className="h-96" />
-      </Card>
-    );
-  }
-
   // Group products by set and sort sets by release date (most recent first)
   const productsBySet = useMemo(() => {
     const grouped = new Map<string, AdminProduct[]>();
@@ -307,6 +299,14 @@ function ProductsTab() {
 
     return new Map(sortedEntries);
   }, [products, sets]);
+
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <Skeleton className="h-96" />
+      </Card>
+    );
+  }
 
   return (
     <>

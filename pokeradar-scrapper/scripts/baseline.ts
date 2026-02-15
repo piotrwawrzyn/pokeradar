@@ -697,7 +697,8 @@ async function main() {
   }
 
   // Initialize logger
-  const logger = new Logger('baseline.log', 'info');
+  const logLevel = (process.env.LOG_LEVEL as 'debug' | 'info' | 'warn' | 'error') || 'info';
+  const logger = new Logger('baseline.log', logLevel);
 
   // Connect to MongoDB
   console.log('📡 Connecting to MongoDB...');

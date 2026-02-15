@@ -17,12 +17,12 @@ export function ProductSetGroup({
 }: ProductSetGroupProps) {
   return (
     <div className="rounded-xl bg-card overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex items-center gap-2.5 px-3 py-2.5">
         {set?.imageUrl && (
           <img
             src={set.imageUrl}
             alt={set.name}
-            className="h-12 w-12 rounded-md object-contain"
+            className="h-10 w-10 rounded-md object-contain"
           />
         )}
         <div className="flex-1 min-w-0">
@@ -30,14 +30,14 @@ export function ProductSetGroup({
             {set?.name ?? 'Inne'}
           </h2>
           {set && (
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-[10px] text-muted-foreground">
               {set.series}
               {set.releaseDate && ` · ${formatDate(set.releaseDate)}`}
             </p>
           )}
         </div>
       </div>
-      <div className="px-3 pb-3 pt-1">
+      <div className="px-2.5 pb-2.5 pt-0.5">
         <ProductGrid
           products={products}
           watchlistMap={watchlistMap}
