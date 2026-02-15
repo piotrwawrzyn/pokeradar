@@ -40,7 +40,7 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
               href={product.currentBestUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="block"
+              className="block min-w-0"
             >
               {product.currentBestPrice !== null ? (
                 <div className="flex items-baseline gap-1">
@@ -53,13 +53,13 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
                 <p className="text-xs text-muted-foreground italic">Brak ceny</p>
               )}
               {product.currentBestShop && (
-                <p className="text-[10px] text-muted-foreground tracking-wide uppercase ">
+                <p className="text-[10px] text-muted-foreground tracking-wide uppercase truncate">
                   {product.currentBestShop}
                 </p>
               )}
             </a>
           ) : (
-            <div>
+            <div className="min-w-0">
               {product.currentBestPrice !== null ? (
                 <div className="flex items-baseline gap-1">
                   <span className="text-[10px] text-muted-foreground">od</span>
@@ -71,7 +71,7 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
                 <p className="text-xs text-muted-foreground italic">Brak ceny</p>
               )}
               {product.currentBestShop && (
-                <p className="text-[10px] text-muted-foreground tracking-wide uppercase">
+                <p className="text-[10px] text-muted-foreground tracking-wide uppercase truncate">
                   {product.currentBestShop}
                 </p>
               )}

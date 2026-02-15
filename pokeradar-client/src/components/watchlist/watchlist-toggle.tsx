@@ -50,7 +50,7 @@ export function WatchlistToggle({ product, entry, disabled }: WatchlistTogglePro
         isWatched ? 'w-8 p-0' : 'gap-1.5 px-2.5',
         isWatched && 'bg-primary text-primary-foreground border border-primary',
       )}
-      aria-label={`Obserwuj ${product.name}`}
+      aria-label={`Dodaj ${product.name}`}
       role="switch"
       aria-checked={isWatched}
     >
@@ -61,7 +61,7 @@ export function WatchlistToggle({ product, entry, disabled }: WatchlistTogglePro
       ) : (
         <>
           <Bell className="h-3.5 w-3.5" />
-          Obserwuj
+          Dodaj
         </>
       )}
     </Button>

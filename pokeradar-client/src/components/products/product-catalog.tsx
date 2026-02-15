@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AlertTriangle, RefreshCw, Search, X } from 'lucide-react';
+import { AlertTriangle, FilterX, RefreshCw, Search, X } from 'lucide-react';
 import type { Product, ProductSet, WatchlistEntry } from '@/types';
 
 interface GroupedProducts {
@@ -40,15 +40,30 @@ function groupAndSort(
     }
   }
 
+  // Sort products within each group: available currently first (alphabetically), then unavailable (alphabetically)
+  const sortProducts = (products: Product[]) => {
+    return products.sort((a, b) => {
+      // First, sort by current availability (products with price/shop first)
+      const aAvailable = a.currentBestPrice !== null;
+      const bAvailable = b.currentBestPrice !== null;
+      if (aAvailable !== bAvailable) {
+        return bAvailable ? 1 : -1;
+      }
+      // Then sort alphabetically by name
+      return a.name.localeCompare(b.name, 'pl');
+    });
+  };
+
   const result: GroupedProducts[] = [];
   let otherGroup: GroupedProducts | null = null;
 
   for (const [key, groupProducts] of groups) {
+    const sortedProducts = sortProducts(groupProducts);
     if (key === '__other__') {
-      otherGroup = { set: null, products: groupProducts };
+      otherGroup = { set: null, products: sortedProducts };
     } else {
       const set = setMap.get(key) ?? null;
-      result.push({ set, products: groupProducts });
+      result.push({ set, products: sortedProducts });
     }
   }
 
@@ -183,13 +198,27 @@ export function ProductCatalog() {
           {/* Header */}
           <div>
             <h2 className="text-xl font-bold">Watchlista</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {hasActiveFilters ? (
-                <>
-                  <span className="font-medium text-foreground">{filteredProductsCount}</span> z {totalProductsCount} produktów
-                </>
-              ) : (
-                <>{totalProductsCount} {totalProductsCount === 1 ? 'produkt' : totalProductsCount < 5 ? 'produkty' : 'produktów'}</>
+            <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2">
+              <span>
+                {hasActiveFilters ? (
+                  <>
+                    <span className="font-medium text-foreground">{filteredProductsCount}</span> z {totalProductsCount} produktów
+                  </>
+                ) : (
+                  <>{totalProductsCount} {totalProductsCount === 1 ? 'produkt' : totalProductsCount < 5 ? 'produkty' : 'produktów'}</>
+                )}
+              </span>
+              {/* Clear filters button - inline with product count */}
+              {hasActiveFilters && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <FilterX className="h-3 w-3 mr-0.5" />
+                  Wyczyść filtry
+                </Button>
               )}
             </p>
           </div>
@@ -230,18 +259,6 @@ export function ProductCatalog() {
                   ))}
               </SelectContent>
             </Select>
-
-            {/* Clear filters button - always visible but disabled when no filters */}
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleClearFilters}
-              disabled={!hasActiveFilters}
-              className="h-10"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Wyczyść
-            </Button>
           </div>
         </div>
       </div>
