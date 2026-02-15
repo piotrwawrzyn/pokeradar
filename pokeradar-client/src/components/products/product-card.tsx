@@ -15,26 +15,26 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
   const isWatched = !!entry;
 
   return (
-    <Card className="overflow-hidden border-0 shadow-none bg-background rounded-lg flex flex-col py-2.5 gap-0">
-      <div className="aspect-[4/3] relative overflow-hidden">
+    <Card className="overflow-hidden border-0 shadow-none bg-background rounded-lg flex flex-col py-1 sm:py-2.5 gap-0">
+      <div className="aspect-video sm:aspect-[4/3] relative overflow-hidden">
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="h-full w-full object-contain p-1.5"
+          className="h-full w-full object-contain p-0.5 sm:p-1.5"
           loading="lazy"
         />
         {product.disabled && (
-          <Badge variant="destructive" className="absolute top-2 right-2 text-xs">
+          <Badge variant="destructive" className="absolute top-1 sm:top-2 right-1 sm:right-2 text-xs">
             Niedostępny
           </Badge>
         )}
       </div>
-      <CardContent className="px-3 py-1.5 space-y-1.5 flex flex-col flex-1">
-        <h3 className="font-medium text-xs leading-tight line-clamp-2 min-h-[1.85rem]">
+      <CardContent className="px-2.5 sm:px-3 py-2 sm:py-1.5 space-y-1.5 sm:space-y-1.5 flex flex-col flex-1">
+        <h3 className="font-medium text-xs leading-tight line-clamp-2 min-h-[1.6rem] sm:min-h-[1.85rem]">
           {product.name}
         </h3>
 
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2.5 sm:gap-2">
           {product.currentBestUrl ? (
             <a
               href={product.currentBestUrl}

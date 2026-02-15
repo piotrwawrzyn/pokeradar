@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -91,6 +92,7 @@ export function ProductCatalog() {
   // Filter state
   const [searchText, setSearchText] = useState('');
   const [selectedSetFilter, setSelectedSetFilter] = useState<string>('all');
+  const [showOnlyWatched, setShowOnlyWatched] = useState(false);
 
   const watchlistMap = useMemo(() => {
     const map = new Map<string, WatchlistEntry>();
@@ -120,8 +122,15 @@ export function ProductCatalog() {
       );
     }
 
+    // Only watched filter
+    if (showOnlyWatched) {
+      filteredProducts = filteredProducts.filter((product) =>
+        watchlistMap.has(product.id)
+      );
+    }
+
     return groupAndSort(filteredProducts, sets ?? []);
-  }, [products, sets, searchText, selectedSetFilter]);
+  }, [products, sets, searchText, selectedSetFilter, showOnlyWatched, watchlistMap]);
 
   // Calculate counts for display
   const totalProductsCount = products?.length || 0;
@@ -133,11 +142,12 @@ export function ProductCatalog() {
     return count;
   }, [groups]);
 
-  const hasActiveFilters = searchText.trim() !== '' || selectedSetFilter !== 'all';
+  const hasActiveFilters = searchText.trim() !== '' || selectedSetFilter !== 'all' || showOnlyWatched;
 
   const handleClearFilters = () => {
     setSearchText('');
     setSelectedSetFilter('all');
+    setShowOnlyWatched(false);
   };
 
   const isLoading = productsLoading || setsLoading;
@@ -194,11 +204,11 @@ export function ProductCatalog() {
 
       {/* Header and Filters - Sticky */}
       <div className="sticky top-0 z-10 bg-background pb-4 border-b border-border">
-        <div className="flex gap-4 items-center justify-between flex-wrap pt-4">
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between pt-4">
           {/* Header */}
           <div>
             <h2 className="text-xl font-bold">Watchlista</h2>
-            <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2">
+            <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
               <span>
                 {hasActiveFilters ? (
                   <>
@@ -224,23 +234,32 @@ export function ProductCatalog() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-3 items-center flex-wrap">
-            {/* Search input */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="search"
-                placeholder="Szukaj produktu..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className="pl-10 h-10 w-[250px]"
-                autoComplete="off"
+          <div className="flex gap-3 sm:gap-5 items-center flex-wrap">
+            {/* Only watched filter - Mobile */}
+            <label className="flex sm:hidden items-center gap-2.5 cursor-pointer min-h-[44px] py-2 px-1 -mx-1">
+              <Switch
+                size="lg"
+                checked={showOnlyWatched}
+                onCheckedChange={setShowOnlyWatched}
               />
-            </div>
+              <span className="text-sm whitespace-nowrap">
+                Tylko obserwowane
+              </span>
+            </label>
+            {/* Only watched filter - Desktop */}
+            <label className="hidden sm:flex items-center gap-2.5 cursor-pointer h-10">
+              <Switch
+                checked={showOnlyWatched}
+                onCheckedChange={setShowOnlyWatched}
+              />
+              <span className="text-sm whitespace-nowrap">
+                Tylko obserwowane
+              </span>
+            </label>
 
             {/* Set filter */}
             <Select value={selectedSetFilter} onValueChange={setSelectedSetFilter}>
-              <SelectTrigger className="w-[200px] !h-10">
+              <SelectTrigger className="w-full sm:w-[200px] !h-10">
                 <SelectValue placeholder="Wszystkie sety" />
               </SelectTrigger>
               <SelectContent>
@@ -259,6 +278,19 @@ export function ProductCatalog() {
                   ))}
               </SelectContent>
             </Select>
+
+            {/* Search input */}
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="search"
+                placeholder="Szukaj produktu..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="pl-10 h-10 w-full sm:w-[300px]"
+                autoComplete="off"
+              />
+            </div>
           </div>
         </div>
       </div>
