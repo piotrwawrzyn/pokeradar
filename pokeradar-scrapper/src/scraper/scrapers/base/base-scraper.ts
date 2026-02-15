@@ -24,8 +24,8 @@ export interface IScraperLogger {
  * Scraper interface for dependency injection.
  */
 export interface IScraper {
-  scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult>;
-  scrapeProductWithUrl(product: WatchlistProductInternal, productUrl: string): Promise<ProductResult>;
+  scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult | null>;
+  scrapeProductWithUrl(product: WatchlistProductInternal, productUrl: string): Promise<ProductResult | null>;
   createResultFromSearchData(
     product: WatchlistProductInternal,
     productUrl: string,
@@ -56,7 +56,7 @@ export abstract class BaseScraper implements IScraper {
   /**
    * Main template method that orchestrates the scraping process.
    */
-  async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult> {
+  async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult | null> {
     try {
       // Step 1: Search for product and get its URL
       const searchResult = await this.findProductUrl(product);
@@ -66,7 +66,7 @@ export abstract class BaseScraper implements IScraper {
           shop: this.config.id,
           product: product.id,
         });
-        return this.createNullResult(product);
+        return null;
       }
 
       const { url: productUrl, isDirectHit, searchPageData } = searchResult;
@@ -99,7 +99,7 @@ export abstract class BaseScraper implements IScraper {
         product: product.id,
         error: error instanceof Error ? error.message : String(error),
       });
-      return this.createNullResult(product);
+      return null;
     }
   }
 
@@ -182,7 +182,7 @@ export abstract class BaseScraper implements IScraper {
   async scrapeProductWithUrl(
     product: WatchlistProductInternal,
     productUrl: string
-  ): Promise<ProductResult> {
+  ): Promise<ProductResult | null> {
     try {
       await this.navigateToProductPage(productUrl);
       const price = await this.extractPrice();
@@ -203,7 +203,7 @@ export abstract class BaseScraper implements IScraper {
         url: productUrl,
         error: error instanceof Error ? error.message : String(error),
       });
-      return this.createNullResult(product);
+      return null;
     }
   }
 
@@ -246,19 +246,5 @@ export abstract class BaseScraper implements IScraper {
    */
   async close(): Promise<void> {
     await this.engine.close();
-  }
-
-  /**
-   * Creates a null result when product is not found or scraping fails.
-   */
-  protected createNullResult(product: WatchlistProductInternal): ProductResult {
-    return {
-      productId: product.id,
-      shopId: this.config.id,
-      productUrl: '',
-      price: null,
-      isAvailable: false,
-      timestamp: new Date(),
-    };
   }
 }

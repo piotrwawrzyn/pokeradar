@@ -219,7 +219,9 @@ export class ScanCycleRunner {
             url: task.resolvedUrl,
           });
           const result = await scraper.scrapeProductWithUrl(task.product, task.resolvedUrl);
-          this.handleResult(task.product, result, shop);
+          if (result) {
+            this.handleResult(task.product, result, shop);
+          }
         // } else {
         //   // Individual fallback search — disabled for now (not optimal, too many requests)
         //   const result = await scraper.scrapeProduct(task.product);
@@ -416,7 +418,9 @@ export class ScanCycleRunner {
               this.handleResult(product, result, shop);
             } else {
               const result = await scraper.scrapeProductWithUrl(product, match.url);
-              this.handleResult(product, result, shop);
+              if (result) {
+                this.handleResult(product, result, shop);
+              }
             }
           } else {
             this.config.logger.debug('Product not found in set search', {
@@ -466,7 +470,9 @@ export class ScanCycleRunner {
   ): Promise<void> {
     try {
       const result = await scraper.scrapeProduct(product);
-      this.handleResult(product, result, shop);
+      if (result) {
+        this.handleResult(product, result, shop);
+      }
     } catch (error) {
       this.config.logger.error('Error scanning product', {
         product: product.id,
@@ -477,21 +483,14 @@ export class ScanCycleRunner {
   }
 
   /**
-   * Handles a product not found in set search — emits a null result without making any HTTP requests.
+   * Called when a product is not found in search or skipped due to circuit breaker.
+   * No-op: unfound products are not stored or dispatched to avoid false state resets.
    */
   private handleNotFound(
-    product: WatchlistProductInternal,
-    shop: ShopConfig
+    _product: WatchlistProductInternal,
+    _shop: ShopConfig
   ): void {
-    const result: ProductResult = {
-      productId: product.id,
-      shopId: shop.id,
-      productUrl: '',
-      price: null,
-      isAvailable: false,
-      timestamp: new Date(),
-    };
-    this.handleResult(product, result, shop);
+    // Intentionally empty — transient failures should not affect notification state
   }
 
   /**

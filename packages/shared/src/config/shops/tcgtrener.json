@@ -6,9 +6,7 @@
   "antiBot": {
     "requestDelayMs": 1000,
     "maxConcurrency": 1,
-    "antiBot": {
-      "useProxy": true
-    }
+    "useProxy": true
   },
   "selectors": {
     "searchPage": {

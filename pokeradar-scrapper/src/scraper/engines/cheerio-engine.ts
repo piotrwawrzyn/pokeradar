@@ -72,6 +72,9 @@ export class CheerioEngine implements IEngine {
     const proxyConfig = getProxyConfig(shop);
     if (proxyConfig) {
       this.proxyAgent = new HttpsProxyAgent(proxyConfig.url);
+      this.logger?.debug('Proxy enabled', { shop: shop.id });
+    } else if (shop.antiBot?.useProxy) {
+      this.logger?.debug('Shop has useProxy=true but proxy is disabled globally', { shop: shop.id });
     }
   }
 
