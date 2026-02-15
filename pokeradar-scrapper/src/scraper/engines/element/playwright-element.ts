@@ -45,8 +45,16 @@ export class PlaywrightElement implements IElement {
 
   async find(selector: Selector): Promise<IElement | null> {
     try {
-      const selectorString = this.getSelectorString(selector);
-      const locator = this.locator.locator(selectorString);
+      const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;
+      let locator: Locator;
+
+      // Handle text selector with case-insensitive matching
+      if (selector.type === 'text') {
+        locator = this.locator.getByText(new RegExp(value, 'i'));
+      } else {
+        const selectorString = this.getSelectorString(selector);
+        locator = this.locator.locator(selectorString);
+      }
 
       // Use all() which returns immediately without waiting
       const elements = await locator.all();
@@ -67,7 +75,15 @@ export class PlaywrightElement implements IElement {
 
   async findAll(selector: Selector): Promise<IElement[]> {
     try {
-      const locator = this.locator.locator(this.getSelectorString(selector));
+      const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;
+      let locator: Locator;
+
+      // Handle text selector with case-insensitive matching
+      if (selector.type === 'text') {
+        locator = this.locator.getByText(new RegExp(value, 'i'));
+      } else {
+        locator = this.locator.locator(this.getSelectorString(selector));
+      }
 
       // Use all() which returns immediately
       const rawElements = await locator.all();

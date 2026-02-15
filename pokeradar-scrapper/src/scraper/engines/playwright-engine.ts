@@ -331,7 +331,8 @@ export class PlaywrightEngine implements IEngine {
       case 'xpath':
         return this.page.locator(`xpath=${value}`);
       case 'text':
-        return this.page.locator(`text=${value}`);
+        // Use case-insensitive regex for text matching
+        return this.page.getByText(new RegExp(value, 'i'));
       default:
         throw new Error(`Unknown selector type: ${type}`);
     }

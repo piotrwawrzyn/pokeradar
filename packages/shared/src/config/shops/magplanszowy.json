@@ -1,0 +1,45 @@
+{
+    "id": "magplanszowy",
+    "name": "Magplanszowy",
+    "baseUrl": "https://magplanszowy.pl",
+    "searchUrl": "/pl/searchquery/{query}/1/phot/4",
+    "selectors": {
+      "searchPage": {
+        "article": {
+          "type": "css",
+          "value": "div.products div.product"
+        },
+        "productUrl": {
+          "type": "css",
+          "value": "a.prodname",
+          "extract": "href"
+        },
+        "title": {
+          "type": "css",
+          "value": "span.productname"
+        },
+        "unavailable": {
+          "type": "text",
+          "value": "powiadom o dostępności"
+        },
+        "available": {
+          "type": "text",
+          "value": "do koszyka"
+        },
+        "price": {
+          "type": "css",
+          "value": "div.price em"
+        }
+      },
+      "productPage": {
+        "price": {
+          "type": "css",
+          "value": "div.maininfo em.main-price"
+        },
+        "available": {
+          "type": "css",
+          "value": "fieldset.addtobasket-container:not(.none)"
+        }
+      }
+    }
+  }

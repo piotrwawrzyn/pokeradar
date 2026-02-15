@@ -2,7 +2,9 @@
  * Shared selector processing utilities for engines.
  */
 
-import { Selector, SelectorType } from '../../shared/types';
+import type * as cheerio from 'cheerio';
+import type { AnyNode } from 'domhandler';
+import { Selector } from '../../shared/types';
 
 /**
  * Normalizes selector value to an array for iteration.
@@ -47,36 +49,16 @@ export async function trySelectors<T>(
 }
 
 /**
- * Converts selector type and value to CSS-compatible selector for Cheerio.
- * Cheerio has limited support for non-CSS selectors.
+ * Finds elements by text content with case-insensitive matching within a Cheerio root.
  */
-export function toCssSelector(type: SelectorType, value: string): string {
-  switch (type) {
-    case 'css':
-      return value;
-    case 'text':
-      return `:contains("${value}")`;
-    case 'xpath':
-      // XPath not fully supported in Cheerio
-      console.warn(`XPath selector "${value}" not fully supported in Cheerio, attempting as CSS`);
-      return value;
-    default:
-      throw new Error(`Unknown selector type: ${type}`);
-  }
+export function findByTextInsensitive(
+  $: cheerio.CheerioAPI,
+  root: cheerio.Cheerio<AnyNode>,
+  value: string
+): cheerio.Cheerio<AnyNode> {
+  const valueLower = value.toLowerCase();
+  return root.find('*').filter((_, el) =>
+    $(el).text().toLowerCase().includes(valueLower)
+  );
 }
 
-/**
- * Converts selector type and value to Playwright locator string.
- */
-export function toPlaywrightLocator(type: SelectorType, value: string): string {
-  switch (type) {
-    case 'css':
-      return value;
-    case 'xpath':
-      return `xpath=${value}`;
-    case 'text':
-      return `text=${value}`;
-    default:
-      throw new Error(`Unknown selector type: ${type}`);
-  }
-}

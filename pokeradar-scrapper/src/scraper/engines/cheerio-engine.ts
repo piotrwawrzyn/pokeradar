@@ -11,7 +11,7 @@ import { Selector, ExtractType, ShopConfig } from '../../shared/types';
 import { getProxyConfig } from '../../shared/utils';
 import { IEngine, IElement } from './engine.interface';
 import { CheerioElement } from './element/cheerio-element';
-import { toCssSelector } from './selector-utils';
+import { findByTextInsensitive } from './selector-utils';
 
 /**
  * Logger interface for engine operations.
@@ -189,12 +189,15 @@ export class CheerioEngine implements IEngine {
       throw new Error('No page loaded. Call goto() first.');
     }
 
+    const $ = this.$;
     const selectors = Array.isArray(selector.value) ? selector.value : [selector.value];
 
     for (const selectorValue of selectors) {
       try {
-        const cssSelector = toCssSelector(selector.type, selectorValue);
-        const element = this.$(cssSelector).first();
+        // Text selectors use case-insensitive matching; CSS/XPath use direct selector
+        const element = selector.type === 'text'
+          ? findByTextInsensitive($, $.root(), selectorValue).first()
+          : $(selectorValue).first();
 
         if (element.length === 0) {
           continue;
@@ -226,8 +229,10 @@ export class CheerioEngine implements IEngine {
 
     for (const selectorValue of selectors) {
       try {
-        const cssSelector = toCssSelector(selector.type, selectorValue);
-        const elements = $(cssSelector);
+        // Text selectors use case-insensitive matching; CSS/XPath use direct selector
+        const elements = selector.type === 'text'
+          ? findByTextInsensitive($, $.root(), selectorValue)
+          : $(selectorValue);
 
         if (elements.length === 0) {
           continue;
@@ -256,12 +261,15 @@ export class CheerioEngine implements IEngine {
       throw new Error('No page loaded. Call goto() first.');
     }
 
+    const $ = this.$;
     const selectors = Array.isArray(selector.value) ? selector.value : [selector.value];
 
     for (const selectorValue of selectors) {
       try {
-        const cssSelector = toCssSelector(selector.type, selectorValue);
-        const element = this.$(cssSelector);
+        // Text selectors use case-insensitive matching; CSS/XPath use direct selector
+        const element = selector.type === 'text'
+          ? findByTextInsensitive($, $.root(), selectorValue)
+          : $(selectorValue);
 
         if (element.length > 0) {
           return true;
