@@ -85,23 +85,10 @@ export class PriceMonitor {
 
     // Preload user watch entries and notification targets (2 DB queries)
     const allProductIds = allProducts.map((p) => p.id);
-    const subscribedProductIds = await this.config.dispatcher.preloadForCycle(allProductIds);
+    await this.config.dispatcher.preloadForCycle(allProductIds);
 
-    // Filter to only products with active subscribers
-    this.products = allProducts.filter((p) => subscribedProductIds.has(p.id));
-
-    const skippedCount = allProducts.length - this.products.length;
-    if (skippedCount > 0) {
-      this.config.logger.info('Skipped products with no subscribers', {
-        skipped: skippedCount,
-        scanning: this.products.length,
-      });
-    }
-
-    if (this.products.length === 0) {
-      this.config.logger.info('No products have active subscribers, nothing to scan');
-      return;
-    }
+    // Scrape all products, regardless of subscriber count
+    this.products = allProducts;
 
     // Load notification states for subscribed products only (1 DB query)
     const subscribedIds = this.products.map((p) => p.id);
