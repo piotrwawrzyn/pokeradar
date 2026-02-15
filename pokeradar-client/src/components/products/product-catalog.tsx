@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useProducts } from '@/hooks/use-products';
 import { useProductSets } from '@/hooks/use-product-sets';
 import { useWatchlist } from '@/hooks/use-watchlist';
@@ -7,7 +7,15 @@ import { ProductSetGroup } from './product-set-group';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { AlertTriangle, RefreshCw, Search, X } from 'lucide-react';
 import type { Product, ProductSet, WatchlistEntry } from '@/types';
 
 interface GroupedProducts {
@@ -65,6 +73,10 @@ export function ProductCatalog() {
   const { data: watchlist } = useWatchlist();
   const watchlistState = useWatchlistState();
 
+  // Filter state
+  const [searchText, setSearchText] = useState('');
+  const [selectedSetFilter, setSelectedSetFilter] = useState<string>('all');
+
   const watchlistMap = useMemo(() => {
     const map = new Map<string, WatchlistEntry>();
     if (watchlist) {
@@ -75,10 +87,43 @@ export function ProductCatalog() {
     return map;
   }, [watchlist]);
 
-  const groups = useMemo(
-    () => groupAndSort(products ?? [], sets ?? []),
-    [products, sets],
-  );
+  const groups = useMemo(() => {
+    let filteredProducts = products ?? [];
+
+    // Text search filter (fuzzy/partial match on product name)
+    if (searchText.trim()) {
+      const searchLower = searchText.toLowerCase().trim();
+      filteredProducts = filteredProducts.filter((product) =>
+        product.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Set filter
+    if (selectedSetFilter !== 'all') {
+      filteredProducts = filteredProducts.filter((product) =>
+        product.productSetId === selectedSetFilter
+      );
+    }
+
+    return groupAndSort(filteredProducts, sets ?? []);
+  }, [products, sets, searchText, selectedSetFilter]);
+
+  // Calculate counts for display
+  const totalProductsCount = products?.length || 0;
+  const filteredProductsCount = useMemo(() => {
+    let count = 0;
+    groups.forEach((group) => {
+      count += group.products.length;
+    });
+    return count;
+  }, [groups]);
+
+  const hasActiveFilters = searchText.trim() !== '' || selectedSetFilter !== 'all';
+
+  const handleClearFilters = () => {
+    setSearchText('');
+    setSelectedSetFilter('all');
+  };
 
   const isLoading = productsLoading || setsLoading;
   const isError = productsError || setsError;
@@ -131,6 +176,63 @@ export function ProductCatalog() {
   return (
     <div className="space-y-6">
       <WatchlistBanner />
+
+      {/* Filters */}
+      <div className="flex gap-3 items-center flex-wrap">
+        {/* Search input */}
+        <div className="relative flex-1 min-w-[200px] max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="search"
+            placeholder="Szukaj produktu..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            className="pl-10 h-10"
+          />
+        </div>
+
+        {/* Set filter */}
+        <Select value={selectedSetFilter} onValueChange={setSelectedSetFilter}>
+          <SelectTrigger className="w-[200px] !h-10">
+            <SelectValue placeholder="Wszystkie sety" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Wszystkie sety</SelectItem>
+            {sets
+              ?.slice()
+              .sort((a, b) => {
+                const dateA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
+                const dateB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
+                return dateB - dateA; // Most recent first
+              })
+              .map((set) => (
+                <SelectItem key={set.id} value={set.id}>
+                  {set.name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+
+        {/* Clear filters button */}
+        {hasActiveFilters && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleClearFilters}
+            className="h-10"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Wyczyść
+          </Button>
+        )}
+
+        {/* Result count */}
+        {hasActiveFilters && (
+          <div className="text-sm text-muted-foreground ml-auto">
+            <span className="font-medium text-foreground">{filteredProductsCount}</span> z {totalProductsCount}
+          </div>
+        )}
+      </div>
       {groups.map((group) => (
         <ProductSetGroup
           key={group.set?.id ?? '__other__'}
@@ -141,9 +243,23 @@ export function ProductCatalog() {
         />
       ))}
       {groups.length === 0 && (
-        <p className="text-center text-muted-foreground py-12">
-          Brak produktów do wyświetlenia.
-        </p>
+        <div className="text-center text-muted-foreground py-12">
+          {hasActiveFilters ? (
+            <div>
+              <p className="mb-3">Brak produktów spełniających kryteria wyszukiwania.</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearFilters}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Wyczyść filtry
+              </Button>
+            </div>
+          ) : (
+            <p>Brak produktów do wyświetlenia.</p>
+          )}
+        </div>
       )}
     </div>
   );
