@@ -2,7 +2,7 @@
   "id": "tcglove",
   "name": "TCG Love",
   "baseUrl": "https://www.tcglove.pl",
-  "searchUrl": "/pl/c/Wszystkie/29/1/full/4/searchquery/",
+  "searchUrl": "/pl/searchquery/{query}/1/full/4",
   "antiBot": {
     "maxConcurrency": 1
   },
