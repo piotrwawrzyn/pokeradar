@@ -4,8 +4,6 @@
   "baseUrl": "https://tcgtrener.pl",
   "searchUrl": "/pl/searchquery/",
   "antiBot": {
-    "requestDelayMs": 1000,
-    "maxConcurrency": 1,
     "useProxy": true
   },
   "selectors": {
