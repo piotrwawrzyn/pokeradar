@@ -340,7 +340,7 @@ function ProductsTab() {
                 </TableCell>
               </TableRow>
             ) : (
-              Array.from(productsBySet.entries()).map(([setId, setProducts], groupIndex) => {
+              Array.from(productsBySet.entries()).map(([setId, setProducts]) => {
                 const set = sets?.find((s) => s.id === setId);
                 const setName = setId === 'no-set' ? 'Bez setu' : set?.name || 'Nieznany set';
 
