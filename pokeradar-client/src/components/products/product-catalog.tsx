@@ -177,61 +177,73 @@ export function ProductCatalog() {
     <div className="space-y-6">
       <WatchlistBanner />
 
-      {/* Filters */}
-      <div className="flex gap-3 items-center flex-wrap">
-        {/* Search input */}
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="search"
-            placeholder="Szukaj produktu..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="pl-10 h-10"
-          />
-        </div>
-
-        {/* Set filter */}
-        <Select value={selectedSetFilter} onValueChange={setSelectedSetFilter}>
-          <SelectTrigger className="w-[200px] !h-10">
-            <SelectValue placeholder="Wszystkie sety" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Wszystkie sety</SelectItem>
-            {sets
-              ?.slice()
-              .sort((a, b) => {
-                const dateA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
-                const dateB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
-                return dateB - dateA; // Most recent first
-              })
-              .map((set) => (
-                <SelectItem key={set.id} value={set.id}>
-                  {set.name}
-                </SelectItem>
-              ))}
-          </SelectContent>
-        </Select>
-
-        {/* Clear filters button */}
-        {hasActiveFilters && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleClearFilters}
-            className="h-10"
-          >
-            <X className="h-4 w-4 mr-2" />
-            Wyczyść
-          </Button>
-        )}
-
-        {/* Result count */}
-        {hasActiveFilters && (
-          <div className="text-sm text-muted-foreground ml-auto">
-            <span className="font-medium text-foreground">{filteredProductsCount}</span> z {totalProductsCount}
+      {/* Header and Filters - Sticky */}
+      <div className="sticky top-0 z-10 bg-background pb-4 border-b border-border">
+        <div className="flex gap-4 items-center justify-between flex-wrap pt-4">
+          {/* Header */}
+          <div>
+            <h2 className="text-xl font-bold">Watchlista</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {hasActiveFilters ? (
+                <>
+                  <span className="font-medium text-foreground">{filteredProductsCount}</span> z {totalProductsCount} produktów
+                </>
+              ) : (
+                <>{totalProductsCount} {totalProductsCount === 1 ? 'produkt' : totalProductsCount < 5 ? 'produkty' : 'produktów'}</>
+              )}
+            </p>
           </div>
-        )}
+
+          {/* Filters */}
+          <div className="flex gap-3 items-center flex-wrap">
+            {/* Search input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="search"
+                placeholder="Szukaj produktu..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="pl-10 h-10 w-[250px]"
+                autoComplete="off"
+              />
+            </div>
+
+            {/* Set filter */}
+            <Select value={selectedSetFilter} onValueChange={setSelectedSetFilter}>
+              <SelectTrigger className="w-[200px] !h-10">
+                <SelectValue placeholder="Wszystkie sety" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Wszystkie sety</SelectItem>
+                {sets
+                  ?.slice()
+                  .sort((a, b) => {
+                    const dateA = a.releaseDate ? new Date(a.releaseDate).getTime() : 0;
+                    const dateB = b.releaseDate ? new Date(b.releaseDate).getTime() : 0;
+                    return dateB - dateA; // Most recent first
+                  })
+                  .map((set) => (
+                    <SelectItem key={set.id} value={set.id}>
+                      {set.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+
+            {/* Clear filters button - always visible but disabled when no filters */}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleClearFilters}
+              disabled={!hasActiveFilters}
+              className="h-10"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Wyczyść
+            </Button>
+          </div>
+        </div>
       </div>
       {groups.map((group) => (
         <ProductSetGroup

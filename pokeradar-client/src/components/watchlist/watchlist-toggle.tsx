@@ -41,7 +41,7 @@ export function WatchlistToggle({ product, entry, disabled }: WatchlistTogglePro
 
   return (
     <Button
-      variant={isWatched ? 'default' : 'outline'}
+      variant={isWatched ? 'default' : 'secondary'}
       size="sm"
       onClick={handleClick}
       disabled={isDisabled}
