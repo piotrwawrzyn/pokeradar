@@ -126,7 +126,7 @@ export class AdminProductsService {
   async createProduct(data: {
     id: string;
     name: string;
-    imageUrl?: string;
+    imageUrl: string;
     productSetId?: string;
     productTypeId?: string;
     search?: { phrases?: string[]; exclude?: string[]; override?: boolean };
@@ -136,10 +136,7 @@ export class AdminProductsService {
     const existing = await WatchlistProductModel.findOne({ id: data.id }).lean();
     if (existing) throw new ConflictError('Product with this ID already exists');
 
-    const product = await WatchlistProductModel.create({
-      ...data,
-      imageUrl: data.imageUrl ?? '',
-    });
+    const product = await WatchlistProductModel.create(data);
     return product.toObject();
   }
 
@@ -173,6 +170,10 @@ export class AdminProductsService {
     product.imageUrl = imageUrl;
     await product.save();
     return imageUrl;
+  }
+
+  async uploadImageOnly(buffer: Buffer): Promise<string> {
+    return imageService.validateAndUpload(buffer, 'products');
   }
 
   // -- ProductSets --
@@ -226,7 +227,7 @@ export class AdminProductsService {
     const set = await ProductSetModel.findOne({ id });
     if (!set) throw new NotFoundError('Product set not found');
 
-    const imageUrl = await imageService.validateAndUpload(buffer, 'product-sets');
+    const imageUrl = await imageService.validateAndUpload(buffer, 'product-sets', false);
     set.imageUrl = imageUrl;
     await set.save();
     return imageUrl;

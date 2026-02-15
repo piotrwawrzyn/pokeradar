@@ -6,27 +6,37 @@ import { AppError } from '../middleware/error.middleware';
 const MAX_DIMENSION = 400;
 
 export class ImageService {
-  async validateAndUpload(buffer: Buffer, folder: string): Promise<string> {
+  async validateAndUpload(buffer: Buffer, folder: string, requireSquare = true): Promise<string> {
     if (!env.CLOUDINARY_CLOUD_NAME) {
       throw new AppError(500, 'Image upload not configured: Cloudinary credentials missing');
     }
 
     const metadata = await sharp(buffer).metadata();
 
-    if (metadata.format !== 'png') {
-      throw new AppError(400, 'Image must be PNG format');
+    if (!['png', 'webp'].includes(metadata.format || '')) {
+      throw new AppError(400, 'Image must be PNG or WebP format');
     }
 
-    if (metadata.width !== metadata.height) {
+    if (requireSquare && metadata.width !== metadata.height) {
       throw new AppError(400, 'Image must be square (equal width and height)');
     }
 
     let processedBuffer = buffer;
-    if (metadata.width! > MAX_DIMENSION) {
-      processedBuffer = await sharp(buffer)
-        .resize(MAX_DIMENSION, MAX_DIMENSION)
-        .png()
-        .toBuffer();
+    let needsConversion = metadata.format === 'webp';
+    const needsResize = metadata.width! > MAX_DIMENSION || metadata.height! > MAX_DIMENSION;
+
+    if (needsResize || needsConversion) {
+      let sharpInstance = sharp(buffer);
+
+      if (needsResize) {
+        const maxDim = Math.max(metadata.width!, metadata.height!);
+        const scale = MAX_DIMENSION / maxDim;
+        const newWidth = Math.round(metadata.width! * scale);
+        const newHeight = Math.round(metadata.height! * scale);
+        sharpInstance = sharpInstance.resize(newWidth, newHeight);
+      }
+
+      processedBuffer = await sharpInstance.png().toBuffer();
     }
 
     return new Promise((resolve, reject) => {

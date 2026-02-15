@@ -56,6 +56,16 @@ export class AdminProductsController {
     }
   }
 
+  async uploadImageOnly(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      if (!req.file) throw new AppError(400, 'No image file provided');
+      const imageUrl = await productsService.uploadImageOnly(req.file.buffer);
+      res.json({ imageUrl });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // -- ProductSets --
 
   async listSets(_req: Request, res: Response, next: NextFunction): Promise<void> {

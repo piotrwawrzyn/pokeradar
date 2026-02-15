@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +39,7 @@ import {
   useCreateProduct,
   useUpdateProduct,
   useDeleteProduct,
+  useUploadImageOnly,
   useUploadProductImage,
   useCreateProductSet,
   useUpdateProductSet,
@@ -49,8 +50,9 @@ import {
   useDeleteProductType,
 } from '@/hooks/use-admin';
 import { toast } from 'sonner';
-import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
 import type { AdminProduct, ProductSet, ProductType } from '@/api/admin.api';
+import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 
 export function AdminProductsPage() {
   return (
@@ -83,6 +85,7 @@ function ProductsTab() {
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
+  const uploadImageOnly = useUploadImageOnly();
   const uploadImage = useUploadProductImage();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -160,6 +163,12 @@ function ProductsTab() {
       return;
     }
 
+    // Validation: Image is required for new products
+    if (!selectedProduct && !imageFile) {
+      setFormError('Obrazek jest wymagany');
+      return;
+    }
+
     setFormError(null);
 
     const payload: any = {
@@ -168,31 +177,53 @@ function ProductsTab() {
       productTypeId: formData.productTypeId !== 'none' ? formData.productTypeId : undefined,
     };
 
-    if (customSearch && (formData.searchPhrases || formData.searchExclude || formData.searchOverride)) {
+    // Auto-generate id from name for create operation
+    if (!selectedProduct) {
+      payload.id = generateIdFromName(formData.name);
+    }
+
+    if (customSearch) {
       payload.search = {
         phrases: formData.searchPhrases ? formData.searchPhrases.split(',').map((s) => s.trim()) : undefined,
         exclude: formData.searchExclude ? formData.searchExclude.split(',').map((s) => s.trim()) : undefined,
         override: formData.searchOverride,
       };
+    } else if (selectedProduct) {
+      // Only set search to null for updates (to clear it), not for creates
+      payload.search = null;
     }
 
     try {
       if (selectedProduct) {
         await updateProduct.mutateAsync({ id: selectedProduct.id, data: payload });
         if (imageFile) {
-          await uploadImage.mutateAsync({ id: selectedProduct.id, file: imageFile });
+          try {
+            await uploadImage.mutateAsync({ id: selectedProduct.id, file: imageFile });
+          } catch (imageError: any) {
+            toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
+            return; // Don't close dialog on image upload failure
+          }
         }
         toast.success('Produkt zaktualizowany');
       } else {
-        const result = await createProduct.mutateAsync(payload);
-        if (imageFile && result.id) {
-          await uploadImage.mutateAsync({ id: result.id, file: imageFile });
+        // For new products, upload image first, then create product with imageUrl
+        let imageUrl = '';
+        if (imageFile) {
+          try {
+            const uploadResult = await uploadImageOnly.mutateAsync({ file: imageFile });
+            imageUrl = uploadResult.imageUrl;
+          } catch (imageError: any) {
+            toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
+            return;
+          }
         }
+        payload.imageUrl = imageUrl;
+        await createProduct.mutateAsync(payload);
         toast.success('Produkt utworzony');
       }
       setEditDialogOpen(false);
-    } catch (error) {
-      toast.error('Nie udało się zapisać produktu');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Nie udało się zapisać produktu'));
     }
   };
 
@@ -202,8 +233,8 @@ function ProductsTab() {
       await deleteProduct.mutateAsync(selectedProduct.id);
       toast.success('Produkt usunięty');
       setDeleteDialogOpen(false);
-    } catch (error) {
-      toast.error('Nie udało się usunąć produktu');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Nie udało się usunąć produktu'));
     }
   };
 
@@ -217,6 +248,8 @@ function ProductsTab() {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      // Clear input to detach File object and prevent ERR_UPLOAD_FILE_CHANGED
+      e.target.value = '';
     } else {
       setImagePreview(null);
     }
@@ -230,17 +263,50 @@ function ProductsTab() {
     );
   }
 
-  // Sort products: available by best price, then unavailable/disabled
-  const sortedProducts = [...(products || [])].sort((a, b) => {
-    const aDisabled = a.disabled || !a.bestPrice;
-    const bDisabled = b.disabled || !b.bestPrice;
-    if (aDisabled && !bDisabled) return 1;
-    if (!aDisabled && bDisabled) return -1;
-    if (!aDisabled && !bDisabled && a.bestPrice && b.bestPrice) {
-      return a.bestPrice - b.bestPrice;
-    }
-    return 0;
-  });
+  // Group products by set and sort sets by release date (most recent first)
+  const productsBySet = useMemo(() => {
+    const grouped = new Map<string, AdminProduct[]>();
+
+    // Group products by set
+    (products || []).forEach((product) => {
+      const setId = product.productSetId || 'no-set';
+      if (!grouped.has(setId)) {
+        grouped.set(setId, []);
+      }
+      grouped.get(setId)!.push(product);
+    });
+
+    // Sort products within each group
+    grouped.forEach((productList) => {
+      productList.sort((a, b) => {
+        const aDisabled = a.disabled || !a.bestPrice;
+        const bDisabled = b.disabled || !b.bestPrice;
+        if (aDisabled && !bDisabled) return 1;
+        if (!aDisabled && bDisabled) return -1;
+        if (!aDisabled && !bDisabled && a.bestPrice && b.bestPrice) {
+          return a.bestPrice - b.bestPrice;
+        }
+        return a.name.localeCompare(b.name);
+      });
+    });
+
+    // Sort sets by release date (most recent first)
+    const sortedEntries = Array.from(grouped.entries()).sort(([setIdA], [setIdB]) => {
+      // No set always goes last
+      if (setIdA === 'no-set') return 1;
+      if (setIdB === 'no-set') return -1;
+
+      const setA = sets?.find((s) => s.id === setIdA);
+      const setB = sets?.find((s) => s.id === setIdB);
+
+      const dateA = setA?.releaseDate ? new Date(setA.releaseDate).getTime() : 0;
+      const dateB = setB?.releaseDate ? new Date(setB.releaseDate).getTime() : 0;
+
+      return dateB - dateA; // Descending order (most recent first)
+    });
+
+    return new Map(sortedEntries);
+  }, [products, sets]);
 
   return (
     <>
@@ -267,26 +333,47 @@ function ProductsTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedProducts.length === 0 ? (
+            {productsBySet.size === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
                   Brak produktów
                 </TableCell>
               </TableRow>
             ) : (
-              sortedProducts.map((product) => {
-                const isExpanded = expandedRows.has(product.id);
-                const isUnavailable = product.disabled || !product.bestPrice;
-                const set = sets?.find((s) => s.id === product.productSetId);
-                const type = types?.find((t) => t.id === product.productTypeId);
+              Array.from(productsBySet.entries()).map(([setId, setProducts], groupIndex) => {
+                const set = sets?.find((s) => s.id === setId);
+                const setName = setId === 'no-set' ? 'Bez setu' : set?.name || 'Nieznany set';
 
                 return (
-                  <React.Fragment key={product.id}>
-                    <TableRow
-                      key={product.id}
-                      className={`cursor-pointer hover:bg-muted/50 ${isUnavailable ? 'opacity-50' : ''}`}
-                      onClick={() => handleOpenEdit(product)}
-                    >
+                  <React.Fragment key={setId}>
+                    {/* Set header row */}
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableCell colSpan={9} className="font-semibold text-sm py-3">
+                        {setName}
+                        {set?.releaseDate && (
+                          <span className="ml-2 text-muted-foreground font-normal">
+                            ({new Date(set.releaseDate).toLocaleDateString('pl-PL', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })})
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Products in this set */}
+                    {setProducts.map((product) => {
+                      const isExpanded = expandedRows.has(product.id);
+                      const isUnavailable = product.disabled || !product.bestPrice;
+                      const type = types?.find((t) => t.id === product.productTypeId);
+
+                      return (
+                        <React.Fragment key={product.id}>
+                          <TableRow
+                            className={`cursor-pointer hover:bg-muted/50 ${isUnavailable ? 'opacity-50' : ''}`}
+                            onClick={() => handleOpenEdit(product)}
+                          >
                       <TableCell
                         onClick={(e) => {
                           e.stopPropagation();
@@ -310,7 +397,7 @@ function ProductsTab() {
                       </TableCell>
                       <TableCell className="font-medium">{product.name}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {set?.name || '-'}
+                        {setName}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {type?.name || '-'}
@@ -421,6 +508,9 @@ function ProductsTab() {
                         </TableCell>
                       </TableRow>
                     )}
+                        </React.Fragment>
+                      );
+                    })}
                   </React.Fragment>
                 );
               })
@@ -548,12 +638,16 @@ function ProductsTab() {
             )}
 
             <div>
-              <Label htmlFor="image" className="mb-2 block">Obrazek (PNG, kwadratowy)</Label>
+              <Label htmlFor="image" className="mb-2 block">
+                Obrazek (PNG/WebP, kwadratowy) <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="image"
                 type="file"
-                accept="image/png"
+                accept="image/png,image/webp"
                 onChange={handleImageChange}
+                required={!selectedProduct}
+                disabled={createProduct.isPending || updateProduct.isPending || uploadImage.isPending || uploadImageOnly.isPending}
               />
               {imagePreview ? (
                 <img
@@ -574,8 +668,14 @@ function ProductsTab() {
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               Anuluj
             </Button>
-            <Button onClick={handleSave} disabled={createProduct.isPending || updateProduct.isPending}>
-              {createProduct.isPending || updateProduct.isPending ? 'Zapisywanie...' : 'Zapisz'}
+            <Button
+              onClick={handleSave}
+              disabled={createProduct.isPending || updateProduct.isPending || uploadImage.isPending || uploadImageOnly.isPending}
+            >
+              {(createProduct.isPending || updateProduct.isPending || uploadImage.isPending || uploadImageOnly.isPending) && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {createProduct.isPending || updateProduct.isPending || uploadImage.isPending || uploadImageOnly.isPending ? 'Zapisywanie...' : 'Zapisz'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -642,6 +742,8 @@ function ProductSetsTab() {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      // Clear input to detach File object and prevent ERR_UPLOAD_FILE_CHANGED
+      e.target.value = '';
     } else {
       setImagePreview(null);
     }
@@ -658,19 +760,29 @@ function ProductSetsTab() {
       if (selectedSet) {
         await updateSet.mutateAsync({ id: selectedSet.id, data: payload });
         if (imageFile) {
-          await uploadImage.mutateAsync({ id: selectedSet.id, file: imageFile });
+          try {
+            await uploadImage.mutateAsync({ id: selectedSet.id, file: imageFile });
+          } catch (imageError: any) {
+            toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
+            return; // Don't close dialog on image upload failure
+          }
         }
         toast.success('Set zaktualizowany');
       } else {
         const result = await createSet.mutateAsync(payload);
         if (imageFile && result.id) {
-          await uploadImage.mutateAsync({ id: result.id, file: imageFile });
+          try {
+            await uploadImage.mutateAsync({ id: result.id, file: imageFile });
+          } catch (imageError: any) {
+            toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
+            return; // Don't close dialog on image upload failure
+          }
         }
         toast.success('Set utworzony');
       }
       setEditDialogOpen(false);
-    } catch (error) {
-      toast.error('Nie udało się zapisać setu');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Nie udało się zapisać setu'));
     }
   };
 
@@ -680,8 +792,8 @@ function ProductSetsTab() {
       await deleteSet.mutateAsync(selectedSet.id);
       toast.success('Set usunięty');
       setDeleteDialogOpen(false);
-    } catch (error) {
-      toast.error('Nie udało się usunąć setu');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Nie udało się usunąć setu'));
     }
   };
 
@@ -799,12 +911,13 @@ function ProductSetsTab() {
             </div>
 
             <div>
-              <Label htmlFor="set-image" className="mb-2 block">Obrazek (PNG)</Label>
+              <Label htmlFor="set-image" className="mb-2 block">Obrazek (PNG/WebP)</Label>
               <Input
                 id="set-image"
                 type="file"
-                accept="image/png"
+                accept="image/png,image/webp"
                 onChange={handleImageChange}
+                disabled={createSet.isPending || updateSet.isPending || uploadImage.isPending}
               />
               {imagePreview ? (
                 <img
@@ -825,8 +938,14 @@ function ProductSetsTab() {
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               Anuluj
             </Button>
-            <Button onClick={handleSave} disabled={createSet.isPending || updateSet.isPending}>
-              {createSet.isPending || updateSet.isPending ? 'Zapisywanie...' : 'Zapisz'}
+            <Button
+              onClick={handleSave}
+              disabled={createSet.isPending || updateSet.isPending || uploadImage.isPending}
+            >
+              {(createSet.isPending || updateSet.isPending || uploadImage.isPending) && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {createSet.isPending || updateSet.isPending || uploadImage.isPending ? 'Zapisywanie...' : 'Zapisz'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -855,6 +974,7 @@ function ProductTypesTab() {
   const [selectedType, setSelectedType] = useState<ProductType | null>(null);
 
   const [formData, setFormData] = useState({
+    id: '',
     name: '',
     searchPhrases: '',
     searchExclude: '',
@@ -862,13 +982,14 @@ function ProductTypesTab() {
 
   const handleOpenCreate = () => {
     setSelectedType(null);
-    setFormData({ name: '', searchPhrases: '', searchExclude: '' });
+    setFormData({ id: '', name: '', searchPhrases: '', searchExclude: '' });
     setEditDialogOpen(true);
   };
 
   const handleOpenEdit = (type: ProductType) => {
     setSelectedType(type);
     setFormData({
+      id: type.id,
       name: type.name,
       searchPhrases: type.search.phrases?.join(', ') || '',
       searchExclude: type.search.exclude?.join(', ') || '',
@@ -882,12 +1003,17 @@ function ProductTypesTab() {
       search: {
         phrases: formData.searchPhrases
           ? formData.searchPhrases.split(',').map((s) => s.trim())
-          : undefined,
+          : [],
         exclude: formData.searchExclude
           ? formData.searchExclude.split(',').map((s) => s.trim())
-          : undefined,
+          : [],
       },
     };
+
+    // Auto-generate id from name for create operation
+    if (!selectedType) {
+      payload.id = generateIdFromName(formData.name);
+    }
 
     try {
       if (selectedType) {
@@ -898,8 +1024,8 @@ function ProductTypesTab() {
         toast.success('Typ produktu utworzony');
       }
       setEditDialogOpen(false);
-    } catch (error) {
-      toast.error('Nie udało się zapisać typu produktu');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Nie udało się zapisać typu produktu'));
     }
   };
 
@@ -909,8 +1035,8 @@ function ProductTypesTab() {
       await deleteType.mutateAsync(selectedType.id);
       toast.success('Typ produktu usunięty');
       setDeleteDialogOpen(false);
-    } catch (error) {
-      toast.error('Nie udało się usunąć typu produktu');
+    } catch (error: any) {
+      toast.error(getErrorMessage(error, 'Nie udało się usunąć typu produktu'));
     }
   };
 
@@ -992,7 +1118,9 @@ function ProductTypesTab() {
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div>
-              <Label htmlFor="type-name" className="mb-2 block">Nazwa</Label>
+              <Label htmlFor="type-name" className="mb-2 block">
+                Nazwa <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="type-name"
                 value={formData.name}
@@ -1024,7 +1152,13 @@ function ProductTypesTab() {
             <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
               Anuluj
             </Button>
-            <Button onClick={handleSave} disabled={createType.isPending || updateType.isPending}>
+            <Button
+              onClick={handleSave}
+              disabled={createType.isPending || updateType.isPending}
+            >
+              {(createType.isPending || updateType.isPending) && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               {createType.isPending || updateType.isPending ? 'Zapisywanie...' : 'Zapisz'}
             </Button>
           </DialogFooter>

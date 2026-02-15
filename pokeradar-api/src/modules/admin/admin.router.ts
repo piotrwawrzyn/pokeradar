@@ -36,6 +36,9 @@ router.get('/shops/:shopId', (req, res, next) => shopsCtrl.getById(req, res, nex
 
 // WatchlistProducts CRUD
 router.get('/products', (req, res, next) => productsCtrl.list(req, res, next));
+router.post('/products/upload-image', imageUpload.single('image'), (req, res, next) =>
+  productsCtrl.uploadImageOnly(req, res, next),
+);
 router.post('/products', validate(createProductSchema), (req, res, next) =>
   productsCtrl.create(req, res, next),
 );

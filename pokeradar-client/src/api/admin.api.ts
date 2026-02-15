@@ -175,6 +175,15 @@ export const adminApi = {
   updateProduct: (id: string, data: unknown) =>
     apiClient.patch(`/admin/products/${id}`, data).then((r) => r.data),
   deleteProduct: (id: string) => apiClient.delete(`/admin/products/${id}`),
+  uploadImageOnly: (file: File) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    return apiClient
+      .post<{ imageUrl: string }>('/admin/products/upload-image', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data);
+  },
   uploadProductImage: (id: string, file: File) => {
     const fd = new FormData();
     fd.append('image', file);

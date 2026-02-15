@@ -87,6 +87,12 @@ export function useDeleteProduct() {
   });
 }
 
+export function useUploadImageOnly() {
+  return useMutation({
+    mutationFn: ({ file }: { file: File }) => adminApi.uploadImageOnly(file),
+  });
+}
+
 export function useUploadProductImage() {
   const qc = useQueryClient();
   return useMutation({
