@@ -41,7 +41,7 @@ export class ImageService {
 
     return new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { folder: `pokeradar/${folder}`, format: 'png', resource_type: 'image' },
+        { folder: `${env.CLOUDINARY_FOLDER}/${folder}`, format: 'png', resource_type: 'image' },
         (error, result) => {
           if (error) reject(new AppError(500, 'Image upload failed'));
           else resolve(result!.secure_url);
