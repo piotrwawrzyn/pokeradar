@@ -5,6 +5,7 @@
 import * as fuzz from 'fuzzball';
 import { WatchlistProductInternal } from '../../../shared/types';
 import { normalizeForMatching } from '../../../shared/utils/text-normalizer';
+import { selectBestCandidate as rankCandidates } from './helpers/candidate-selector';
 
 /**
  * Logger interface for product matching.
@@ -119,33 +120,32 @@ export class ProductMatcher {
     phrase: string,
     shopId: string
   ): string | null {
-    if (candidates.length === 0) {
-      return null;
-    }
+    if (candidates.length === 0) return null;
 
-    // Sort by score descending
-    candidates.sort((a, b) => b.score - a.score);
+    const viable = candidates.filter((c) => c.score >= this.MIN_SCORE_THRESHOLD);
 
-    const bestMatch = candidates[0];
-
-    // Check if score meets threshold
-    if (bestMatch.score < this.MIN_SCORE_THRESHOLD) {
+    if (viable.length === 0) {
+      const best = candidates.sort((a, b) => b.score - a.score)[0];
       this.logger?.warn('Best match score too low, product likely not in results', {
         shop: shopId,
         product: product.id,
-        title: bestMatch.title,
-        score: bestMatch.score,
+        title: best.title,
+        score: best.score,
         threshold: this.MIN_SCORE_THRESHOLD,
         phrase,
       });
       return null;
     }
 
+    const bestMatch = rankCandidates(viable)!;
+
     this.logger?.debug('Found product match', {
       shop: shopId,
       product: product.id,
       title: bestMatch.title,
       score: bestMatch.score,
+      price: bestMatch.searchPageData?.price ?? null,
+      isAvailable: bestMatch.searchPageData?.isAvailable ?? null,
     });
 
     return bestMatch.url;
