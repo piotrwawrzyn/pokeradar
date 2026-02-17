@@ -126,7 +126,7 @@ export function ProductSetsTab() {
         addLabel="Dodaj set"
         isEmpty={!sets || sets.length === 0}
         emptyLabel="Brak setów"
-        headers={[{ label: 'Obrazek', className: 'w-32' }, 'Nazwa', 'Seria', 'Data wydania', { label: '', className: 'w-16' }]}
+        headers={[{ label: 'Obrazek', className: 'w-32' }, 'Nazwa', 'Seria', 'Produkty', 'Data wydania', { label: '', className: 'w-16' }]}
       >
         {sets?.map((set) => (
           <TableRow
@@ -145,6 +145,9 @@ export function ProductSetsTab() {
             </TableCell>
             <TableCell className="font-medium">{set.name}</TableCell>
             <TableCell>{set.series}</TableCell>
+            <TableCell className="text-muted-foreground">
+              {products?.filter((p) => p.productSetId === set.id).length ?? 0}
+            </TableCell>
             <TableCell className="text-muted-foreground">
               {set.releaseDate ? new Date(set.releaseDate).toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-'}
             </TableCell>

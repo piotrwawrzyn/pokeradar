@@ -102,7 +102,7 @@ export function ProductTypesTab() {
         addLabel="Dodaj typ produktu"
         isEmpty={!types || types.length === 0}
         emptyLabel="Brak typów produktów"
-        headers={['Nazwa', 'Frazy wyszukiwania', 'Wykluczenia', { label: '', className: 'w-16' }]}
+        headers={['Nazwa', 'Produkty', 'Frazy wyszukiwania', 'Wykluczenia', { label: '', className: 'w-16' }]}
       >
         {types?.map((type) => (
           <TableRow
@@ -111,6 +111,9 @@ export function ProductTypesTab() {
             onClick={() => dialog.openEdit(type, populateForm)}
           >
             <TableCell className="font-medium">{type.name}</TableCell>
+            <TableCell className="text-muted-foreground">
+              {products?.filter((p) => p.productTypeId === type.id).length ?? 0}
+            </TableCell>
             <TableCell className="text-muted-foreground text-sm">
               {type.search.phrases?.join(', ') || '-'}
             </TableCell>
