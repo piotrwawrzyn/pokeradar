@@ -119,6 +119,15 @@ function ProductsTab() {
     });
   };
 
+  // Auto-fill product name as "{set} {type}" when both are selected and name is still empty (create mode only)
+  const tryAutoFillName = (updated: typeof formData) => {
+    if (!selectedProduct && !updated.name && updated.productSetId !== 'none' && updated.productTypeId !== 'none') {
+      const setName = sets?.find((s) => s.id === updated.productSetId)?.name ?? '';
+      const typeName = types?.find((t) => t.id === updated.productTypeId)?.name ?? '';
+      updated.name = `${setName} ${typeName}`;
+    }
+  };
+
   const handleOpenCreate = () => {
     setSelectedProduct(null);
     setImageFile(null);
@@ -555,7 +564,11 @@ function ProductsTab() {
                 <Label htmlFor="productSetId" className="mb-2 block">Set</Label>
                 <Select
                   value={formData.productSetId}
-                  onValueChange={(value) => setFormData({ ...formData, productSetId: value })}
+                  onValueChange={(value) => {
+                    const updated = { ...formData, productSetId: value };
+                    tryAutoFillName(updated);
+                    setFormData(updated);
+                  }}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Wybierz set" />
@@ -575,7 +588,11 @@ function ProductsTab() {
                 <Label htmlFor="productTypeId" className="mb-2 block">Typ produktu</Label>
                 <Select
                   value={formData.productTypeId}
-                  onValueChange={(value) => setFormData({ ...formData, productTypeId: value })}
+                  onValueChange={(value) => {
+                    const updated = { ...formData, productTypeId: value };
+                    tryAutoFillName(updated);
+                    setFormData(updated);
+                  }}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Wybierz typ produktu" />
