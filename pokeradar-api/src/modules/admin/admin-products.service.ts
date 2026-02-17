@@ -195,6 +195,10 @@ export class AdminProductsService {
     return imageService.validateAndUpload(buffer, 'products');
   }
 
+  async uploadSetImageOnly(buffer: Buffer): Promise<string> {
+    return imageService.validateAndUpload(buffer, 'product-sets', { requireSquare: false });
+  }
+
   // -- ProductSets --
 
   async listSets() {
@@ -241,14 +245,13 @@ export class AdminProductsService {
   }
 
   async deleteSet(id: string): Promise<void> {
-    const refCount = await WatchlistProductModel.countDocuments({ productSetId: id });
-    if (refCount > 0) {
-      throw new ConflictError(
-        `Cannot delete: ${refCount} product(s) reference this set`,
-      );
-    }
     const set = await ProductSetModel.findOne({ id });
     if (!set) throw new NotFoundError('Product set not found');
+
+    const products = await WatchlistProductModel.find({ productSetId: id }, 'id').lean();
+    for (const product of products) {
+      await this.deleteProduct(product.id);
+    }
 
     if (set.imageUrl) {
       await imageService.deleteImage(set.imageUrl);
@@ -302,13 +305,14 @@ export class AdminProductsService {
   }
 
   async deleteType(id: string): Promise<void> {
-    const refCount = await WatchlistProductModel.countDocuments({ productTypeId: id });
-    if (refCount > 0) {
-      throw new ConflictError(
-        `Cannot delete: ${refCount} product(s) reference this type`,
-      );
+    const type = await ProductTypeModel.findOne({ id });
+    if (!type) throw new NotFoundError('Product type not found');
+
+    const products = await WatchlistProductModel.find({ productTypeId: id }, 'id').lean();
+    for (const product of products) {
+      await this.deleteProduct(product.id);
     }
-    const result = await ProductTypeModel.deleteOne({ id });
-    if (result.deletedCount === 0) throw new NotFoundError('Product type not found');
+
+    await ProductTypeModel.deleteOne({ id });
   }
 }

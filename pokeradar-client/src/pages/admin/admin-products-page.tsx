@@ -48,6 +48,7 @@ import {
   useCreateProductType,
   useUpdateProductType,
   useDeleteProductType,
+  useUploadSetImageOnly,
 } from '@/hooks/use-admin';
 import { toast } from 'sonner';
 import { Plus, ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
@@ -695,10 +696,12 @@ function ProductsTab() {
 
 function ProductSetsTab() {
   const { data: sets, isLoading } = useAdminProductSets();
+  const { data: products } = useAdminProducts();
   const createSet = useCreateProductSet();
   const updateSet = useUpdateProductSet();
   const deleteSet = useDeleteProductSet();
   const uploadImage = useUploadProductSetImage();
+  const uploadSetImageOnly = useUploadSetImageOnly();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -750,11 +753,20 @@ function ProductSetsTab() {
   };
 
   const handleSave = async () => {
+    if (!selectedSet && !imageFile) {
+      toast.error('Obrazek jest wymagany');
+      return;
+    }
+
     const payload: any = {
       name: formData.name,
       series: formData.series,
       releaseDate: formData.releaseDate || undefined,
     };
+
+    if (!selectedSet) {
+      payload.id = generateIdFromName(formData.name);
+    }
 
     try {
       if (selectedSet) {
@@ -764,20 +776,24 @@ function ProductSetsTab() {
             await uploadImage.mutateAsync({ id: selectedSet.id, file: imageFile });
           } catch (imageError: any) {
             toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
-            return; // Don't close dialog on image upload failure
+            return;
           }
         }
         toast.success('Set zaktualizowany');
       } else {
-        const result = await createSet.mutateAsync(payload);
-        if (imageFile && result.id) {
+        // Upload image first, then create set with imageUrl
+        let imageUrl = '';
+        if (imageFile) {
           try {
-            await uploadImage.mutateAsync({ id: result.id, file: imageFile });
+            const uploadResult = await uploadSetImageOnly.mutateAsync({ file: imageFile });
+            imageUrl = uploadResult.imageUrl;
           } catch (imageError: any) {
             toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
-            return; // Don't close dialog on image upload failure
+            return;
           }
         }
+        payload.imageUrl = imageUrl;
+        await createSet.mutateAsync(payload);
         toast.success('Set utworzony');
       }
       setEditDialogOpen(false);
@@ -917,7 +933,7 @@ function ProductSetsTab() {
                 type="file"
                 accept="image/png,image/webp"
                 onChange={handleImageChange}
-                disabled={createSet.isPending || updateSet.isPending || uploadImage.isPending}
+                disabled={createSet.isPending || updateSet.isPending || uploadImage.isPending || uploadSetImageOnly.isPending}
               />
               {imagePreview ? (
                 <img
@@ -940,12 +956,12 @@ function ProductSetsTab() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={createSet.isPending || updateSet.isPending || uploadImage.isPending}
+              disabled={createSet.isPending || updateSet.isPending || uploadImage.isPending || uploadSetImageOnly.isPending}
             >
-              {(createSet.isPending || updateSet.isPending || uploadImage.isPending) && (
+              {(createSet.isPending || updateSet.isPending || uploadImage.isPending || uploadSetImageOnly.isPending) && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              {createSet.isPending || updateSet.isPending || uploadImage.isPending ? 'Zapisywanie...' : 'Zapisz'}
+              {createSet.isPending || updateSet.isPending || uploadImage.isPending || uploadSetImageOnly.isPending ? 'Zapisywanie...' : 'Zapisz'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -955,16 +971,35 @@ function ProductSetsTab() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title="Usuń set"
-        description={`Czy na pewno chcesz usunąć set "${selectedSet?.name}"? Upewnij się, że żaden produkt nie jest z nim powiązany.`}
+        description={`Czy na pewno chcesz usunąć set "${selectedSet?.name}"?`}
         onConfirm={handleDelete}
         loading={deleteSet.isPending}
-      />
+      >
+        {(() => {
+          const affected = products?.filter((p) => p.productSetId === selectedSet?.id) ?? [];
+          if (affected.length === 0) return null;
+          return (
+            <div className="text-sm mt-2">
+              <p className="font-medium mb-1">Następujące produkty zostaną usunięte:</p>
+              <ul className="list-disc pl-5 space-y-0.5 text-muted-foreground">
+                {affected.map((p) => (
+                  <li key={p.id}>{p.name}</li>
+                ))}
+              </ul>
+              <p className="text-muted-foreground mt-2">
+                Usunięte zostaną również wszystkie powiązane wpisy watchlisty, powiadomienia i wyniki.
+              </p>
+            </div>
+          );
+        })()}
+      </ConfirmDialog>
     </>
   );
 }
 
 function ProductTypesTab() {
   const { data: types, isLoading } = useAdminProductTypes();
+  const { data: products } = useAdminProducts();
   const createType = useCreateProductType();
   const updateType = useUpdateProductType();
   const deleteType = useDeleteProductType();
@@ -1169,10 +1204,28 @@ function ProductTypesTab() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         title="Usuń typ produktu"
-        description={`Czy na pewno chcesz usunąć typ produktu "${selectedType?.name}"? Upewnij się, że żaden produkt nie jest z nim powiązany.`}
+        description={`Czy na pewno chcesz usunąć typ produktu "${selectedType?.name}"?`}
         onConfirm={handleDelete}
         loading={deleteType.isPending}
-      />
+      >
+        {(() => {
+          const affected = products?.filter((p) => p.productTypeId === selectedType?.id) ?? [];
+          if (affected.length === 0) return null;
+          return (
+            <div className="text-sm mt-2">
+              <p className="font-medium mb-1">Następujące produkty zostaną usunięte:</p>
+              <ul className="list-disc pl-5 space-y-0.5 text-muted-foreground">
+                {affected.map((p) => (
+                  <li key={p.id}>{p.name}</li>
+                ))}
+              </ul>
+              <p className="text-muted-foreground mt-2">
+                Usunięte zostaną również wszystkie powiązane wpisy watchlisty, powiadomienia i wyniki.
+              </p>
+            </div>
+          );
+        })()}
+      </ConfirmDialog>
     </>
   );
 }

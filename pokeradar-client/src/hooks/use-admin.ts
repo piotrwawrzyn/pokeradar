@@ -105,6 +105,12 @@ export function useUploadProductImage() {
   });
 }
 
+export function useUploadSetImageOnly() {
+  return useMutation({
+    mutationFn: ({ file }: { file: File }) => adminApi.uploadSetImageOnly(file),
+  });
+}
+
 // Product Sets
 export function useAdminProductSets() {
   return useQuery({
@@ -143,6 +149,8 @@ export function useDeleteProductSet() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'product-sets'] });
       qc.invalidateQueries({ queryKey: ['product-sets'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['products'] });
     },
   });
 }
@@ -188,7 +196,11 @@ export function useDeleteProductType() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => adminApi.deleteProductType(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'product-types'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'product-types'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'products'] });
+      qc.invalidateQueries({ queryKey: ['products'] });
+    },
   });
 }
 

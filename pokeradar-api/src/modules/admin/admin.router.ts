@@ -52,6 +52,9 @@ router.post('/products/:id/image', imageUpload.single('image'), (req, res, next)
 
 // ProductSets CRUD
 router.get('/product-sets', (req, res, next) => productsCtrl.listSets(req, res, next));
+router.post('/product-sets/upload-image', imageUpload.single('image'), (req, res, next) =>
+  productsCtrl.uploadSetImageOnly(req, res, next),
+);
 router.post(
   '/product-sets',
   validate(createProductSetSchema),

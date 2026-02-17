@@ -197,6 +197,15 @@ export const adminApi = {
   // Product Sets
   getProductSets: () =>
     apiClient.get<ProductSet[]>('/admin/product-sets').then((r) => r.data),
+  uploadSetImageOnly: (file: File) => {
+    const fd = new FormData();
+    fd.append('image', file);
+    return apiClient
+      .post<{ imageUrl: string }>('/admin/product-sets/upload-image', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data);
+  },
   createProductSet: (data: unknown) =>
     apiClient.post('/admin/product-sets', data).then((r) => r.data),
   updateProductSet: (id: string, data: unknown) =>
