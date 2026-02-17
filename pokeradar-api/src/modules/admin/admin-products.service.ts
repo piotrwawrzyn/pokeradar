@@ -137,6 +137,15 @@ export class AdminProductsService {
     if (existing) throw new ConflictError('Product with this ID already exists');
 
     const product = await WatchlistProductModel.create(data);
+
+    if (product.imageUrl) {
+      const renamed = await imageService.renameImage(product.imageUrl, 'products', data.id);
+      if (renamed !== product.imageUrl) {
+        product.imageUrl = renamed;
+        await product.save();
+      }
+    }
+
     return product.toObject();
   }
 
@@ -153,6 +162,10 @@ export class AdminProductsService {
     const product = await WatchlistProductModel.findOne({ id });
     if (!product) throw new NotFoundError('Product not found');
 
+    if (product.imageUrl) {
+      await imageService.deleteImage(product.imageUrl);
+    }
+
     await Promise.all([
       WatchlistProductModel.deleteOne({ id }),
       UserWatchEntryModel.deleteMany({ productId: id }),
@@ -166,7 +179,13 @@ export class AdminProductsService {
     const product = await WatchlistProductModel.findOne({ id });
     if (!product) throw new NotFoundError('Product not found');
 
-    const imageUrl = await imageService.validateAndUpload(buffer, 'products');
+    if (product.imageUrl) {
+      await imageService.deleteImage(product.imageUrl);
+    }
+
+    const imageUrl = await imageService.validateAndUpload(buffer, 'products', {
+      publicId: id,
+    });
     product.imageUrl = imageUrl;
     await product.save();
     return imageUrl;
@@ -197,6 +216,15 @@ export class AdminProductsService {
       imageUrl: data.imageUrl ?? '',
       releaseDate: data.releaseDate ? new Date(data.releaseDate) : undefined,
     });
+
+    if (set.imageUrl) {
+      const renamed = await imageService.renameImage(set.imageUrl, 'product-sets', data.id);
+      if (renamed !== set.imageUrl) {
+        set.imageUrl = renamed;
+        await set.save();
+      }
+    }
+
     return set.toObject();
   }
 
@@ -219,15 +247,28 @@ export class AdminProductsService {
         `Cannot delete: ${refCount} product(s) reference this set`,
       );
     }
-    const result = await ProductSetModel.deleteOne({ id });
-    if (result.deletedCount === 0) throw new NotFoundError('Product set not found');
+    const set = await ProductSetModel.findOne({ id });
+    if (!set) throw new NotFoundError('Product set not found');
+
+    if (set.imageUrl) {
+      await imageService.deleteImage(set.imageUrl);
+    }
+
+    await ProductSetModel.deleteOne({ id });
   }
 
   async uploadSetImage(id: string, buffer: Buffer): Promise<string> {
     const set = await ProductSetModel.findOne({ id });
     if (!set) throw new NotFoundError('Product set not found');
 
-    const imageUrl = await imageService.validateAndUpload(buffer, 'product-sets', false);
+    if (set.imageUrl) {
+      await imageService.deleteImage(set.imageUrl);
+    }
+
+    const imageUrl = await imageService.validateAndUpload(buffer, 'product-sets', {
+      publicId: id,
+      requireSquare: false,
+    });
     set.imageUrl = imageUrl;
     await set.save();
     return imageUrl;
