@@ -199,14 +199,14 @@ export function ProductCatalog() {
   const watchlistDisabled = watchlistState !== 'ready';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <WatchlistBanner />
 
       {/* Header and Filters - Sticky */}
-      <div className="sticky top-0 z-10 bg-background pb-4 border-b border-border">
+      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur-md pb-4 border-b border-border/50">
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between pt-4">
-          {/* Header */}
-          <div>
+          {/* Header - hidden on mobile, title already visible above fold */}
+          <div className="hidden sm:block">
             <h2 className="text-xl font-bold">Watchlista</h2>
             <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
               <span>
@@ -234,28 +234,28 @@ export function ProductCatalog() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-3 sm:gap-5 items-center flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-5 sm:items-center">
             {/* Only watched filter */}
-            <div className="flex h-10 items-center rounded-md border border-input bg-background p-1 gap-1 text-sm">
+            <div className="flex h-10 w-full sm:w-auto items-center rounded-md border border-input bg-background p-1 gap-1 text-sm">
               {(['all', 'watched'] as const).map((opt) => (
                 <button
                   key={opt}
                   onClick={() => setShowOnlyWatched(opt === 'watched')}
                   className={cn(
-                    'rounded-sm px-3 py-1 transition-colors whitespace-nowrap',
+                    'flex-1 sm:flex-none rounded-sm px-3 py-1 transition-colors whitespace-nowrap text-center',
                     (opt === 'watched') === showOnlyWatched
                       ? 'bg-muted text-foreground'
                       : 'text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {opt === 'all' ? 'Wszystkie produkty' : 'Obserwowane'}
+                  {opt === 'all' ? <><span className="sm:hidden">Wszystkie</span><span className="hidden sm:inline">Wszystkie produkty</span></> : 'Obserwowane'}
                 </button>
               ))}
             </div>
 
             {/* Set filter */}
             <Select value={selectedSetFilter} onValueChange={setSelectedSetFilter}>
-              <SelectTrigger className="w-full sm:w-[200px] !h-10">
+              <SelectTrigger className="hidden lg:flex w-[200px] !h-10">
                 <SelectValue placeholder="Wszystkie sety" />
               </SelectTrigger>
               <SelectContent>
@@ -276,14 +276,14 @@ export function ProductCatalog() {
             </Select>
 
             {/* Search input */}
-            <div className="relative w-full sm:w-auto">
+            <div className="relative w-full sm:flex-none sm:w-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="search"
                 placeholder="Szukaj produktu..."
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
-                className="pl-10 h-10 w-full sm:w-[300px]"
+                className="pl-10 h-10 w-full sm:w-[300px] text-sm"
                 autoComplete="off"
               />
             </div>

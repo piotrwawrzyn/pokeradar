@@ -15,7 +15,7 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
   const isWatched = !!entry;
 
   return (
-    <Card className="overflow-hidden border-0 shadow-none bg-background rounded-lg flex flex-col py-1 sm:py-2.5 gap-0">
+    <Card className="overflow-hidden border-0 bg-card rounded-lg flex flex-col py-1 sm:py-2.5 gap-0">
       <div className="aspect-video sm:aspect-[4/3] relative overflow-hidden">
         <img
           src={product.imageUrl}

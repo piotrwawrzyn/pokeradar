@@ -16,34 +16,32 @@ export function ProductSetGroup({
   watchlistDisabled,
 }: ProductSetGroupProps) {
   return (
-    <div className="rounded-xl bg-card overflow-hidden">
-      <div className="flex items-center gap-2.5 px-3 py-2.5">
+    <div className="space-y-3">
+      <div className="flex items-center gap-4 pb-3 border-b border-border/40">
         {set?.imageUrl && (
           <img
             src={set.imageUrl}
             alt={set.name}
-            className="h-10 w-10 rounded-md object-contain"
+            className="h-14 w-14 object-contain shrink-0"
           />
         )}
         <div className="flex-1 min-w-0">
-          <h2 className="font-bold text-sm truncate tracking-tight">
+          <h2 className="font-semibold text-base truncate text-foreground">
             {set?.name ?? 'Inne'}
           </h2>
           {set && (
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {set.series}
               {set.releaseDate && ` · ${formatDate(set.releaseDate)}`}
             </p>
           )}
         </div>
       </div>
-      <div className="px-2.5 pb-2.5 pt-0.5">
-        <ProductGrid
-          products={products}
-          watchlistMap={watchlistMap}
-          watchlistDisabled={watchlistDisabled}
-        />
-      </div>
+      <ProductGrid
+        products={products}
+        watchlistMap={watchlistMap}
+        watchlistDisabled={watchlistDisabled}
+      />
     </div>
   );
 }
