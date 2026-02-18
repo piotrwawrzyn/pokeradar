@@ -5,6 +5,10 @@ import { AuthProvider } from '@/context/auth-context';
 import App from './App';
 import './index.css';
 
+if (import.meta.env.DEV) {
+  import('react-grab');
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

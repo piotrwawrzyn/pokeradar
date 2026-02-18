@@ -8,7 +8,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -17,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { AlertTriangle, FilterX, RefreshCw, Search, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Product, ProductSet, WatchlistEntry } from '@/types';
 
 interface GroupedProducts {
@@ -235,27 +235,23 @@ export function ProductCatalog() {
 
           {/* Filters */}
           <div className="flex gap-3 sm:gap-5 items-center flex-wrap">
-            {/* Only watched filter - Mobile */}
-            <label className="flex sm:hidden items-center gap-2.5 cursor-pointer min-h-[44px] py-2 px-1 -mx-1">
-              <Switch
-                size="lg"
-                checked={showOnlyWatched}
-                onCheckedChange={setShowOnlyWatched}
-              />
-              <span className="text-sm whitespace-nowrap">
-                Tylko obserwowane
-              </span>
-            </label>
-            {/* Only watched filter - Desktop */}
-            <label className="hidden sm:flex items-center gap-2.5 cursor-pointer h-10">
-              <Switch
-                checked={showOnlyWatched}
-                onCheckedChange={setShowOnlyWatched}
-              />
-              <span className="text-sm whitespace-nowrap">
-                Tylko obserwowane
-              </span>
-            </label>
+            {/* Only watched filter */}
+            <div className="flex h-10 items-center rounded-md border border-input bg-background p-1 gap-1 text-sm">
+              {(['all', 'watched'] as const).map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => setShowOnlyWatched(opt === 'watched')}
+                  className={cn(
+                    'rounded-sm px-3 py-1 transition-colors whitespace-nowrap',
+                    (opt === 'watched') === showOnlyWatched
+                      ? 'bg-muted text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {opt === 'all' ? 'Wszystkie produkty' : 'Obserwowane'}
+                </button>
+              ))}
+            </div>
 
             {/* Set filter */}
             <Select value={selectedSetFilter} onValueChange={setSelectedSetFilter}>
