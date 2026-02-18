@@ -4,16 +4,16 @@ import { authApi } from '@/api/auth.api';
 import { useAuth } from '@/hooks/use-auth';
 
 export function SignupDisabledBanner() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   const { data } = useQuery({
     queryKey: ['signup-status'],
     queryFn: authApi.getSignupStatus,
-    enabled: !isAuthenticated,
+    enabled: !isAuthenticated && !isLoading,
     staleTime: 5 * 60 * 1000,
   });
 
-  if (isAuthenticated || !data) return null;
+  if (isAuthenticated || isLoading || !data) return null;
 
   const message = !data.loginEnabled
     ? 'Logowanie jest tymczasowo wyłączone.'
