@@ -46,8 +46,8 @@ export function WatchlistToggle({ product, entry, disabled }: WatchlistTogglePro
       onClick={handleClick}
       disabled={isDisabled}
       className={cn(
-        'h-7 text-xs',
-        isWatched ? 'w-8 p-0' : 'gap-1.5 px-2.5',
+        'h-8 sm:h-7 text-xs',
+        isWatched ? 'gap-1.5 px-2.5 sm:w-8 sm:p-0 sm:gap-0' : 'gap-1.5 px-2.5',
         isWatched && 'bg-primary text-primary-foreground border border-primary',
       )}
       aria-label={`Dodaj ${product.name}`}
@@ -55,12 +55,15 @@ export function WatchlistToggle({ product, entry, disabled }: WatchlistTogglePro
       aria-checked={isWatched}
     >
       {isLoading ? (
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        <Loader2 className="h-4 w-4 sm:h-3.5 sm:w-3.5 animate-spin" />
       ) : isWatched ? (
-        <BellRing className="h-3.5 w-3.5" />
+        <>
+          <BellRing className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+          <span className="sm:hidden">Obserwowane</span>
+        </>
       ) : (
         <>
-          <Bell className="h-3.5 w-3.5" />
+          <Bell className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
           Dodaj
         </>
       )}

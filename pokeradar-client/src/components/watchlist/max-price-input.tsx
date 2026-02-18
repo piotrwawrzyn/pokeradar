@@ -84,7 +84,7 @@ export function MaxPriceInput({
   };
 
   const priceLabel = (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between min-h-[2rem] sm:min-h-[1.5rem]">
       <span className="text-xs text-muted-foreground">Limit cenowy:</span>
       {isEditing ? (
         <input
@@ -95,7 +95,7 @@ export function MaxPriceInput({
           onBlur={handleConfirmEdit}
           onKeyDown={handleKeyDown}
           placeholder="np. 149,99"
-          className="h-5 w-20 text-right text-xs font-medium tabular-nums bg-transparent border-b border-primary text-primary placeholder:text-muted-foreground/50 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className="h-7 sm:h-6 w-28 sm:w-24 text-right text-sm sm:text-xs font-medium tabular-nums bg-transparent border-b border-primary text-primary placeholder:text-muted-foreground/50 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           min={1}
           max={max === Infinity ? undefined : max}
           step={0.01}
@@ -106,7 +106,7 @@ export function MaxPriceInput({
           type="button"
           onClick={handleStartEdit}
           disabled={disabled}
-          className="min-w-20 text-right text-xs font-medium tabular-nums text-primary cursor-pointer border-b border-transparent hover:border-primary/50 transition-colors disabled:cursor-default disabled:hover:border-transparent"
+          className="min-w-[5rem] sm:min-w-20 h-7 sm:h-6 px-1 sm:px-0 text-right text-sm sm:text-xs font-medium tabular-nums text-primary cursor-pointer border-b border-transparent hover:border-primary/50 transition-colors disabled:cursor-default disabled:hover:border-transparent"
         >
           {formatPLN(value)}
         </button>
