@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminUserSearch } from '@/hooks/use-admin';
-import { Search } from 'lucide-react';
+import { Loader2, Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 
 export function AdminUsersPage() {
@@ -35,11 +34,9 @@ export function AdminUsersPage() {
       )}
 
       {debouncedQuery.trim() && isLoading && (
-        <Card className="p-6 space-y-4">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full" />
-          ))}
-        </Card>
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       )}
 
       {debouncedQuery.trim() && !isLoading && users && users.length === 0 && (

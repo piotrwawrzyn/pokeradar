@@ -1,6 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -12,7 +11,7 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminUserDetail } from '@/hooks/use-admin';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 export function AdminUserDetailPage() {
   const { clerkId } = useParams<{ clerkId: string }>();
@@ -20,15 +19,8 @@ export function AdminUserDetailPage() {
 
   if (isLoading) {
     return (
-      <div>
-        <div className="mb-6">
-          <Skeleton className="h-8 w-48 mb-4" />
-        </div>
-        <div className="space-y-6">
-          <Skeleton className="h-48" />
-          <Skeleton className="h-64" />
-          <Skeleton className="h-64" />
-        </div>
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

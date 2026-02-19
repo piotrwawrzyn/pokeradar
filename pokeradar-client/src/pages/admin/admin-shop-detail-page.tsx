@@ -1,6 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -13,7 +12,7 @@ import {
 import { StatCard } from '@/components/admin/stat-card';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminShopDetail } from '@/hooks/use-admin';
-import { ArrowLeft, Package, CheckCircle, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Package, CheckCircle, AlertTriangle, ExternalLink, Loader2 } from 'lucide-react';
 
 export function AdminShopDetailPage() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -21,19 +20,8 @@ export function AdminShopDetailPage() {
 
   if (isLoading) {
     return (
-      <div>
-        <div className="mb-6">
-          <Skeleton className="h-8 w-48 mb-4" />
-          <Skeleton className="h-4 w-64" />
-        </div>
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-        </div>
-        <Card className="p-6">
-          <Skeleton className="h-96" />
-        </Card>
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

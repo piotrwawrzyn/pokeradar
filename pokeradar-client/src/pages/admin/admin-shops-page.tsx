@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -11,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminShops } from '@/hooks/use-admin';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 
 export function AdminShopsPage() {
   const { data: shops, isLoading } = useAdminShops();
@@ -19,15 +18,8 @@ export function AdminShopsPage() {
 
   if (isLoading) {
     return (
-      <div>
-        <h1 className="text-2xl font-bold mb-6">Sklepy</h1>
-        <Card>
-          <div className="p-6 space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        </Card>
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

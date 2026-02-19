@@ -1,6 +1,5 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -9,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 
 interface TableHeader {
   label: string;
@@ -37,9 +36,9 @@ export function EntityTable({
 }: EntityTableProps) {
   if (isLoading) {
     return (
-      <Card className="p-6">
-        <Skeleton className="h-96" />
-      </Card>
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 

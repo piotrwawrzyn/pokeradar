@@ -17,10 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminNotifications } from '@/hooks/use-admin';
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
 export function AdminNotificationsPage() {
   const [page, setPage] = useState(1);
@@ -60,15 +59,8 @@ export function AdminNotificationsPage() {
 
   if (isLoading) {
     return (
-      <div>
-        <h1 className="text-2xl font-bold mb-6">Powiadomienia</h1>
-        <Card className="p-6">
-          <div className="flex gap-4 mb-6">
-            <Skeleton className="h-10 w-48" />
-            <Skeleton className="h-10 flex-1" />
-          </div>
-          <Skeleton className="h-96" />
-        </Card>
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

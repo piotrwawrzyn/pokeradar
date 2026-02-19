@@ -19,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 import { CrudDialog } from '@/components/admin/crud-dialog';
@@ -37,7 +36,7 @@ import {
 import { useCrudDialog } from '@/hooks/use-crud-dialog';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import { toast } from 'sonner';
-import { Plus, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
 import type { AdminProduct } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 
@@ -241,9 +240,9 @@ export function ProductsTab() {
 
   if (isLoading) {
     return (
-      <Card className="p-6">
-        <Skeleton className="h-96" />
-      </Card>
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
     );
   }
 
