@@ -16,11 +16,11 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-3">
-          {isLoading ? null : isAuthenticated ? (
+          {!isLoading && (isAuthenticated ? (
             <UserMenu />
           ) : (
             <ClerkSignInButton className="h-9 text-sm" />
-          )}
+          ))}
         </div>
       </div>
     </header>

@@ -31,8 +31,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [signOut, queryClient]);
 
   const value: AuthContextValue = {
-    isAuthenticated: isSignedIn ?? false,
-    isLoading: !isLoaded,
+    isAuthenticated: isSignedIn === true,
+    isLoading: !isLoaded || isSignedIn === undefined,
     user: user
       ? {
           id: user.id,

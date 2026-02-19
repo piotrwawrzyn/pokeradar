@@ -5,12 +5,13 @@ import { Info, Bell } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useUserProfile } from '@/hooks/use-user-profile';
 
-type WatchlistState = 'not-logged-in' | 'no-notifications' | 'ready';
+type WatchlistState = 'loading' | 'not-logged-in' | 'no-notifications' | 'ready';
 
 export function useWatchlistState(): WatchlistState {
-  const { isAuthenticated } = useAuth();
-  const { data: profile } = useUserProfile();
+  const { isAuthenticated, isLoading } = useAuth();
+  const { data: profile, isLoading: isProfileLoading } = useUserProfile();
 
+  if (isLoading || (isAuthenticated && isProfileLoading)) return 'loading';
   if (!isAuthenticated) return 'not-logged-in';
   if (!profile?.telegramLinked) return 'no-notifications';
   return 'ready';
@@ -19,7 +20,7 @@ export function useWatchlistState(): WatchlistState {
 export function WatchlistBanner() {
   const state = useWatchlistState();
 
-  if (state === 'ready') return null;
+  if (state === 'loading' || state === 'ready') return null;
 
   if (state === 'not-logged-in') {
     return (
