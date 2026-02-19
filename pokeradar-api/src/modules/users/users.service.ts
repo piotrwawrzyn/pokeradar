@@ -1,17 +1,22 @@
 import crypto from 'crypto';
+import { clerkClient } from '@clerk/express';
 import { UserModel } from '../../infrastructure/database/models';
 import { UserProfileResponse, TelegramLinkTokenResponse } from '../../shared/types';
 import { NotFoundError } from '../../shared/middleware';
 
 export class UsersService {
-  async getProfile(userId: string): Promise<UserProfileResponse> {
-    const user = await UserModel.findById(userId).lean();
+  async getProfile(userId: string, clerkId: string): Promise<UserProfileResponse> {
+    const [user, clerkUser] = await Promise.all([
+      UserModel.findById(userId).lean(),
+      clerkClient.users.getUser(clerkId),
+    ]);
+
     if (!user) throw new NotFoundError('User not found');
 
     return {
       id: user._id.toString(),
-      email: user.email,
-      displayName: user.displayName,
+      email: clerkUser.emailAddresses[0]?.emailAddress ?? '',
+      displayName: clerkUser.fullName ?? '',
       telegramLinked: user.telegramChatId !== null,
       telegramLinkToken: user.telegramLinkToken ?? null,
     };

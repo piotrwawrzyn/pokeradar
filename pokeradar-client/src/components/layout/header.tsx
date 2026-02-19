@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
-import { GoogleLoginButton } from '@/components/auth/google-login-button';
+import { ClerkSignInButton } from '@/components/auth/sign-in-button';
 import { UserMenu } from '@/components/auth/user-menu';
 
 export function Header() {
@@ -19,7 +19,7 @@ export function Header() {
           {isLoading ? null : isAuthenticated ? (
             <UserMenu />
           ) : (
-            <GoogleLoginButton className="h-9 text-sm" />
+            <ClerkSignInButton className="h-9 text-sm" />
           )}
         </div>
       </div>

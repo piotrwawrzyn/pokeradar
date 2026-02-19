@@ -72,20 +72,24 @@ export interface ProductType {
   search: { phrases?: string[]; exclude?: string[] };
 }
 
-export interface AdminUser {
-  id: string;
+export interface AdminUserSearchItem {
+  clerkId: string;
   email: string;
   displayName: string;
   isAdmin: boolean;
   telegramLinked: boolean;
-  lastLogin: string | null;
-  watchlistCount: number;
-  createdAt: string;
 }
 
-export interface AdminUserDetail extends AdminUser {
-  googleId: string;
+export interface AdminUserDetail {
+  clerkId: string;
+  email: string;
+  displayName: string;
+  isAdmin: boolean;
+  telegramLinked: boolean;
   telegramChatId: string | null;
+  lastLogin: string | null;
+  createdAt: string;
+  watchlistCount: number;
   watchlistEntries: Array<{
     productId: string;
     productName: string;
@@ -138,29 +142,9 @@ export interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-export interface AppSettings {
-  signupsEnabled: boolean;
-  loginEnabled: boolean;
-}
-
 // ===== API CLIENT =====
 
 export const adminApi = {
-  // Admin identity check
-  checkAdmin: async (): Promise<boolean> => {
-    try {
-      await apiClient.get('/admin/me');
-      return true;
-    } catch {
-      return false;
-    }
-  },
-
-  // Settings
-  getSettings: () => apiClient.get<AppSettings>('/admin/settings').then((r) => r.data),
-  updateSettings: (data: Partial<AppSettings>) =>
-    apiClient.patch<AppSettings>('/admin/settings', data).then((r) => r.data),
-
   // Shops
   getShops: () =>
     apiClient.get<AdminShopSummary[]>('/admin/shops').then((r) => r.data),
@@ -231,9 +215,12 @@ export const adminApi = {
   deleteProductType: (id: string) => apiClient.delete(`/admin/product-types/${id}`),
 
   // Users
-  getUsers: () => apiClient.get<AdminUser[]>('/admin/users').then((r) => r.data),
-  getUser: (id: string) =>
-    apiClient.get<AdminUserDetail>(`/admin/users/${id}`).then((r) => r.data),
+  searchUsers: (query: string) =>
+    apiClient
+      .get<AdminUserSearchItem[]>('/admin/users', { params: { search: query } })
+      .then((r) => r.data),
+  getUser: (clerkId: string) =>
+    apiClient.get<AdminUserDetail>(`/admin/users/${clerkId}`).then((r) => r.data),
 
   // Notifications
   getNotifications: (params?: {

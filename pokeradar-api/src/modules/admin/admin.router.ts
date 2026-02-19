@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { validate, imageUpload } from '../../shared/middleware';
-import { AdminController } from './admin.controller';
 import { AdminShopsController } from './admin-shops.controller';
 import { AdminProductsController } from './admin-products.controller';
 import { AdminUsersController } from './admin-users.controller';
@@ -15,20 +14,10 @@ import {
 } from './admin.validation';
 
 const router = Router();
-const settingsCtrl = new AdminController();
 const shopsCtrl = new AdminShopsController();
 const productsCtrl = new AdminProductsController();
 const usersCtrl = new AdminUsersController();
 const notificationsCtrl = new AdminNotificationsController();
-
-// Admin identity check
-router.get('/me', (req, res, next) => settingsCtrl.getMe(req, res, next));
-
-// Settings
-router.get('/settings', (req, res, next) => settingsCtrl.getSettings(req, res, next));
-router.patch('/settings', (req, res, next) =>
-  settingsCtrl.updateSettings(req, res, next),
-);
 
 // Shop monitoring
 router.get('/shops', (req, res, next) => shopsCtrl.list(req, res, next));
@@ -93,8 +82,8 @@ router.delete('/product-types/:id', (req, res, next) =>
 );
 
 // Users
-router.get('/users', (req, res, next) => usersCtrl.list(req, res, next));
-router.get('/users/:id', (req, res, next) => usersCtrl.getById(req, res, next));
+router.get('/users', (req, res, next) => usersCtrl.search(req, res, next));
+router.get('/users/:clerkId', (req, res, next) => usersCtrl.getById(req, res, next));
 
 // Notifications
 router.get('/notifications', (req, res, next) =>

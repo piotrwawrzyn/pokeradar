@@ -8,5 +8,4 @@ export type {
   ProductPriceResponse,
   UserProfileResponse,
   TelegramLinkTokenResponse,
-  AuthPayload,
 } from './api-responses.types';

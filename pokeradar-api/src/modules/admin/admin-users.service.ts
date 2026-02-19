@@ -1,3 +1,4 @@
+import { clerkClient } from '@clerk/express';
 import {
   UserModel,
   UserWatchEntryModel,
@@ -6,20 +7,24 @@ import {
 } from '../../infrastructure/database/models';
 import { NotFoundError } from '../../shared/middleware';
 
-export interface AdminUserListItem {
-  id: string;
+export interface AdminUserSearchItem {
+  clerkId: string;
   email: string;
   displayName: string;
   isAdmin: boolean;
   telegramLinked: boolean;
-  lastLogin: Date | null;
-  watchlistCount: number;
-  createdAt: Date;
 }
 
-export interface AdminUserDetail extends AdminUserListItem {
-  googleId: string;
+export interface AdminUserDetail {
+  clerkId: string;
+  email: string;
+  displayName: string;
+  isAdmin: boolean;
+  telegramLinked: boolean;
   telegramChatId: string | null;
+  lastLogin: Date | null;
+  createdAt: Date;
+  watchlistCount: number;
   watchlistEntries: Array<{
     productId: string;
     productName: string;
@@ -44,73 +49,73 @@ export interface AdminUserDetail extends AdminUserListItem {
 }
 
 export class AdminUsersService {
-  async listUsers(): Promise<AdminUserListItem[]> {
-    const [users, watchlistCounts] = await Promise.all([
-      UserModel.find().sort({ createdAt: -1 }).lean(),
-      UserWatchEntryModel.aggregate([
-        { $group: { _id: '$userId', count: { $sum: 1 } } },
-      ]),
-    ]);
+  async searchUsers(query: string): Promise<AdminUserSearchItem[]> {
+    if (!query.trim()) return [];
 
-    const countMap = new Map<string, number>(
-      watchlistCounts.map((w: { _id: any; count: number }) => [
-        w._id.toString(),
-        w.count,
-      ]),
-    );
+    const { data: clerkUsers } = await clerkClient.users.getUserList({
+      query,
+      limit: 20,
+    });
 
-    return users.map((user) => ({
-      id: user._id.toString(),
-      email: user.email,
-      displayName: user.displayName,
-      isAdmin: user.isAdmin,
-      telegramLinked: user.telegramChatId !== null,
-      lastLogin: user.lastLogin ?? null,
-      watchlistCount: countMap.get(user._id.toString()) ?? 0,
-      createdAt: user.createdAt,
+    const clerkIds = clerkUsers.map((u) => u.id);
+    const dbUsers = await UserModel.find({ clerkId: { $in: clerkIds } }).lean();
+    const dbMap = new Map(dbUsers.map((u) => [u.clerkId, u]));
+
+    return clerkUsers.map((cu) => ({
+      clerkId: cu.id,
+      email: cu.emailAddresses[0]?.emailAddress ?? '',
+      displayName: cu.fullName ?? '',
+      isAdmin: (cu.publicMetadata as any)?.isAdmin === true,
+      telegramLinked: (dbMap.get(cu.id)?.telegramChatId ?? null) !== null,
     }));
   }
 
-  async getUserDetail(userId: string): Promise<AdminUserDetail> {
-    const user = await UserModel.findById(userId).lean();
-    if (!user) throw new NotFoundError('User not found');
-
-    const [watchEntries, notifications] = await Promise.all([
-      UserWatchEntryModel.find({ userId: user._id }).lean(),
-      NotificationModel.find({ userId: user._id.toString() })
-        .sort({ createdAt: -1 })
-        .limit(100)
-        .lean(),
+  async getUserDetail(clerkId: string): Promise<AdminUserDetail> {
+    const [clerkUser, dbUser] = await Promise.all([
+      clerkClient.users.getUser(clerkId),
+      UserModel.findOne({ clerkId }).lean(),
     ]);
 
-    const productIds = watchEntries.map((e) => e.productId);
-    const products = await WatchlistProductModel.find({ id: { $in: productIds } })
-      .select('id name')
-      .lean();
+    if (!clerkUser) throw new NotFoundError('User not found');
+
+    const mongoId = dbUser?._id;
+
+    const [watchEntries, notifications, watchlistCount] = await Promise.all([
+      mongoId ? UserWatchEntryModel.find({ userId: mongoId }).lean() : [],
+      mongoId
+        ? NotificationModel.find({ userId: mongoId.toString() })
+            .sort({ createdAt: -1 })
+            .limit(100)
+            .lean()
+        : [],
+      mongoId ? UserWatchEntryModel.countDocuments({ userId: mongoId }) : 0,
+    ]);
+
+    const productIds = (watchEntries as any[]).map((e) => e.productId);
+    const products = productIds.length
+      ? await WatchlistProductModel.find({ id: { $in: productIds } })
+          .select('id name')
+          .lean()
+      : [];
     const productNameMap = new Map(products.map((p) => [p.id, p.name]));
 
-    const watchlistCounts = await UserWatchEntryModel.countDocuments({
-      userId: user._id,
-    });
-
     return {
-      id: user._id.toString(),
-      email: user.email,
-      displayName: user.displayName,
-      isAdmin: user.isAdmin,
-      telegramLinked: user.telegramChatId !== null,
-      lastLogin: user.lastLogin ?? null,
-      watchlistCount: watchlistCounts,
-      createdAt: user.createdAt,
-      googleId: user.googleId,
-      telegramChatId: user.telegramChatId,
-      watchlistEntries: watchEntries.map((e) => ({
+      clerkId,
+      email: clerkUser.emailAddresses[0]?.emailAddress ?? '',
+      displayName: clerkUser.fullName ?? '',
+      isAdmin: (clerkUser.publicMetadata as any)?.isAdmin === true,
+      telegramLinked: (dbUser?.telegramChatId ?? null) !== null,
+      telegramChatId: dbUser?.telegramChatId ?? null,
+      lastLogin: clerkUser.lastSignInAt ? new Date(clerkUser.lastSignInAt) : null,
+      createdAt: new Date(clerkUser.createdAt),
+      watchlistCount,
+      watchlistEntries: (watchEntries as any[]).map((e) => ({
         productId: e.productId,
         productName: productNameMap.get(e.productId) ?? e.productId,
         maxPrice: e.maxPrice,
         isActive: e.isActive,
       })),
-      notifications: notifications.map((n) => ({
+      notifications: (notifications as any[]).map((n) => ({
         id: n._id.toString(),
         channel: n.channel,
         status: n.status,

@@ -1,88 +1,77 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { StatusBadge } from '@/components/admin/status-badge';
-import { useAdminUsers } from '@/hooks/use-admin';
+import { useAdminUserSearch } from '@/hooks/use-admin';
+import { Search } from 'lucide-react';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export function AdminUsersPage() {
-  const { data: users, isLoading } = useAdminUsers();
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 400);
+  const { data: users, isLoading } = useAdminUserSearch(debouncedQuery);
   const navigate = useNavigate();
-
-  if (isLoading) {
-    return (
-      <div>
-        <h1 className="text-2xl font-bold mb-6">Użytkownicy</h1>
-        <Card>
-          <div className="p-6 space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
-          </div>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Użytkownicy</h1>
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Użytkownik</TableHead>
-              <TableHead>Telegram</TableHead>
-              <TableHead>Admin</TableHead>
-              <TableHead>Watchlista</TableHead>
-              <TableHead>Ostatnie logowanie</TableHead>
-              <TableHead>Data rejestracji</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {users?.map((user) => (
-              <TableRow
-                key={user.id}
-                className="cursor-pointer hover:bg-accent/50"
-                onClick={() => navigate(`/admin/users/${user.id}`)}
+      <h1 className="text-2xl font-bold mb-6">Wyszukaj użytkownika</h1>
+
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          className="pl-9"
+          placeholder="Wpisz email lub imię..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </div>
+
+      {!debouncedQuery.trim() && (
+        <p className="text-muted-foreground text-sm">
+          Wpisz zapytanie, aby wyszukać użytkowników.
+        </p>
+      )}
+
+      {debouncedQuery.trim() && isLoading && (
+        <Card className="p-6 space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full" />
+          ))}
+        </Card>
+      )}
+
+      {debouncedQuery.trim() && !isLoading && users && users.length === 0 && (
+        <p className="text-muted-foreground text-sm">Nie znaleziono użytkowników.</p>
+      )}
+
+      {users && users.length > 0 && (
+        <Card>
+          <div className="divide-y divide-border">
+            {users.map((user) => (
+              <div
+                key={user.clerkId}
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => navigate(`/admin/users/${user.clerkId}`)}
               >
-                <TableCell className="align-middle">
-                  <div>
-                    <div className="font-medium">{user.displayName}</div>
-                    <div className="text-xs text-muted-foreground">{user.email}</div>
-                  </div>
-                </TableCell>
-                <TableCell className="align-middle">
-                  {user.telegramLinked ? (
-                    <StatusBadge status="ok" label="Połączony" />
-                  ) : (
-                    <StatusBadge status="inactive" label="Brak" />
-                  )}
-                </TableCell>
-                <TableCell className="align-middle">
+                <div>
+                  <div className="font-medium">{user.displayName}</div>
+                  <div className="text-xs text-muted-foreground">{user.email}</div>
+                </div>
+                <div className="flex gap-2">
                   {user.isAdmin && <StatusBadge status="ok" label="Admin" />}
-                </TableCell>
-                <TableCell className="align-middle">{user.watchlistCount}</TableCell>
-                <TableCell className="text-sm text-muted-foreground align-middle">
-                  {user.lastLogin
-                    ? new Date(user.lastLogin).toLocaleString('pl-PL')
-                    : 'Nigdy'}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground align-middle">
-                  {new Date(user.createdAt).toLocaleDateString('pl-PL')}
-                </TableCell>
-              </TableRow>
+                  {user.telegramLinked ? (
+                    <StatusBadge status="ok" label="Telegram" />
+                  ) : (
+                    <StatusBadge status="inactive" label="Brak Telegram" />
+                  )}
+                </div>
+              </div>
             ))}
-          </TableBody>
-        </Table>
-      </Card>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

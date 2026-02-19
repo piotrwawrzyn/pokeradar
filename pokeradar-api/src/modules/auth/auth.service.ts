@@ -1,28 +1,22 @@
-import jwt from 'jsonwebtoken';
-import { env } from '../../config/env';
-import { UserModel, IUserDoc } from '../../infrastructure/database/models';
-import { AuthPayload, UserProfileResponse } from '../../shared/types';
+import { clerkClient } from '@clerk/express';
+import { UserModel } from '../../infrastructure/database/models';
+import { UserProfileResponse } from '../../shared/types';
 
 export class AuthService {
-  generateToken(user: IUserDoc): string {
-    const payload: AuthPayload = {
-      userId: user._id.toString(),
-      email: user.email,
-    };
-
-    return jwt.sign(payload, env.JWT_SECRET, {
-      expiresIn: env.JWT_EXPIRES_IN,
-    } as jwt.SignOptions);
-  }
-
-  async getUserProfile(userId: string): Promise<UserProfileResponse | null> {
-    const user = await UserModel.findById(userId).lean();
+  async getUserProfile(
+    userId: string,
+    clerkId: string
+  ): Promise<UserProfileResponse | null> {
+    const [user, clerkUser] = await Promise.all([
+      UserModel.findById(userId).lean(),
+      clerkClient.users.getUser(clerkId),
+    ]);
     if (!user) return null;
 
     return {
       id: user._id.toString(),
-      email: user.email,
-      displayName: user.displayName,
+      email: clerkUser.emailAddresses[0]?.emailAddress ?? '',
+      displayName: clerkUser.fullName ?? '',
       telegramLinked: user.telegramChatId !== null,
       telegramLinkToken: user.telegramLinkToken ?? null,
     };

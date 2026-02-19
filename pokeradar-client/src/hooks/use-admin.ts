@@ -1,32 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useUser } from '@clerk/clerk-react';
 import { adminApi } from '@/api/admin.api';
-import { useAuth } from './use-auth';
 
-// Admin identity check
+// Admin identity check — reads from Clerk publicMetadata (no API call)
 export function useIsAdmin() {
-  const { isAuthenticated } = useAuth();
-  return useQuery({
-    queryKey: ['admin', 'me'],
-    queryFn: adminApi.checkAdmin,
-    enabled: isAuthenticated,
-    staleTime: Infinity, // Admin status doesn't change during session
-  });
-}
-
-// Settings
-export function useAdminSettings() {
-  return useQuery({
-    queryKey: ['admin', 'settings'],
-    queryFn: adminApi.getSettings,
-  });
-}
-
-export function useUpdateAdminSettings() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: adminApi.updateSettings,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'settings'] }),
-  });
+  const { user, isLoaded } = useUser();
+  return {
+    data: (user?.publicMetadata as any)?.isAdmin === true,
+    isLoading: !isLoaded,
+  };
 }
 
 // Shops
@@ -205,18 +187,19 @@ export function useDeleteProductType() {
 }
 
 // Users
-export function useAdminUsers() {
+export function useAdminUserSearch(query: string) {
   return useQuery({
-    queryKey: ['admin', 'users'],
-    queryFn: adminApi.getUsers,
+    queryKey: ['admin', 'users', 'search', query],
+    queryFn: () => adminApi.searchUsers(query),
+    enabled: query.trim().length > 0,
   });
 }
 
-export function useAdminUserDetail(userId: string) {
+export function useAdminUserDetail(clerkId: string) {
   return useQuery({
-    queryKey: ['admin', 'users', userId],
-    queryFn: () => adminApi.getUser(userId),
-    enabled: !!userId,
+    queryKey: ['admin', 'users', clerkId],
+    queryFn: () => adminApi.getUser(clerkId),
+    enabled: !!clerkId,
   });
 }
 

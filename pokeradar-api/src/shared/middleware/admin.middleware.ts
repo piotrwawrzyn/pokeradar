@@ -1,19 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserModel } from '../../infrastructure/database/models';
+import { getAuth } from '@clerk/express';
 
-export async function adminMiddleware(
+export function adminMiddleware(
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> {
-  try {
-    const user = await UserModel.findById(req.user!.userId).lean();
-    if (!user?.isAdmin) {
-      res.status(403).json({ error: 'Admin access required' });
-      return;
-    }
-    next();
-  } catch {
-    res.status(500).json({ error: 'Internal server error' });
+): void {
+  const { sessionClaims } = getAuth(req);
+  const isAdmin = (sessionClaims?.metadata as Record<string, unknown>)?.isAdmin === true;
+  if (!isAdmin) {
+    res.status(403).json({ error: 'Admin access required' });
+    return;
   }
+  next();
 }

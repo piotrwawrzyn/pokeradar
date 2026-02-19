@@ -94,7 +94,7 @@ describe('Watchlist API', () => {
     });
 
     it('should not show other users entries', async () => {
-      const other = await createTestUser({ googleId: 'other-google', email: 'other@test.com' });
+      const other = await createTestUser({});
 
       await request(app)
         .post('/watchlist')
@@ -127,7 +127,7 @@ describe('Watchlist API', () => {
     });
 
     it('should return 404 for another users entry', async () => {
-      const other = await createTestUser({ googleId: 'other-google', email: 'other@test.com' });
+      const other = await createTestUser({});
 
       const created = await request(app)
         .post('/watchlist')
@@ -164,7 +164,7 @@ describe('Watchlist API', () => {
     });
 
     it('should return 404 for another users entry', async () => {
-      const other = await createTestUser({ googleId: 'other-google', email: 'other@test.com' });
+      const other = await createTestUser({});
 
       const created = await request(app)
         .post('/watchlist')
@@ -234,7 +234,7 @@ describe('Watchlist API', () => {
 
     it('should only delete notifications/states for the current user, not other users', async () => {
       // Create another user
-      const otherUser = await createTestUser({ googleId: 'other-google', email: 'other@test.com' });
+      const otherUser = await createTestUser({});
       const otherUserId = otherUser.user._id.toString();
 
       // Both users add the same product to watchlist

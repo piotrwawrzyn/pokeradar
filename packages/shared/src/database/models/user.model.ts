@@ -1,11 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IUserDoc extends Document {
-  googleId: string;
-  email: string;
-  displayName: string;
-  isAdmin: boolean;
-  lastLogin: Date | null;
+  clerkId: string;
   telegramChatId: string | null;
   telegramLinkToken: string | null;
   createdAt: Date;
@@ -14,11 +10,7 @@ export interface IUserDoc extends Document {
 
 const UserSchema = new Schema<IUserDoc>(
   {
-    googleId: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    displayName: { type: String, required: true },
-    isAdmin: { type: Boolean, default: false },
-    lastLogin: { type: Date, default: null },
+    clerkId: { type: String, required: true, unique: true },
     telegramChatId: { type: String, default: null },
     telegramLinkToken: { type: String, default: null },
   },

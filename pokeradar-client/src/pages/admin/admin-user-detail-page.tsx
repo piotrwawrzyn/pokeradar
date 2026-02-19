@@ -15,8 +15,8 @@ import { useAdminUserDetail } from '@/hooks/use-admin';
 import { ArrowLeft } from 'lucide-react';
 
 export function AdminUserDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const { data: user, isLoading } = useAdminUserDetail(id!);
+  const { clerkId } = useParams<{ clerkId: string }>();
+  const { data: user, isLoading } = useAdminUserDetail(clerkId!);
 
   if (isLoading) {
     return (
@@ -66,8 +66,8 @@ export function AdminUserDetailPage() {
           <h2 className="text-lg font-semibold mb-4">Informacje o profilu</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Google ID</p>
-              <p className="font-mono text-sm">{user.googleId}</p>
+              <p className="text-sm text-muted-foreground">Clerk ID</p>
+              <p className="font-mono text-sm">{user.clerkId}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Status</p>

@@ -21,7 +21,7 @@ function AuthenticatedWrapper({ children }: { children: ReactNode }) {
     isAuthenticated: true,
     isLoading: false,
     login: () => {},
-    logout: () => {},
+    logout: async () => {},
   };
   return (
     <QueryClientProvider client={createQueryClient()}>

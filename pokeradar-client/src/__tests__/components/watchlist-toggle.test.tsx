@@ -22,7 +22,7 @@ const authValue = {
   isAuthenticated: true,
   isLoading: false,
   login: () => {},
-  logout: () => {},
+  logout: async () => {},
 };
 
 function Wrapper({ children }: { children: ReactNode }) {

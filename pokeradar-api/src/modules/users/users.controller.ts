@@ -6,7 +6,7 @@ const usersService = new UsersService();
 export class UsersController {
   async getMe(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const profile = await usersService.getProfile(req.user!.userId);
+      const profile = await usersService.getProfile(req.user!.userId, req.user!.clerkId);
       res.json(profile);
     } catch (error) {
       next(error);

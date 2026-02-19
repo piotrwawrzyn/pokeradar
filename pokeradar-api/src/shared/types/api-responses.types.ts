@@ -24,8 +24,3 @@ export interface UserProfileResponse {
 export interface TelegramLinkTokenResponse {
   telegramLinkToken: string;
 }
-
-export interface AuthPayload {
-  userId: string;
-  email: string;
-}

@@ -4,9 +4,10 @@ import { AdminUsersService } from './admin-users.service';
 const usersService = new AdminUsersService();
 
 export class AdminUsersController {
-  async list(_req: Request, res: Response, next: NextFunction): Promise<void> {
+  async search(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const users = await usersService.listUsers();
+      const query = (req.query.search as string) ?? '';
+      const users = await usersService.searchUsers(query);
       res.json(users);
     } catch (error) {
       next(error);
@@ -15,7 +16,7 @@ export class AdminUsersController {
 
   async getById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = await usersService.getUserDetail(req.params.id as string);
+      const user = await usersService.getUserDetail(req.params.clerkId as string);
       res.json(user);
     } catch (error) {
       next(error);

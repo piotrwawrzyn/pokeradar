@@ -1,3 +1,4 @@
+import { clerkClient } from '@clerk/express';
 import {
   NotificationModel,
   UserModel,
@@ -55,10 +56,22 @@ export class AdminNotificationsService {
     ]);
 
     const userIds = [...new Set(notifications.map((n) => n.userId))];
-    const users = await UserModel.find({ _id: { $in: userIds } })
-      .select('_id email')
+    // Fetch clerkIds from MongoDB, then batch-fetch emails from Clerk
+    const dbUsers = await UserModel.find({ _id: { $in: userIds } })
+      .select('_id clerkId')
       .lean();
-    const emailMap = new Map(users.map((u) => [u._id.toString(), u.email]));
+    const mongoIdToClerkId = new Map(dbUsers.map((u) => [u._id.toString(), u.clerkId]));
+    const clerkIds = dbUsers.map((u) => u.clerkId).filter(Boolean);
+    const { data: clerkUsers } =
+      clerkIds.length > 0
+        ? await clerkClient.users.getUserList({ userId: clerkIds, limit: clerkIds.length })
+        : { data: [] };
+    const clerkEmailMap = new Map(
+      clerkUsers.map((u) => [u.id, u.emailAddresses[0]?.emailAddress ?? 'unknown'])
+    );
+    const emailMap = new Map(
+      dbUsers.map((u) => [u._id.toString(), clerkEmailMap.get(u.clerkId) ?? 'unknown'])
+    );
 
     return {
       data: notifications.map((n) => ({

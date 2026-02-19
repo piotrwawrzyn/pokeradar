@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { GoogleLoginButton } from './google-login-button';
+import { ClerkSignInButton } from './sign-in-button';
 import { ShieldAlert } from 'lucide-react';
 
 export function AuthGuard({ children }: { children: ReactNode }) {
@@ -19,7 +19,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             <p className="mb-4">
               Musisz się zalogować, aby uzyskać dostęp do tej strony.
             </p>
-            <GoogleLoginButton />
+            <ClerkSignInButton />
           </AlertDescription>
         </Alert>
       </div>

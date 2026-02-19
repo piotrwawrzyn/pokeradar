@@ -85,6 +85,12 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Prevent Tailwind's global border/outline reset from clobbering Clerk modal elements */
+  [class^="cl-"],
+  [class*=" cl-"] {
+    border-color: revert;
+    outline: revert;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
@@ -102,4 +108,84 @@
   [type="reset"] {
     cursor: pointer;
   }
+}
+
+/* ── Clerk modal overrides ────────────────────────────────────────────────── */
+/* Clerk renders at document.body, so global CSS reaches it.                  */
+/* Hover/focus/active states can't be set via the appearance API — only here. */
+
+
+/* Close button — neutral hover, not amber */
+.cl-modalCloseButton:hover,
+.cl-modalCloseButton:hover svg,
+.cl-modalCloseButton:hover path {
+  color: #f0efec !important;
+  fill: #f0efec !important;
+}
+
+/* Darken the backdrop */
+.cl-modalBackdrop {
+  background-color: rgba(0, 0, 0, 0.72) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* Social / OAuth buttons */
+.cl-socialButtonsBlockButton:hover {
+  background-color: #2b2c34 !important;  /* app secondary/muted */
+  border-color: #383944 !important;
+  transform: none !important;
+}
+
+/* Primary CTA button — matches app's "Zaloguj się" button exactly */
+.cl-formButtonPrimary {
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  border-radius: calc(0.625rem - 2px) !important; /* rounded-md = --radius-md */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.cl-formButtonPrimary:hover {
+  background-color: #d9a224 !important; /* primary/90 */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
+  transform: none !important;
+}
+
+/* Secondary / outline buttons */
+.cl-alternativeMethodsBlockButton:hover {
+  background-color: #2b2c34 !important;
+  border-color: #383944 !important;
+}
+
+/* Back / ghost buttons */
+.cl-formButtonReset:hover {
+  color: #f0efec !important;
+}
+
+/* Error alert */
+.cl-alert {
+  background-color: rgba(248, 113, 113, 0.08) !important;
+  border: 1px solid rgba(248, 113, 113, 0.3) !important;
+  border-radius: calc(0.625rem - 2px) !important;
+}
+
+/* OTP / verification code digit inputs */
+.cl-otpCodeFieldInput {
+  background-color: #272830 !important;
+  color: #f0efec !important;
+}
+
+/* Footer / action links */
+.cl-footerActionLink:hover,
+.cl-formFieldAction:hover {
+  color: #fcd34d !important;
+  text-decoration: underline;
+}
+
+/* Hide "last used" badge */
+.cl-lastAuthenticationStrategyBadge {
+  display: none !important;
 }

@@ -1,89 +1,51 @@
-import {
-  createContext,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, type ReactNode } from 'react';
+import { useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authApi } from '@/api/auth.api';
-import { apiClient, TOKEN_KEY } from '@/api/client';
-import type { UserProfile } from '@/types';
 
-interface AuthState {
-  token: string | null;
-  user: UserProfile | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (token: string) => void;
-  logout: () => void;
+export interface AuthUser {
+  id: string;
+  email: string;
+  displayName: string;
+  telegramLinked: boolean;
+  telegramLinkToken: string | null;
 }
 
-export const AuthContext = createContext<AuthState | null>(null);
+export interface AuthContextValue {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: AuthUser | null;
+  logout: () => Promise<void>;
+  login: (token: string) => void;
+}
+
+export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { isSignedIn, isLoaded, signOut } = useClerkAuth();
+  const { user } = useUser();
   const queryClient = useQueryClient();
-  const [token, setToken] = useState<string | null>(
-    () => localStorage.getItem(TOKEN_KEY),
-  );
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(!!localStorage.getItem(TOKEN_KEY));
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    setToken(null);
-    setUser(null);
+  const logout = useCallback(async () => {
     queryClient.clear();
-  }, [queryClient]);
+    await signOut();
+  }, [signOut, queryClient]);
 
-  const login = useCallback((newToken: string) => {
-    localStorage.setItem(TOKEN_KEY, newToken);
-    setToken(newToken);
-  }, []);
-
-  // Validate token on mount / token change
-  useEffect(() => {
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    authApi
-      .getMe()
-      .then(setUser)
-      .catch(() => {
-        // 401 handled by response interceptor. Other errors shouldn't clear the session.
-      })
-      .finally(() => setIsLoading(false));
-  }, [token, logout]);
-
-  // 401 interceptor
-  useEffect(() => {
-    const id = apiClient.interceptors.response.use(
-      (res) => res,
-      (err) => {
-        if (err.response?.status === 401) {
-          logout();
+  const value: AuthContextValue = {
+    isAuthenticated: isSignedIn ?? false,
+    isLoading: !isLoaded,
+    user: user
+      ? {
+          id: user.id,
+          email: user.primaryEmailAddress?.emailAddress ?? '',
+          displayName:
+            user.fullName ?? user.primaryEmailAddress?.emailAddress ?? '',
+          telegramLinked: false,
+          telegramLinkToken: null,
         }
-        return Promise.reject(err);
-      },
-    );
-    return () => apiClient.interceptors.response.eject(id);
-  }, [logout]);
-
-  const value = useMemo<AuthState>(
-    () => ({
-      token,
-      user,
-      isAuthenticated: !!user,
-      isLoading,
-      login,
-      logout,
-    }),
-    [token, user, isLoading, login, logout],
-  );
+      : null,
+    logout,
+    login: (_token: string) => {},
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

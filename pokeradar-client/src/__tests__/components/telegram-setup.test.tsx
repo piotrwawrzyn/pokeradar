@@ -26,7 +26,7 @@ function makeWrapper(user: typeof mockUser) {
     isAuthenticated: true,
     isLoading: false,
     login: () => {},
-    logout: () => {},
+    logout: async () => {},
   };
 
   return function Wrapper({ children }: { children: ReactNode }) {

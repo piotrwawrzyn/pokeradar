@@ -1,44 +1,47 @@
 import request from 'supertest';
-import jwt from 'jsonwebtoken';
 import app from '../../src/app';
+import { UserModel } from '../../src/infrastructure/database/models';
 
-describe('Auth Middleware', () => {
-  it('should return 401 without Authorization header', async () => {
-    const res = await request(app).get('/watchlist');
-    expect(res.status).toBe(401);
-    expect(res.body.error).toBe('Missing or invalid authorization header');
-  });
+// The @clerk/express mock in setup.ts extracts the Bearer token value and uses
+// it as req.auth.userId. So 'Bearer my-clerk-id' → req.auth.userId = 'my-clerk-id'.
+// resolveDbUser then finds/creates a MongoDB record for that clerkId.
 
-  it('should return 401 with malformed header', async () => {
+describe('resolveDbUser middleware', () => {
+  it('creates a new MongoDB user on first authenticated request', async () => {
     const res = await request(app)
       .get('/watchlist')
-      .set('Authorization', 'NotBearer token');
+      .set('Authorization', 'Bearer clerk_new_user');
 
-    expect(res.status).toBe(401);
-    expect(res.body.error).toBe('Missing or invalid authorization header');
+    expect(res.status).not.toBe(401);
+    const user = await UserModel.findOne({ clerkId: 'clerk_new_user' });
+    expect(user).not.toBeNull();
+    expect(user!.clerkId).toBe('clerk_new_user');
   });
 
-  it('should return 401 with invalid token', async () => {
-    const res = await request(app)
-      .get('/watchlist')
-      .set('Authorization', 'Bearer invalid.token.here');
+  it('reuses existing MongoDB user on subsequent requests', async () => {
+    await UserModel.create({ clerkId: 'clerk_existing' });
 
-    expect(res.status).toBe(401);
-    expect(res.body.error).toBe('Invalid or expired token');
+    await request(app)
+      .get('/watchlist')
+      .set('Authorization', 'Bearer clerk_existing');
+
+    const count = await UserModel.countDocuments({ clerkId: 'clerk_existing' });
+    expect(count).toBe(1);
   });
 
-  it('should return 401 with expired token', async () => {
-    const token = jwt.sign(
-      { userId: 'some-id', email: 'test@test.com' },
-      process.env.JWT_SECRET!,
-      { expiresIn: '-1s' } as jwt.SignOptions
-    );
-
-    const res = await request(app)
+  it('creates separate users for different Clerk IDs', async () => {
+    await request(app)
       .get('/watchlist')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Authorization', 'Bearer clerk_user_a');
 
-    expect(res.status).toBe(401);
-    expect(res.body.error).toBe('Invalid or expired token');
+    await request(app)
+      .get('/watchlist')
+      .set('Authorization', 'Bearer clerk_user_b');
+
+    const userA = await UserModel.findOne({ clerkId: 'clerk_user_a' });
+    const userB = await UserModel.findOne({ clerkId: 'clerk_user_b' });
+    expect(userA).not.toBeNull();
+    expect(userB).not.toBeNull();
+    expect(userA!._id.toString()).not.toBe(userB!._id.toString());
   });
 });

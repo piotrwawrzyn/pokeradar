@@ -1,14 +1,13 @@
 import { Outlet, NavLink, Link } from 'react-router-dom';
 import { AdminGuard } from '@/components/auth/admin-guard';
 import { Toaster } from '@/components/ui/sonner';
-import { Store, Package, Users, Bell, Settings, ArrowLeft } from 'lucide-react';
+import { Store, Package, Users, Bell, ArrowLeft } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/admin/shops', label: 'Sklepy', icon: Store },
   { to: '/admin/products', label: 'Produkty', icon: Package },
   { to: '/admin/users', label: 'Użytkownicy', icon: Users },
   { to: '/admin/notifications', label: 'Powiadomienia', icon: Bell },
-  { to: '/admin/settings', label: 'Ustawienia', icon: Settings },
 ];
 
 function AdminLayoutContent() {
