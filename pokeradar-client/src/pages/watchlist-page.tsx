@@ -30,7 +30,7 @@ export function WatchlistPage() {
 
         <div className="relative">
           <h1 className="text-xl font-bold sm:text-2xl tracking-tight text-foreground">
-            Nie przegap żadnej okazji na Pokémon TCG
+            Nie przegap żadnej okazji na <span className="text-primary">Pokémon TCG</span>
           </h1>
           <p className="text-muted-foreground mt-3 text-sm sm:text-base leading-relaxed">
             Monitorujemy ceny w <span className="text-foreground font-semibold">ponad 100 polskich sklepach</span> i wysyłamy
