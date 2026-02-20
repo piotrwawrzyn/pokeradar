@@ -46,39 +46,48 @@
 }
 
 /* Pikachu Dark Theme — amber/yellow primary on charcoal */
+/* JS counterparts (used by Clerk appearance API) live in src/theme.ts — keep in sync. */
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.16 0.01 260);
+  --background: oklch(0.15 0.01 260);
   --foreground: oklch(0.95 0.01 90);
-  --card: oklch(0.20 0.01 260);
+  --card: oklch(0.22 0.01 260);
   --card-foreground: oklch(0.95 0.01 90);
-  --popover: oklch(0.20 0.01 260);
+  --popover: oklch(0.22 0.01 260);
   --popover-foreground: oklch(0.95 0.01 90);
   --primary: oklch(0.82 0.17 85);
   --primary-foreground: oklch(0.16 0.02 60);
-  --secondary: oklch(0.25 0.01 260);
+  --secondary: oklch(0.28 0.01 260);
   --secondary-foreground: oklch(0.92 0.02 90);
-  --muted: oklch(0.25 0.01 260);
+  --muted: oklch(0.28 0.01 260);
   --muted-foreground: oklch(0.65 0.02 90);
   --accent: oklch(0.72 0.15 85);
   --accent-foreground: oklch(0.16 0.02 60);
   --destructive: oklch(0.65 0.22 25);
-  --border: oklch(0.30 0.01 260);
-  --input: oklch(0.28 0.01 260);
+  --border: oklch(0.33 0.01 260);
+  --input: oklch(0.31 0.01 260);
   --ring: oklch(0.45 0.02 260);
   --chart-1: oklch(0.82 0.17 85);
   --chart-2: oklch(0.70 0.14 160);
   --chart-3: oklch(0.60 0.18 30);
   --chart-4: oklch(0.75 0.12 200);
   --chart-5: oklch(0.65 0.20 330);
-  --sidebar: oklch(0.18 0.01 260);
+  --sidebar: oklch(0.19 0.01 260);
   --sidebar-foreground: oklch(0.95 0.01 90);
   --sidebar-primary: oklch(0.82 0.17 85);
   --sidebar-primary-foreground: oklch(0.16 0.02 60);
-  --sidebar-accent: oklch(0.25 0.01 260);
+  --sidebar-accent: oklch(0.28 0.01 260);
   --sidebar-accent-foreground: oklch(0.95 0.01 90);
-  --sidebar-border: oklch(0.30 0.01 260);
+  --sidebar-border: oklch(0.33 0.01 260);
   --sidebar-ring: oklch(0.82 0.17 85);
+  /* Derived tokens — used by the Clerk appearance API (see src/theme.ts) */
+  --radius-md:      calc(var(--radius) - 2px); /* theme.radiusMd */
+  --primary-hover:  oklch(0.74 0.15 85);       /* theme.primaryHover */
+  --primary-light:  oklch(0.87 0.17 85);       /* theme.primaryLight */
+  --border-light:   oklch(0.36 0.01 260);      /* theme.borderLight */
+  --border-lighter: oklch(0.39 0.01 260);      /* theme.borderLighter */
+  --input-hover:    oklch(0.29 0.01 260);      /* theme.inputHover */
+  --label-fg:       oklch(0.80 0.01 90);       /* theme.labelFg */
 }
 
 @layer base {
@@ -112,80 +121,28 @@
 
 /* ── Clerk modal overrides ────────────────────────────────────────────────── */
 /* Clerk renders at document.body, so global CSS reaches it.                  */
-/* Hover/focus/active states can't be set via the appearance API — only here. */
+/* Simple hover/focus/active states are handled via the appearance API in      */
+/* main.tsx. Only selectors targeting child elements remain here.              */
 
-
-/* Close button — neutral hover, not amber */
+/* Close button — neutral hover, not amber (targets child svg/path) */
 .cl-modalCloseButton:hover,
 .cl-modalCloseButton:hover svg,
 .cl-modalCloseButton:hover path {
-  color: #f0efec !important;
-  fill: #f0efec !important;
+  color: var(--foreground) !important;
+  fill: var(--foreground) !important;
 }
 
-/* Darken the backdrop */
-.cl-modalBackdrop {
-  background-color: rgba(0, 0, 0, 0.72) !important;
-  backdrop-filter: blur(4px) !important;
-}
-
-/* Social / OAuth buttons */
-.cl-socialButtonsBlockButton:hover {
-  background-color: #2b2c34 !important;  /* app secondary/muted */
-  border-color: #383944 !important;
-  transform: none !important;
-}
-
-/* Primary CTA button — matches app's "Zaloguj się" button exactly */
-.cl-formButtonPrimary {
-  font-family: inherit !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
-  letter-spacing: normal !important;
-  text-transform: none !important;
-  border-radius: calc(0.625rem - 2px) !important; /* rounded-md = --radius-md */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
-  transition: background-color 0.15s ease !important;
-}
-
-.cl-formButtonPrimary:hover {
-  background-color: #d9a224 !important; /* primary/90 */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15) !important;
-  transform: none !important;
-}
-
-/* Secondary / outline buttons */
-.cl-alternativeMethodsBlockButton:hover {
-  background-color: #2b2c34 !important;
-  border-color: #383944 !important;
-}
-
-/* Back / ghost buttons */
-.cl-formButtonReset:hover {
-  color: #f0efec !important;
+/* Social / OAuth and secondary buttons — suppress Clerk's ::before/::after glow */
+.cl-socialButtonsBlockButton::before,
+.cl-socialButtonsBlockButton::after,
+.cl-alternativeMethodsBlockButton::before,
+.cl-alternativeMethodsBlockButton::after {
+  display: none !important;
 }
 
 /* Error alert */
 .cl-alert {
-  background-color: rgba(248, 113, 113, 0.08) !important;
-  border: 1px solid rgba(248, 113, 113, 0.3) !important;
-  border-radius: calc(0.625rem - 2px) !important;
-}
-
-/* OTP / verification code digit inputs */
-.cl-otpCodeFieldInput {
-  background-color: #272830 !important;
-  color: #f0efec !important;
-}
-
-/* Footer / action links */
-.cl-footerActionLink:hover,
-.cl-formFieldAction:hover {
-  color: #fcd34d !important;
-  text-decoration: underline;
-}
-
-/* Hide "last used" badge */
-.cl-lastAuthenticationStrategyBadge {
-  display: none !important;
+  background-color: color-mix(in oklch, var(--destructive) 8%, transparent) !important;
+  border: 1px solid color-mix(in oklch, var(--destructive) 30%, transparent) !important;
+  border-radius: var(--radius-md) !important;
 }

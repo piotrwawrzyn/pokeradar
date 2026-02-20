@@ -7,6 +7,7 @@ import { AuthProvider } from '@/context/auth-context';
 import { useAuth } from '@/hooks/use-auth';
 import App from './App';
 import './index.css';
+import { theme } from './theme';
 
 function AuthLoadingGate({ children }: { children: React.ReactNode }) {
   const { isLoading } = useAuth();
@@ -35,21 +36,21 @@ const queryClient = new QueryClient({
 
 const clerkAppearance = {
   variables: {
-    colorBackground: '#18191e',       // oklch(0.16 0.01 260) — app background
-    colorInputBackground: '#272830',  // oklch(0.28 0.01 260) — app input
-    colorPrimary: '#f0b429',          // oklch(0.82 0.17 85)  — app primary
-    colorText: '#f0efec',             // oklch(0.95 0.01 90)  — app foreground
-    colorTextSecondary: '#9d9b94',    // oklch(0.65 0.02 90)  — app muted-foreground
-    colorInputText: '#f0efec',
-    colorDanger: '#f87171',
-    borderRadius: '0.625rem',
+    colorBackground:      theme.background,
+    colorInputBackground: theme.input,
+    colorPrimary:         theme.primary,
+    colorText:            theme.foreground,
+    colorTextSecondary:   theme.mutedFg,
+    colorInputText:       theme.foreground,
+    colorDanger:          theme.destructive,
+    borderRadius:         theme.radius,
     fontFamily: 'inherit',
     spacingUnit: '1rem',
   },
   elements: {
     card: {
-      backgroundColor: '#1d1e24',    // oklch(0.20 0.01 260) — app card
-      border: '1px solid #2b2c34',   // oklch(0.30 0.01 260) — app border
+      backgroundColor: theme.card,
+      border: `1px solid ${theme.border}`,
       boxShadow: '0 24px 64px rgba(0, 0, 0, 0.7)',
       padding: '1.75rem',
     },
@@ -59,71 +60,99 @@ const clerkAppearance = {
       backgroundColor: 'transparent',
     },
     headerTitle: {
-      color: '#f0efec',
+      color: theme.foreground,
       fontSize: '1.375rem',
       fontWeight: '700',
     },
-    headerSubtitle: { color: '#9d9b94', fontSize: '0.875rem' },
+    headerSubtitle: { color: theme.mutedFg, fontSize: '0.875rem' },
     socialButtonsBlockButton: {
-      backgroundColor: '#272830',    // oklch(0.28 0.01 260) — app input
-      border: '1px solid #2b2c34',   // oklch(0.30 0.01 260) — app border
-      color: '#f0efec',
+      backgroundColor: theme.border,   // needs contrast against card
+      border: `1px solid ${theme.borderLight}`,
+      color: theme.foreground,
       fontWeight: '500',
-      transition: 'background-color 0.15s ease',
+      transition: 'background-color 0.15s ease, border-color 0.15s ease',
+      '&:hover, &:focus, &:active': {
+        backgroundColor: theme.inputHover,
+        borderColor: theme.borderLighter,
+        boxShadow: 'none',
+        transform: 'none',
+      },
     },
-    socialButtonsBlockButtonText: { color: '#f0efec', fontWeight: '500' },
-    dividerLine: { backgroundColor: '#2b2c34' },
-    dividerText: { color: '#6b7280', fontSize: '0.75rem' },
-    formFieldLabel: { color: '#c9c7c0', fontWeight: '500', fontSize: '0.875rem' },
+    socialButtonsBlockButtonText: { color: theme.foreground, fontWeight: '500' },
+    dividerLine: { backgroundColor: theme.border },
+    dividerText: { color: theme.mutedFg, fontSize: '0.75rem' },
+    formFieldLabel: { color: theme.labelFg, fontWeight: '500', fontSize: '0.875rem' },
     formFieldInput: {
-      backgroundColor: '#272830',    // oklch(0.28 0.01 260) — app input
-      border: '1px solid #2b2c34',   // oklch(0.30 0.01 260) — app border
-      color: '#f0efec',
+      backgroundColor: theme.input,
+      border: `1px solid ${theme.border}`,
+      color: theme.foreground,
       boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
       transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
     },
     formButtonPrimary: {
-      backgroundColor: '#f0b429',
-      color: '#181a2a',
+      backgroundColor: theme.primary,
+      color: theme.primaryFg,
       fontWeight: '500',
       fontSize: '0.875rem',
       fontFamily: 'inherit',
       letterSpacing: 'normal',
       textTransform: 'none',
+      borderRadius: theme.radiusMd,
       boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
       transition: 'background-color 0.15s ease',
+      '&:hover, &:focus, &:active': {
+        backgroundColor: theme.primaryHover,
+        boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+        transform: 'none',
+      },
     },
-    footerActionLink: { color: '#f0b429', fontWeight: '500' },
-    formFieldAction: { color: '#f0b429' },
+    footerActionLink: {
+      color: theme.primary,
+      fontWeight: '500',
+      '&:hover': { color: theme.primaryLight, textDecoration: 'underline' },
+    },
+    formFieldAction: {
+      color: theme.primary,
+      '&:hover': { color: theme.primaryLight, textDecoration: 'underline' },
+    },
     // Secondary "use another method" button
     alternativeMethodsBlockButton: {
-      backgroundColor: '#272830',
-      border: '1px solid #2b2c34',
-      color: '#f0efec',
-      transition: 'background-color 0.15s ease',
+      backgroundColor: theme.border,   // needs contrast against card
+      border: `1px solid ${theme.borderLight}`,
+      color: theme.foreground,
+      transition: 'background-color 0.15s ease, border-color 0.15s ease',
+      '&:hover, &:focus, &:active': {
+        backgroundColor: theme.inputHover,
+        borderColor: theme.borderLighter,
+        boxShadow: 'none',
+        transform: 'none',
+      },
     },
     // Back / ghost buttons
     formButtonReset: {
-      color: '#9d9b94',
+      color: theme.mutedFg,
       transition: 'color 0.15s ease',
+      '&:hover': { color: theme.foreground },
     },
     // Error / info alerts
-    alertText: { color: '#f87171' },
+    alertText: { color: theme.destructive },
     // OTP screen
     otpCodeFieldInput: {
-      backgroundColor: '#272830',
+      backgroundColor: theme.input,
       border: 'none',
-      color: '#f0efec',
+      color: theme.foreground,
     },
     // Identity preview (shows email before OTP)
-    identityPreviewText: { color: '#f0efec' },
+    identityPreviewText: { color: theme.foreground },
     identityPreviewEditButton: {
-      color: '#f0b429',
+      color: theme.primary,
       transition: 'color 0.15s ease',
     },
     modalBackdrop: { backgroundColor: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(4px)' },
+    lastAuthenticationStrategyBadge: { display: 'none' },
   },
 };
+
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
