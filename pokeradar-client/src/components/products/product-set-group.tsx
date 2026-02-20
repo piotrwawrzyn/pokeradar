@@ -17,7 +17,7 @@ export function ProductSetGroup({
 }: ProductSetGroupProps) {
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-center sm:justify-start gap-4 pb-3 border-b border-border/40">
+      <div className="flex items-center justify-center sm:justify-start gap-4 pb-3 border-b border-border">
         {set?.imageUrl && (
           <img
             src={set.imageUrl}

@@ -12,6 +12,7 @@ export function TelegramInstructions() {
   const [copied, setCopied] = useState(false);
 
   const token = generatedToken ?? profile?.telegramLinkToken ?? null;
+  const botUsername = import.meta.env.DEV ? 'poke_radar_dev_bot' : 'poke_radar_bot';
 
   const handleGenerate = () => {
     generateToken.mutate(undefined, {
@@ -43,12 +44,12 @@ export function TelegramInstructions() {
           <span>
             Otwórz Telegram i wyszukaj bota{' '}
             <a
-              href="https://t.me/tcg_pokemon_bot"
+              href={`https://t.me/${botUsername}`}
               target="_blank"
               rel="noopener noreferrer"
               className="font-bold text-primary hover:underline"
             >
-              @tcg_pokemon_bot
+              @{botUsername}
             </a>
           </span>
         </li>

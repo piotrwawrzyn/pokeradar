@@ -81,7 +81,7 @@ describe('TelegramInstructions', () => {
     render(<TelegramInstructions />, { wrapper: Wrapper });
 
     expect(screen.getByText(/Otworz Telegram/)).toBeInTheDocument();
-    expect(screen.getByText(/@tcg_pokemon_bot/)).toBeInTheDocument();
+    expect(screen.getByText(/@poke_radar_bot/)).toBeInTheDocument();
     expect(screen.getByText(/Wygeneruj token polaczenia/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Wygeneruj token/ })).toBeInTheDocument();
   });
