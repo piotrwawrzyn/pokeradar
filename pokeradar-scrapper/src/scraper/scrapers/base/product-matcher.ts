@@ -51,8 +51,12 @@ export class ProductMatcher {
     // Check exclude list
     if (product.search?.exclude && product.search?.exclude.length > 0) {
       const titleLower = title.toLowerCase();
+      // Use negative lookbehind/lookahead instead of simple .includes() to avoid
+      // false positives where an exclude word appears as a substring of another word.
+      // e.g. "tin" (exclude for Mini Tin) would incorrectly block "Destined Rivals"
+      // because "destined" contains "tin" as a substring.
       const isExcluded = product.search?.exclude.some((word) =>
-        titleLower.includes(word.toLowerCase())
+        new RegExp(`(?<![a-z])${word.toLowerCase()}(?![a-z])`).test(titleLower)
       );
       if (isExcluded) {
         this.logger?.debug('Title contains excluded word', {
