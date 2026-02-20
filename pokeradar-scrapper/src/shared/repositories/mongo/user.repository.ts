@@ -10,7 +10,6 @@ import { UserModel } from '../../../infrastructure/database/models';
 export interface UserNotificationTarget {
   userId: string;
   telegramChatId: string;
-  displayName: string;
 }
 
 export class MongoUserRepository {
@@ -32,7 +31,6 @@ export class MongoUserRepository {
       map.set(userId, {
         userId,
         telegramChatId: doc.telegramChatId!,
-        displayName: doc.displayName,
       });
     }
     return map;
