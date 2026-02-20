@@ -4,8 +4,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { plPL } from '@clerk/localizations';
 import { AuthProvider } from '@/context/auth-context';
+import { useAuth } from '@/hooks/use-auth';
 import App from './App';
 import './index.css';
+
+function AuthLoadingGate({ children }: { children: React.ReactNode }) {
+  const { isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary" />
+      </div>
+    );
+  }
+  return <>{children}</>;
+}
 
 if (import.meta.env.DEV) {
   import('react-grab');
@@ -123,7 +136,9 @@ createRoot(document.getElementById('root')!).render(
     >
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <App />
+          <AuthLoadingGate>
+            <App />
+          </AuthLoadingGate>
         </AuthProvider>
       </QueryClientProvider>
     </ClerkProvider>
