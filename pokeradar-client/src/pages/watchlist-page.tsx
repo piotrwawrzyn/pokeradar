@@ -24,12 +24,12 @@ export function WatchlistPage() {
 
   return (
     <div>
-      <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-br from-card to-card/50 px-6 py-6 sm:px-8 sm:py-8 border border-border/50">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+      <div className="relative mb-6 overflow-hidden rounded-xl bg-card px-6 py-6 sm:px-8 sm:py-8 border border-border">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
 
         <div className="relative">
-          <h1 className="text-xl font-bold sm:text-2xl tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+          <h1 className="text-xl font-bold sm:text-2xl tracking-tight text-foreground">
             Nie przegap żadnej okazji na Pokémon TCG
           </h1>
           <p className="text-muted-foreground mt-3 text-sm sm:text-base leading-relaxed">

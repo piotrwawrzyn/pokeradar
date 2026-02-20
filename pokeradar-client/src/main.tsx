@@ -21,10 +21,6 @@ function AuthLoadingGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-if (import.meta.env.DEV) {
-  import('react-grab');
-}
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

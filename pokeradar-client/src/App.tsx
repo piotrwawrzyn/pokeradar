@@ -10,6 +10,10 @@ import { AdminUsersPage } from '@/pages/admin/admin-users-page';
 import { AdminUserDetailPage } from '@/pages/admin/admin-user-detail-page';
 import { AdminNotificationsPage } from '@/pages/admin/admin-notifications-page';
 
+if (import.meta.env.DEV) {
+  import('react-grab');
+}
+
 export default function App() {
   return (
     <BrowserRouter>
