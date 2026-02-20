@@ -25,8 +25,7 @@ export function WatchlistPage() {
   return (
     <div>
       <div className="relative mb-6 overflow-hidden rounded-xl bg-card px-6 py-6 sm:px-8 sm:py-8 border border-border">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
 
         <div className="relative">
           <h1 className="text-xl font-bold sm:text-2xl tracking-tight text-foreground">
