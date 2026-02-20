@@ -35,7 +35,7 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
   );
 
   return (
-    <Card className="overflow-hidden border-0 bg-card rounded-lg flex flex-col sm:py-2.5">
+    <Card className="overflow-hidden border border-border bg-card rounded-lg flex flex-col sm:py-2.5">
       {/* Image + Info: horizontal on mobile, vertical on sm+ */}
       <div className="flex sm:flex-col">
         {/* Image */}
