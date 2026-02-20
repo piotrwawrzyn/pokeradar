@@ -44,7 +44,7 @@ export class ImageService {
     }
 
     let processedBuffer = buffer;
-    let needsConversion = metadata.format === 'webp';
+    const needsConversion = metadata.format !== 'webp';
     const needsResize = metadata.width! > MAX_DIMENSION || metadata.height! > MAX_DIMENSION;
 
     if (needsResize || needsConversion) {
@@ -58,12 +58,12 @@ export class ImageService {
         sharpInstance = sharpInstance.resize(newWidth, newHeight);
       }
 
-      processedBuffer = await sharpInstance.png().toBuffer();
+      processedBuffer = await sharpInstance.webp({ quality: 90 }).toBuffer();
     }
 
     const uploadOptions: Record<string, unknown> = {
       folder: `${env.CLOUDINARY_FOLDER}/${folder}`,
-      format: 'png',
+      format: 'webp',
       resource_type: 'image',
     };
 
