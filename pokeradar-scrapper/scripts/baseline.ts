@@ -710,7 +710,8 @@ async function main() {
     const shopRepository = new FileShopRepository(
       getShopConfigDir()
     );
-    let shops = await shopRepository.getEnabled();
+    const allShops = await shopRepository.getAll();
+    let shops = allShops.filter(shop => !shop.disabled);
 
     // Apply shop filter if provided
     if (shopFilter) {
