@@ -118,9 +118,8 @@ export function AdminNotificationsPage() {
               <TableHead>Sklep</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Cena</TableHead>
-              <TableHead className="text-center">Próby</TableHead>
-              <TableHead>Wysłano</TableHead>
               <TableHead>Utworzono</TableHead>
+              <TableHead>Wysłano</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -133,7 +132,6 @@ export function AdminNotificationsPage() {
             ) : (
               data.data.map((notif) => {
                 const isExpanded = expandedRows.has(notif.id);
-                const totalAttempts = notif.deliveries.reduce((sum, d) => sum + d.attempts, 0);
                 const firstSentAt = notif.deliveries.find((d) => d.sentAt)?.sentAt ?? null;
                 return (
                   <>
@@ -157,14 +155,13 @@ export function AdminNotificationsPage() {
                       <TableCell className="text-right">
                         {notif.payload.price.toFixed(2)} zł
                       </TableCell>
-                      <TableCell className="text-center">{totalAttempts}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(notif.createdAt).toLocaleString('pl-PL')}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {firstSentAt
                           ? new Date(firstSentAt).toLocaleString('pl-PL')
                           : '-'}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(notif.createdAt).toLocaleString('pl-PL')}
                       </TableCell>
                     </TableRow>
                     {isExpanded && (

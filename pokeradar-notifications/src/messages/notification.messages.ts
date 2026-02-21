@@ -11,26 +11,30 @@ function formatPricePL(price: number): string {
   return `${price.toFixed(2).replace('.', ',')} zł`;
 }
 
-export function formatTelegramNotification(payload: INotificationPayload): string {
+function buildNotificationLines(payload: INotificationPayload, bold: (s: string) => string): string[] {
+  const priceStr = formatPricePL(payload.price);
+  const maxPriceStr = formatPricePL(payload.maxPrice);
+  const priceLine = payload.price < payload.maxPrice
+    ? `🏷️ Cena: ${priceStr} (maks: ${maxPriceStr})`
+    : `🏷️ Cena: ${priceStr}`;
+
   return [
-    'Produkt z Twojej listy jest dostępny:',
+    '🎯 Produkt dostępny!',
     '',
-    `*${payload.productName}*`,
-    `${formatPricePL(payload.price)} · ${payload.shopName}`,
+    bold(payload.productName),
+    `🛒 Sklep: ${payload.shopName}`,
+    priceLine,
     '',
-    `[Zobacz produkt](${payload.productUrl})`,
-  ].join('\n');
+    `[Kup teraz →](${payload.productUrl})`,
+  ];
+}
+
+export function formatTelegramNotification(payload: INotificationPayload): string {
+  return buildNotificationLines(payload, (s) => `*${s}*`).join('\n');
 }
 
 export function formatDiscordNotification(payload: INotificationPayload): string {
-  return [
-    'Produkt z Twojej listy jest dostępny:',
-    '',
-    `**${payload.productName}**`,
-    `${formatPricePL(payload.price)} · ${payload.shopName}`,
-    '',
-    `[Zobacz produkt](${payload.productUrl})`,
-  ].join('\n');
+  return buildNotificationLines(payload, (s) => `**${s}**`).join('\n');
 }
 
 // ─── Bot command messages ─────────────────────────────────────────────────────
