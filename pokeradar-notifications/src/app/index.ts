@@ -13,7 +13,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import { connectDB, disconnectDB } from '@pokeradar/shared';
-import { TelegramBotPlatform, IBotPlatform } from '../platforms';
+import { TelegramBotPlatform, DiscordBotPlatform, IBotPlatform } from '../platforms';
 import { NotificationProcessor, ChangeStreamWatcher, RateLimiter } from '../notifications';
 import { Logger } from '../shared/logger';
 import { loadConfig } from '../config';
@@ -34,9 +34,10 @@ async function main() {
   // Initialize bot platforms
   const platforms: IBotPlatform[] = [
     new TelegramBotPlatform(config.telegramBotToken, config.appUrl, logger),
+    new DiscordBotPlatform(config.discordBotToken, config.appUrl, logger),
   ];
 
-  // Start all platforms (enables command polling)
+  // Start all platforms (enables command polling / slash command registration)
   for (const platform of platforms) {
     await platform.start();
     logger.info(`Platform started: ${platform.name}`);
@@ -45,13 +46,16 @@ async function main() {
   // Create notification processor
   const processor = new NotificationProcessor(config.retry, logger);
 
-  // Register each platform's notification channel with its rate limiter
+  // Register each platform's notification channel with its own rate limiter
+  const rateLimiterConfigs: Record<string, { size: number; intervalMs: number }> = {
+    telegram: { size: config.rateLimiting.telegramBatchSize, intervalMs: config.rateLimiting.telegramBatchIntervalMs },
+    discord: { size: config.rateLimiting.discordBatchSize, intervalMs: config.rateLimiting.discordBatchIntervalMs },
+  };
+
   for (const platform of platforms) {
     const channel = platform.asNotificationChannel();
-    const rateLimiter = new RateLimiter(
-      config.rateLimiting.telegramBatchSize,
-      config.rateLimiting.telegramBatchIntervalMs
-    );
+    const rlConfig = rateLimiterConfigs[platform.name] ?? { size: 10, intervalMs: 1000 };
+    const rateLimiter = new RateLimiter(rlConfig.size, rlConfig.intervalMs);
     processor.registerChannel(channel, rateLimiter);
   }
 

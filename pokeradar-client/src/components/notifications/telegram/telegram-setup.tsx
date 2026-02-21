@@ -5,7 +5,7 @@ import { TelegramStatus } from './telegram-status';
 export function TelegramSetup() {
   const { data: profile } = useUserProfile();
 
-  if (profile?.telegramLinked) {
+  if (profile?.telegram.linked) {
     return <TelegramStatus />;
   }
 

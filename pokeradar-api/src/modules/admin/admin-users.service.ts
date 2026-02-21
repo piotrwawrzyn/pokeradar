@@ -13,6 +13,7 @@ export interface AdminUserSearchItem {
   displayName: string;
   isAdmin: boolean;
   telegramLinked: boolean;
+  discordLinked: boolean;
 }
 
 export interface AdminUserDetail {
@@ -21,7 +22,9 @@ export interface AdminUserDetail {
   displayName: string;
   isAdmin: boolean;
   telegramLinked: boolean;
-  telegramChatId: string | null;
+  telegramChannelId: string | null;
+  discordLinked: boolean;
+  discordChannelId: string | null;
   lastLogin: Date | null;
   createdAt: Date;
   watchlistCount: number;
@@ -33,7 +36,6 @@ export interface AdminUserDetail {
   }>;
   notifications: Array<{
     id: string;
-    channel: string;
     status: string;
     payload: {
       productName: string;
@@ -42,9 +44,7 @@ export interface AdminUserDetail {
       maxPrice: number;
       productUrl: string;
     };
-    sentAt: Date | null;
     createdAt: Date;
-    error: string | null;
   }>;
 }
 
@@ -61,13 +61,17 @@ export class AdminUsersService {
     const dbUsers = await UserModel.find({ clerkId: { $in: clerkIds } }).lean();
     const dbMap = new Map(dbUsers.map((u) => [u.clerkId, u]));
 
-    return clerkUsers.map((cu) => ({
-      clerkId: cu.id,
-      email: cu.emailAddresses[0]?.emailAddress ?? '',
-      displayName: cu.fullName ?? '',
-      isAdmin: (cu.publicMetadata as any)?.isAdmin === true,
-      telegramLinked: (dbMap.get(cu.id)?.telegramChatId ?? null) !== null,
-    }));
+    return clerkUsers.map((cu) => {
+      const dbUser = dbMap.get(cu.id);
+      return {
+        clerkId: cu.id,
+        email: cu.emailAddresses[0]?.emailAddress ?? '',
+        displayName: cu.fullName ?? '',
+        isAdmin: (cu.publicMetadata as any)?.isAdmin === true,
+        telegramLinked: (dbUser?.telegram?.channelId ?? null) !== null,
+        discordLinked: (dbUser?.discord?.channelId ?? null) !== null,
+      };
+    });
   }
 
   async getUserDetail(clerkId: string): Promise<AdminUserDetail> {
@@ -104,8 +108,10 @@ export class AdminUsersService {
       email: clerkUser.emailAddresses[0]?.emailAddress ?? '',
       displayName: clerkUser.fullName ?? '',
       isAdmin: (clerkUser.publicMetadata as any)?.isAdmin === true,
-      telegramLinked: (dbUser?.telegramChatId ?? null) !== null,
-      telegramChatId: dbUser?.telegramChatId ?? null,
+      telegramLinked: (dbUser?.telegram?.channelId ?? null) !== null,
+      telegramChannelId: dbUser?.telegram?.channelId ?? null,
+      discordLinked: (dbUser?.discord?.channelId ?? null) !== null,
+      discordChannelId: dbUser?.discord?.channelId ?? null,
       lastLogin: clerkUser.lastSignInAt ? new Date(clerkUser.lastSignInAt) : null,
       createdAt: new Date(clerkUser.createdAt),
       watchlistCount,
@@ -117,7 +123,6 @@ export class AdminUsersService {
       })),
       notifications: (notifications as any[]).map((n) => ({
         id: n._id.toString(),
-        channel: n.channel,
         status: n.status,
         payload: {
           productName: n.payload.productName,
@@ -126,9 +131,7 @@ export class AdminUsersService {
           maxPrice: n.payload.maxPrice,
           productUrl: n.payload.productUrl,
         },
-        sentAt: n.sentAt,
         createdAt: n.createdAt,
-        error: n.error,
       })),
     };
   }

@@ -22,13 +22,14 @@ describe('Users API', () => {
       expect(res.status).toBe(200);
       expect(res.body.email).toBeDefined();
       expect(res.body.displayName).toBe('Test User');
-      expect(res.body.telegramLinked).toBe(false);
+      expect(res.body.telegram.linked).toBe(false);
+      expect(res.body.discord.linked).toBe(false);
     });
 
-    it('should return telegramLinked true when chatId is set', async () => {
+    it('should return telegram.linked true when channelId is set', async () => {
       await UserModel.updateOne(
         { _id: userId },
-        { $set: { telegramChatId: '123456789' } }
+        { $set: { 'telegram.channelId': '123456789' } }
       );
 
       const res = await request(app)
@@ -36,7 +37,7 @@ describe('Users API', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.telegramLinked).toBe(true);
+      expect(res.body.telegram.linked).toBe(true);
     });
 
     it('should return 401 without token', async () => {
@@ -52,13 +53,13 @@ describe('Users API', () => {
         .set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
-      expect(res.body.telegramLinkToken).toBeDefined();
-      expect(typeof res.body.telegramLinkToken).toBe('string');
-      expect(res.body.telegramLinkToken.length).toBeGreaterThan(10);
+      expect(res.body.linkToken).toBeDefined();
+      expect(typeof res.body.linkToken).toBe('string');
+      expect(res.body.linkToken.length).toBeGreaterThan(10);
 
       // Verify it's stored in DB
       const user = await UserModel.findById(userId).lean();
-      expect(user!.telegramLinkToken).toBe(res.body.telegramLinkToken);
+      expect(user!.telegram.linkToken).toBe(res.body.linkToken);
     });
 
     it('should overwrite previous token on second call', async () => {
@@ -70,18 +71,18 @@ describe('Users API', () => {
         .post('/users/me/telegram/link-token')
         .set('Authorization', `Bearer ${token}`);
 
-      expect(res1.body.telegramLinkToken).not.toBe(res2.body.telegramLinkToken);
+      expect(res1.body.linkToken).not.toBe(res2.body.linkToken);
 
       const user = await UserModel.findById(userId).lean();
-      expect(user!.telegramLinkToken).toBe(res2.body.telegramLinkToken);
+      expect(user!.telegram.linkToken).toBe(res2.body.linkToken);
     });
   });
 
   describe('DELETE /users/me/telegram', () => {
-    it('should clear telegramChatId and telegramLinkToken', async () => {
+    it('should clear telegram.channelId and telegram.linkToken', async () => {
       await UserModel.updateOne(
         { _id: userId },
-        { $set: { telegramChatId: '123456789', telegramLinkToken: 'some-token' } }
+        { $set: { 'telegram.channelId': '123456789', 'telegram.linkToken': 'some-token' } }
       );
 
       const res = await request(app)
@@ -91,8 +92,8 @@ describe('Users API', () => {
       expect(res.status).toBe(204);
 
       const user = await UserModel.findById(userId).lean();
-      expect(user!.telegramChatId).toBeNull();
-      expect(user!.telegramLinkToken).toBeNull();
+      expect(user!.telegram.channelId).toBeNull();
+      expect(user!.telegram.linkToken).toBeNull();
     });
 
     it('should return 204 even when already unlinked', async () => {

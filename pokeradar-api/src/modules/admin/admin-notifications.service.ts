@@ -8,7 +8,6 @@ export interface AdminNotificationItem {
   id: string;
   userId: string;
   userEmail: string;
-  channel: string;
   status: string;
   payload: {
     productName: string;
@@ -19,9 +18,13 @@ export interface AdminNotificationItem {
     maxPrice: number;
     productUrl: string;
   };
-  attempts: number;
-  error: string | null;
-  sentAt: Date | null;
+  deliveries: Array<{
+    channel: string;
+    status: string;
+    attempts: number;
+    error: string | null;
+    sentAt: Date | null;
+  }>;
   createdAt: Date;
 }
 
@@ -78,7 +81,6 @@ export class AdminNotificationsService {
         id: n._id.toString(),
         userId: n.userId,
         userEmail: emailMap.get(n.userId) ?? 'unknown',
-        channel: n.channel,
         status: n.status,
         payload: {
           productName: n.payload.productName,
@@ -89,9 +91,13 @@ export class AdminNotificationsService {
           maxPrice: n.payload.maxPrice,
           productUrl: n.payload.productUrl,
         },
-        attempts: n.attempts,
-        error: n.error,
-        sentAt: n.sentAt,
+        deliveries: (n.deliveries ?? []).map((d) => ({
+          channel: d.channel,
+          status: d.status,
+          attempts: d.attempts,
+          error: d.error ?? null,
+          sentAt: d.sentAt ?? null,
+        })),
         createdAt: n.createdAt,
       })),
       total,

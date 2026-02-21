@@ -17,8 +17,14 @@ export class AuthService {
       id: user._id.toString(),
       email: clerkUser.emailAddresses[0]?.emailAddress ?? '',
       displayName: clerkUser.fullName ?? '',
-      telegramLinked: user.telegramChatId !== null,
-      telegramLinkToken: user.telegramLinkToken ?? null,
+      telegram: {
+        linked: (user.telegram?.channelId ?? null) !== null,
+        linkToken: user.telegram?.linkToken ?? null,
+      },
+      discord: {
+        linked: (user.discord?.channelId ?? null) !== null,
+        linkToken: user.discord?.linkToken ?? null,
+      },
     };
   }
 }

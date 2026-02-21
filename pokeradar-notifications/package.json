@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@pokeradar/shared": "*",
+    "discord.js": "^14.25.1",
     "dotenv": "^17.2.3",
     "mongoose": "^9.1.5",
     "node-telegram-bot-api": "^0.67.0"

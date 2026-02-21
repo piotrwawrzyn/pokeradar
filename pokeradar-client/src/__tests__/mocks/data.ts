@@ -1,4 +1,4 @@
-import type { Product, ProductSet, WatchlistEntry, UserProfile, TelegramLinkToken } from '@/types';
+import type { Product, ProductSet, WatchlistEntry, UserProfile, LinkToken } from '@/types';
 
 export const mockProducts: Product[] = [
   {
@@ -82,18 +82,18 @@ export const mockUser: UserProfile = {
   id: 'user-1',
   email: 'test@example.com',
   displayName: 'Test User',
-  telegramLinked: true,
-  telegramLinkToken: 'abc123token',
+  telegram: { linked: true, linkToken: 'abc123token' },
+  discord: { linked: false, linkToken: null },
 };
 
 export const mockUserNoTelegram: UserProfile = {
   id: 'user-1',
   email: 'test@example.com',
   displayName: 'Test User',
-  telegramLinked: false,
-  telegramLinkToken: null,
+  telegram: { linked: false, linkToken: null },
+  discord: { linked: false, linkToken: null },
 };
 
-export const mockTelegramToken: TelegramLinkToken = {
-  telegramLinkToken: 'abc123token',
+export const mockTelegramToken: LinkToken = {
+  linkToken: 'abc123token',
 };

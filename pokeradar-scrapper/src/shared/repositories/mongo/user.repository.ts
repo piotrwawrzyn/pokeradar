@@ -5,16 +5,16 @@
 import { UserModel } from '../../../infrastructure/database/models';
 
 /**
- * Notification target for a user with linked Telegram.
+ * Notification target for a user: true when at least one channel is configured.
  */
 export interface UserNotificationTarget {
   userId: string;
-  telegramChatId: string;
+  hasAnyChannel: boolean;
 }
 
 export class MongoUserRepository {
   /**
-   * Batch fetches users by ID array, returns only those with non-null telegramChatId.
+   * Batch fetches users by ID array, returns only those with at least one linked channel.
    * Returns a map of userId → UserNotificationTarget.
    */
   async getNotificationTargets(userIds: string[]): Promise<Map<string, UserNotificationTarget>> {
@@ -22,16 +22,18 @@ export class MongoUserRepository {
 
     const docs = await UserModel.find({
       _id: { $in: userIds },
-      telegramChatId: { $ne: null },
-    }).lean();
+      $or: [
+        { 'telegram.channelId': { $ne: null } },
+        { 'discord.channelId': { $ne: null } },
+      ],
+    })
+      .select('_id')
+      .lean();
 
     const map = new Map<string, UserNotificationTarget>();
     for (const doc of docs) {
       const userId = doc._id.toString();
-      map.set(userId, {
-        userId,
-        telegramChatId: doc.telegramChatId!,
-      });
+      map.set(userId, { userId, hasAnyChannel: true });
     }
     return map;
   }

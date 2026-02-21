@@ -5,6 +5,7 @@
 export interface AppConfig {
   mongodbUri: string;
   telegramBotToken: string;
+  discordBotToken: string;
   appUrl: string;
   logLevel: 'info' | 'debug';
   retry: {
@@ -15,6 +16,8 @@ export interface AppConfig {
   rateLimiting: {
     telegramBatchSize: number;
     telegramBatchIntervalMs: number;
+    discordBatchSize: number;
+    discordBatchIntervalMs: number;
   };
 }
 
@@ -29,6 +32,11 @@ export function loadConfig(): AppConfig {
     throw new Error('TELEGRAM_BOT_TOKEN is not set in environment');
   }
 
+  const discordBotToken = process.env.DISCORD_BOT_TOKEN;
+  if (!discordBotToken) {
+    throw new Error('DISCORD_BOT_TOKEN is not set in environment');
+  }
+
   const appUrl = process.env.APP_URL;
   if (!appUrl) {
     throw new Error('APP_URL is not set in environment');
@@ -37,6 +45,7 @@ export function loadConfig(): AppConfig {
   return {
     mongodbUri,
     telegramBotToken,
+    discordBotToken,
     appUrl,
     logLevel: (process.env.LOG_LEVEL as 'info' | 'debug') || 'info',
     retry: {
@@ -47,6 +56,8 @@ export function loadConfig(): AppConfig {
     rateLimiting: {
       telegramBatchSize: 25,
       telegramBatchIntervalMs: 1100,
+      discordBatchSize: 4,
+      discordBatchIntervalMs: 1000,
     },
   };
 }

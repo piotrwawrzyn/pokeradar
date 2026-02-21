@@ -45,6 +45,7 @@ export class TelegramBotPlatform implements IBotPlatform {
 
   async start(): Promise<void> {
     this.registerCommands();
+    await this.setMenuCommands();
     await this.bot.startPolling();
     this.logger.info('Telegram bot platform started (polling + notifications)');
   }
@@ -71,6 +72,17 @@ export class TelegramBotPlatform implements IBotPlatform {
 
         await command.execute(msg, args);
       });
+    }
+  }
+
+  private async setMenuCommands(): Promise<void> {
+    try {
+      await this.bot.setMyCommands(
+        this.commands.map((cmd) => ({ command: cmd.command, description: cmd.description }))
+      );
+      this.logger.info('Telegram bot commands registered', { count: this.commands.length });
+    } catch (error) {
+      this.logger.error('Failed to register Telegram bot commands', { error });
     }
   }
 }

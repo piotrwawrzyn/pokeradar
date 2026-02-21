@@ -78,6 +78,7 @@ export interface AdminUserSearchItem {
   displayName: string;
   isAdmin: boolean;
   telegramLinked: boolean;
+  discordLinked: boolean;
 }
 
 export interface AdminUserDetail {
@@ -86,7 +87,9 @@ export interface AdminUserDetail {
   displayName: string;
   isAdmin: boolean;
   telegramLinked: boolean;
-  telegramChatId: string | null;
+  telegramChannelId: string | null;
+  discordLinked: boolean;
+  discordChannelId: string | null;
   lastLogin: string | null;
   createdAt: string;
   watchlistCount: number;
@@ -98,7 +101,6 @@ export interface AdminUserDetail {
   }>;
   notifications: Array<{
     id: string;
-    channel: string;
     status: string;
     payload: {
       productName: string;
@@ -107,9 +109,7 @@ export interface AdminUserDetail {
       maxPrice: number;
       productUrl: string;
     };
-    sentAt: string | null;
     createdAt: string;
-    error: string | null;
   }>;
 }
 
@@ -117,7 +117,6 @@ export interface AdminNotification {
   id: string;
   userId: string;
   userEmail: string;
-  channel: string;
   status: string;
   payload: {
     productName: string;
@@ -128,9 +127,13 @@ export interface AdminNotification {
     maxPrice: number;
     productUrl: string;
   };
-  attempts: number;
-  error: string | null;
-  sentAt: string | null;
+  deliveries: Array<{
+    channel: string;
+    status: string;
+    attempts: number;
+    error: string | null;
+    sentAt: string | null;
+  }>;
   createdAt: string;
 }
 

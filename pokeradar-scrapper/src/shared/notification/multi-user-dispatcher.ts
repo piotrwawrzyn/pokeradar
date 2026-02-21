@@ -1,7 +1,8 @@
 /**
  * Multi-user notification dispatcher.
  * Handles fan-out from scrape results to multiple users based on their watch entries.
- * Creates notification documents for the notifications service to deliver.
+ * Creates channel-agnostic notification documents; the notifications service
+ * resolves which channels (Telegram/Discord/etc.) to deliver to at delivery time.
  *
  * Design for scale (25K+ users):
  * - Preloads all watch entries and user targets in 2 DB queries at cycle start
@@ -17,7 +18,6 @@ import { MongoNotificationRepository, NotificationInsert } from '../repositories
 import { ILogger } from '../logger';
 
 interface QueuedNotification {
-  chatId: string;
   product: WatchlistProductInternal;
   result: ProductResult;
   shop: ShopConfig;
@@ -55,7 +55,7 @@ export class MultiUserNotificationDispatcher {
       }
     }
 
-    // 3. Batch load user notification targets — only those with telegramChatId (1 DB query)
+    // 3. Batch load user notification targets — only those with at least one channel (1 DB query)
     this.userTargets = await this.userRepo.getNotificationTargets([...allUserIds]);
 
     const subscribedProductIds = new Set(this.watchersByProduct.keys());
@@ -89,9 +89,9 @@ export class MultiUserNotificationDispatcher {
       if (!result.isAvailable || result.price === null) continue;
       if (result.price > watcher.maxPrice) continue;
 
-      // Check if user has a linked Telegram
+      // Check if user has any linked notification channel
       const target = this.userTargets.get(watcher.userId);
-      if (!target) continue;
+      if (!target?.hasAnyChannel) continue;
 
       // Check notification state (avoid duplicate sends)
       if (!this.stateService.shouldNotify(watcher.userId, product.id, shop.id)) {
@@ -99,7 +99,6 @@ export class MultiUserNotificationDispatcher {
       }
 
       this.messageQueue.push({
-        chatId: target.telegramChatId,
         product,
         result,
         shop,
@@ -110,7 +109,8 @@ export class MultiUserNotificationDispatcher {
   }
 
   /**
-   * Inserts all enqueued notifications as documents for the notifications service to deliver.
+   * Inserts all enqueued notifications as channel-agnostic documents.
+   * The notifications service resolves delivery channels at delivery time.
    * Marks notification state as notified for each queued notification.
    */
   async flushNotifications(): Promise<void> {
@@ -120,8 +120,6 @@ export class MultiUserNotificationDispatcher {
 
     const inserts: NotificationInsert[] = this.messageQueue.map((msg) => ({
       userId: msg.userId,
-      channel: 'telegram' as const,
-      channelTarget: msg.chatId,
       payload: {
         productName: msg.product.name,
         shopName: msg.shop.name,

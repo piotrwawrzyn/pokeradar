@@ -1,11 +1,16 @@
+export interface ChannelStatus {
+  linked: boolean;
+  linkToken: string | null;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
   displayName: string;
-  telegramLinked: boolean;
-  telegramLinkToken: string | null;
+  telegram: ChannelStatus;
+  discord: ChannelStatus;
 }
 
-export interface TelegramLinkToken {
-  telegramLinkToken: string;
+export interface LinkToken {
+  linkToken: string;
 }

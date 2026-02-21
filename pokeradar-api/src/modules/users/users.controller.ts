@@ -13,9 +13,9 @@ export class UsersController {
     }
   }
 
-  async generateLinkToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async generateTelegramLinkToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const result = await usersService.generateLinkToken(req.user!.userId);
+      const result = await usersService.generateTelegramLinkToken(req.user!.userId);
       res.json(result);
     } catch (error) {
       next(error);
@@ -25,6 +25,24 @@ export class UsersController {
   async unlinkTelegram(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       await usersService.unlinkTelegram(req.user!.userId);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async generateDiscordLinkToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const result = await usersService.generateDiscordLinkToken(req.user!.userId);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async unlinkDiscord(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      await usersService.unlinkDiscord(req.user!.userId);
       res.status(204).send();
     } catch (error) {
       next(error);

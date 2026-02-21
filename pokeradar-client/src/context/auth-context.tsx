@@ -7,8 +7,6 @@ export interface AuthUser {
   id: string;
   email: string;
   displayName: string;
-  telegramLinked: boolean;
-  telegramLinkToken: string | null;
 }
 
 export interface AuthContextValue {
@@ -32,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isSignedIn) getToken();
   }, [isSignedIn, getToken]);
 
-  const { data: profile, isLoading: isProfileLoading } = useQuery({
+  const { isLoading: isProfileLoading } = useQuery({
     queryKey: ['user-profile'],
     queryFn: usersApi.getProfile,
     enabled: isSignedIn === true,
@@ -52,8 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: user.primaryEmailAddress?.emailAddress ?? '',
           displayName:
             user.fullName ?? user.primaryEmailAddress?.emailAddress ?? '',
-          telegramLinked: profile?.telegramLinked ?? false,
-          telegramLinkToken: profile?.telegramLinkToken ?? null,
         }
       : null,
     logout,

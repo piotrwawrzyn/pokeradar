@@ -70,6 +70,11 @@ export function AdminUserDetailPage() {
                 ) : (
                   <StatusBadge status="inactive" label="Brak Telegram" />
                 )}
+                {user.discordLinked ? (
+                  <StatusBadge status="ok" label="Discord" />
+                ) : (
+                  <StatusBadge status="inactive" label="Brak Discord" />
+                )}
               </div>
             </div>
             <div>
@@ -86,10 +91,16 @@ export function AdminUserDetailPage() {
                 {new Date(user.createdAt).toLocaleString('pl-PL')}
               </p>
             </div>
-            {user.telegramChatId && (
+            {user.telegramChannelId && (
               <div>
-                <p className="text-sm text-muted-foreground">Telegram Chat ID</p>
-                <p className="font-mono text-sm">{user.telegramChatId}</p>
+                <p className="text-sm text-muted-foreground">Telegram Channel ID</p>
+                <p className="font-mono text-sm">{user.telegramChannelId}</p>
+              </div>
+            )}
+            {user.discordChannelId && (
+              <div>
+                <p className="text-sm text-muted-foreground">Discord User ID</p>
+                <p className="font-mono text-sm">{user.discordChannelId}</p>
               </div>
             )}
           </div>

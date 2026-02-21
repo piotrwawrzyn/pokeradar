@@ -133,6 +133,8 @@ export function AdminNotificationsPage() {
             ) : (
               data.data.map((notif) => {
                 const isExpanded = expandedRows.has(notif.id);
+                const totalAttempts = notif.deliveries.reduce((sum, d) => sum + d.attempts, 0);
+                const firstSentAt = notif.deliveries.find((d) => d.sentAt)?.sentAt ?? null;
                 return (
                   <>
                     <TableRow key={notif.id} className="cursor-pointer hover:bg-muted/50">
@@ -149,15 +151,16 @@ export function AdminNotificationsPage() {
                       <TableCell>
                         {notif.status === 'sent' && <StatusBadge status="sent" />}
                         {notif.status === 'pending' && <StatusBadge status="pending" />}
+                        {notif.status === 'sending' && <StatusBadge status="pending" />}
                         {notif.status === 'failed' && <StatusBadge status="failed" />}
                       </TableCell>
                       <TableCell className="text-right">
                         {notif.payload.price.toFixed(2)} zł
                       </TableCell>
-                      <TableCell className="text-center">{notif.attempts}</TableCell>
+                      <TableCell className="text-center">{totalAttempts}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {notif.sentAt
-                          ? new Date(notif.sentAt).toLocaleString('pl-PL')
+                        {firstSentAt
+                          ? new Date(firstSentAt).toLocaleString('pl-PL')
                           : '-'}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
@@ -198,20 +201,23 @@ export function AdminNotificationsPage() {
                                   <span className="text-muted-foreground">Użytkownik ID:</span>{' '}
                                   <span className="font-mono">{notif.userId}</span>
                                 </div>
-                                <div>
-                                  <span className="text-muted-foreground">Kanał:</span>{' '}
-                                  {notif.channel}
-                                </div>
                               </div>
                             </div>
-                            {notif.error && (
+                            {notif.deliveries.length > 0 && (
                               <div>
-                                <p className="text-sm font-semibold mb-1 text-red-500">
-                                  Błąd:
-                                </p>
-                                <p className="text-sm font-mono bg-red-950/30 text-red-400 p-2 rounded">
-                                  {notif.error}
-                                </p>
+                                <p className="text-sm font-semibold mb-2">Dostarczenia:</p>
+                                <div className="space-y-1">
+                                  {notif.deliveries.map((d, i) => (
+                                    <div key={i} className="text-sm flex gap-4 items-start">
+                                      <span className="font-mono text-muted-foreground w-20">{d.channel}</span>
+                                      <span>{d.status}</span>
+                                      <span className="text-muted-foreground">próby: {d.attempts}</span>
+                                      {d.error && (
+                                        <span className="text-red-400 font-mono truncate">{d.error}</span>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>

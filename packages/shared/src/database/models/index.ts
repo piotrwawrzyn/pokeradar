@@ -1,11 +1,11 @@
 export { NotificationModel } from './notification.model';
-export type { INotificationDoc, INotificationPayload } from './notification.model';
+export type { INotificationDoc, INotificationPayload, IDelivery, NotificationChannel } from './notification.model';
 
 export { NotificationStateModel } from './notification-state.model';
 export type { INotificationStateDoc } from './notification-state.model';
 
 export { UserModel } from './user.model';
-export type { IUserDoc } from './user.model';
+export type { IUserDoc, IChannelData } from './user.model';
 
 export { UserWatchEntryModel } from './user-watch-entry.model';
 export type { IUserWatchEntryDoc } from './user-watch-entry.model';

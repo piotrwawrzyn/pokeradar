@@ -13,14 +13,19 @@ export interface ProductPriceResponse {
   timestamp: Date;
 }
 
+export interface ChannelStatus {
+  linked: boolean;
+  linkToken: string | null;
+}
+
 export interface UserProfileResponse {
   id: string;
   email: string;
   displayName: string;
-  telegramLinked: boolean;
-  telegramLinkToken: string | null;
+  telegram: ChannelStatus;
+  discord: ChannelStatus;
 }
 
-export interface TelegramLinkTokenResponse {
-  telegramLinkToken: string;
+export interface LinkTokenResponse {
+  linkToken: string;
 }

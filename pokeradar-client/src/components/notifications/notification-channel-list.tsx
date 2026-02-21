@@ -1,12 +1,12 @@
-import { Mail } from 'lucide-react';
 import { NotificationChannelCard } from './notification-channel-card';
 import { TelegramSetup } from './telegram/telegram-setup';
 import { TelegramIcon } from './telegram/telegram-icon';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
+import { DiscordSetup } from './discord/discord-setup';
+import { DiscordIcon } from './discord/discord-icon';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import type { ComponentType } from 'react';
 import type { LucideIcon } from 'lucide-react';
+import type { UserProfile } from '@/types';
 
 interface NotificationChannelConfig {
   id: string;
@@ -15,7 +15,7 @@ interface NotificationChannelConfig {
   icon: LucideIcon | ComponentType<{ className?: string }>;
   component: ComponentType;
   isAvailable: boolean;
-  getIsLinked: (profile: { telegramLinked: boolean } | undefined) => boolean;
+  getIsLinked: (profile: UserProfile | undefined) => boolean;
 }
 
 const NOTIFICATION_CHANNELS: NotificationChannelConfig[] = [
@@ -26,16 +26,16 @@ const NOTIFICATION_CHANNELS: NotificationChannelConfig[] = [
     icon: TelegramIcon,
     component: TelegramSetup,
     isAvailable: true,
-    getIsLinked: (profile) => profile?.telegramLinked ?? false,
+    getIsLinked: (profile) => profile?.telegram.linked ?? false,
   },
   {
-    id: 'email',
-    name: 'Email',
-    description: 'Powiadomienia na adres email',
-    icon: Mail,
-    component: () => null,
-    isAvailable: false,
-    getIsLinked: () => false,
+    id: 'discord',
+    name: 'Discord',
+    description: 'Otrzymuj natychmiastowe powiadomienia przez Discord',
+    icon: DiscordIcon,
+    component: DiscordSetup,
+    isAvailable: true,
+    getIsLinked: (profile) => profile?.discord.linked ?? false,
   },
 ];
 
@@ -44,14 +44,6 @@ export function NotificationChannelList() {
 
   return (
     <div className="space-y-4">
-      <Alert className="border-primary/20 bg-primary/5">
-        <Info className="h-4 w-4 text-primary" />
-        <AlertDescription>
-          Obecnie wspieramy tylko powiadomienia przez Telegram. Pracujemy nad
-          dodaniem kolejnych opcji.
-        </AlertDescription>
-      </Alert>
-
       {NOTIFICATION_CHANNELS.map((channel) => {
         const ChannelComponent = channel.component;
         return (

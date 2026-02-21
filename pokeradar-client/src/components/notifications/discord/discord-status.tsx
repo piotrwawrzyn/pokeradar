@@ -1,32 +1,32 @@
 import { Button } from '@/components/ui/button';
-import { useUnlinkTelegram } from '@/hooks/use-telegram';
+import { useUnlinkDiscord } from '@/hooks/use-discord';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function TelegramStatus() {
-  const unlinkTelegram = useUnlinkTelegram();
+export function DiscordStatus() {
+  const unlinkDiscord = useUnlinkDiscord();
 
   const handleUnlink = () => {
-    unlinkTelegram.mutate(undefined, {
+    unlinkDiscord.mutate(undefined, {
       onSuccess: () => {
-        toast.success('Telegram został odłączony');
+        toast.success('Discord został odłączony');
       },
       onError: () => {
-        toast.error('Nie udało się odłączyć Telegrama');
+        toast.error('Nie udało się odłączyć Discorda');
       },
     });
   };
 
   return (
     <div className="flex items-center justify-between">
-      <p className="text-xs text-muted-foreground">Konto Telegram jest połączone z pokeradar</p>
+      <p className="text-xs text-muted-foreground">Konto Discord jest połączone z pokeradar</p>
       <Button
         variant="outline"
         size="sm"
         onClick={handleUnlink}
-        disabled={unlinkTelegram.isPending}
+        disabled={unlinkDiscord.isPending}
       >
-        {unlinkTelegram.isPending && (
+        {unlinkDiscord.isPending && (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
         Odłącz

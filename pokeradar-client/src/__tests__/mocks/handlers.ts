@@ -88,4 +88,17 @@ export const handlers = [
     if (!auth) return new HttpResponse(null, { status: 401 });
     return new HttpResponse(null, { status: 204 });
   }),
+
+  // Discord
+  http.post(`${API}/users/me/discord/link-token`, ({ request }) => {
+    const auth = request.headers.get('Authorization');
+    if (!auth) return new HttpResponse(null, { status: 401 });
+    return HttpResponse.json(mockTelegramToken);
+  }),
+
+  http.delete(`${API}/users/me/discord`, ({ request }) => {
+    const auth = request.headers.get('Authorization');
+    if (!auth) return new HttpResponse(null, { status: 401 });
+    return new HttpResponse(null, { status: 204 });
+  }),
 ];

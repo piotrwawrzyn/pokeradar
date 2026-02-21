@@ -6,6 +6,7 @@ export type { ProductResult } from './product-result.types';
 export type {
   WatchlistEntryResponse,
   ProductPriceResponse,
+  ChannelStatus,
   UserProfileResponse,
-  TelegramLinkTokenResponse,
+  LinkTokenResponse,
 } from './api-responses.types';

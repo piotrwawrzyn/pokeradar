@@ -58,10 +58,10 @@ export function AdminUsersPage() {
                 </div>
                 <div className="flex gap-2">
                   {user.isAdmin && <StatusBadge status="ok" label="Admin" />}
-                  {user.telegramLinked ? (
-                    <StatusBadge status="ok" label="Telegram" />
-                  ) : (
-                    <StatusBadge status="inactive" label="Brak Telegram" />
+                  {user.telegramLinked && <StatusBadge status="ok" label="Telegram" />}
+                  {user.discordLinked && <StatusBadge status="ok" label="Discord" />}
+                  {!user.telegramLinked && !user.discordLinked && (
+                    <StatusBadge status="inactive" label="Brak kanałów" />
                   )}
                 </div>
               </div>

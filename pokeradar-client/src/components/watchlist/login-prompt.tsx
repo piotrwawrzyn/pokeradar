@@ -13,7 +13,7 @@ export function useWatchlistState(): WatchlistState {
 
   if (isLoading || (isAuthenticated && isProfileLoading)) return 'loading';
   if (!isAuthenticated) return 'not-logged-in';
-  if (!profile?.telegramLinked) return 'no-notifications';
+  if (!profile?.telegram.linked && !profile?.discord.linked) return 'no-notifications';
   return 'ready';
 }
 

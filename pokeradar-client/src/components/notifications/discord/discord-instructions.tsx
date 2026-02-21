@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useGenerateTelegramToken } from '@/hooks/use-telegram';
+import { useGenerateDiscordToken } from '@/hooks/use-discord';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Copy, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function TelegramInstructions() {
+export function DiscordInstructions() {
   const { data: profile } = useUserProfile();
-  const generateToken = useGenerateTelegramToken();
+  const generateToken = useGenerateDiscordToken();
   const [generatedToken, setGeneratedToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const token = generatedToken ?? profile?.telegram.linkToken ?? null;
-  const botUsername = import.meta.env.DEV ? 'poke_radar_dev_bot' : 'poke_radar_bot';
+  const token = generatedToken ?? profile?.discord.linkToken ?? null;
+  const serverUrl = import.meta.env.VITE_DISCORD_SERVER_URL as string | undefined;
+  const botDmUrl = import.meta.env.VITE_DISCORD_BOT_DM_URL as string | undefined;
 
   const handleGenerate = () => {
     generateToken.mutate(undefined, {
@@ -35,28 +36,56 @@ export function TelegramInstructions() {
 
   return (
     <div className="space-y-4">
-      <h4 className="font-medium text-sm">Jak połączyć Telegram:</h4>
+      <h4 className="font-medium text-sm">Jak połączyć Discord:</h4>
       <ol className="space-y-3 text-sm">
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
             1
           </span>
           <span>
-            Otwórz Telegram i wyszukaj bota{' '}
-            <a
-              href={`https://t.me/${botUsername}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-bold text-primary hover:underline"
-            >
-              @{botUsername}
-            </a>
+            {serverUrl ? (
+              <>
+                Dołącz do{' '}
+                <a
+                  href={serverUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-primary hover:underline"
+                >
+                  serwera Discord pokeradar
+                </a>
+              </>
+            ) : (
+              <>Dołącz do serwera Discord <span className="font-bold">pokeradar</span></>
+            )}
+          </span>
+        </li>
+        <li className="flex gap-3">
+          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
+            2
+          </span>
+          <span>
+            {botDmUrl ? (
+              <>
+                Otwórz{' '}
+                <a
+                  href={botDmUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-primary hover:underline"
+                >
+                  prywatną wiadomość z botem pokeradar
+                </a>
+              </>
+            ) : (
+              <>Otwórz prywatną wiadomość z botem <span className="font-bold">pokeradar</span></>
+            )}
           </span>
         </li>
         {!token ? (
           <li className="flex gap-3">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
-              2
+              3
             </span>
             <div className="flex flex-col gap-2">
               <p className="leading-6">Wygeneruj token połączenia:</p>
@@ -77,7 +106,7 @@ export function TelegramInstructions() {
         ) : (
           <li className="flex gap-3">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
-              2
+              3
             </span>
             <div className="flex flex-col gap-2 flex-1 min-w-0">
               <p className="leading-6">
