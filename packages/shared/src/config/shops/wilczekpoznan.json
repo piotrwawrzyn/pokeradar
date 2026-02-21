@@ -1,0 +1,47 @@
+{
+    "id": "wilczekpoznan",
+    "name": "Wilczen Poznań",
+    "baseUrl": "https://wilczek.poznan.pl",
+    "searchUrl": "/product/search/1/long/price/desc/0?query=",
+    "selectors": {
+      "searchPage": {
+        "article": {
+          "type": "css",
+          "value": "div.product"
+        },
+        "productUrl": {
+          "type": "css",
+          "value": "p.name span a",
+          "extract": "href"
+        },
+        "title": {
+          "type": "css",
+          "value": "p.name span"
+        },
+        "price": {
+            "type": "css",
+            "value": "div.price",
+            "format": "european"
+          },
+        "available": {
+            "type": "css",
+            "value": "a.btn-shopping-cart:not(.disabled)"
+        },
+        "unavailable": {
+            "type": "css",
+            "value": "a.btn-shopping-cart.disabled"
+        }
+      },
+      "productPage": {
+        "price": {
+          "type": "css",
+          "value": "span#st_product_options-price-brutto",
+          "format": "european"
+        },
+        "available": {
+          "type": "css",
+          "value": "button.btn-shopping-cart:not([disabled])"
+        }
+      }
+    }
+  }
