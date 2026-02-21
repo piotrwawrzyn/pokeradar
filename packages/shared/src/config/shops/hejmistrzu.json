@@ -24,11 +24,6 @@
             "value": ".outofstock",
             "matchSelf": true
           },
-          "available": {
-            "type": "css",
-            "value": ".instock",
-            "matchSelf": true
-          },
           "price": {
             "type": "css",
             "value": "span.woocommerce-Price-amount bdi",
