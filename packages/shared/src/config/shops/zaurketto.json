@@ -1,0 +1,52 @@
+{
+  "id": "zaurketto",
+  "name": "Zaurketto",
+  "fetchingTier": "super-slow",
+  "baseUrl": "https://zaurketto.pl",
+  "searchUrl": "/category/sort/price/sortd/desc/?q=",
+  "antiBot": {
+    "requestDelayMs": 1000,
+    "maxConcurrency": 1
+  },
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "figure.product-tile"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "div.product-name-container a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "span.product-name"
+      },
+      "price": {
+        "type": "css",
+        "value": ".core_priceFormat",
+        "format": "us"
+      },
+      "available": {
+        "type": "css",
+        "value": "a.add-to-cart"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Produkt niedostępny"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.price-special span.core_cardPriceSpecial",
+        "format": "us"
+      },
+      "available": {
+        "type": "css",
+        "value": "button[aria-label='Dodaj do koszyka'][ng-disabled*='false']"
+      }
+    }
+  }
+}
