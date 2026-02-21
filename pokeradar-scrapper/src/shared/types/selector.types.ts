@@ -11,4 +11,5 @@ export interface Selector {
   value: string | string[]; // Array for fallback selectors
   extract?: ExtractType;
   format?: PriceFormat;
+  matchSelf?: boolean; // If true, checks if the element itself matches instead of searching descendants
 }

@@ -73,6 +73,19 @@ export class PlaywrightElement implements IElement {
     }
   }
 
+  async matches(selector: Selector): Promise<boolean> {
+    try {
+      const selectorString = this.getSelectorString(selector);
+      return (await this.locator.and(this.locator.page().locator(selectorString)).count()) > 0;
+    } catch (error) {
+      this.logger?.debug('PlaywrightElement.matches failed', {
+        selector: selector.value,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
+  }
+
   async findAll(selector: Selector): Promise<IElement[]> {
     try {
       const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;

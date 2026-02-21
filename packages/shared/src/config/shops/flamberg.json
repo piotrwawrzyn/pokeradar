@@ -17,6 +17,20 @@
         "title": {
           "type": "css",
           "value": "a.product__name"
+        },
+        "price": {
+          "type": "css",
+          "value": "div.product__prices strong.price"
+        },
+        "available": {
+          "type": "css",
+          "value": ":not([data-product_disable=\"true\"])",
+          "matchSelf": true
+        },
+        "unavailable": {
+          "type": "css",
+          "value": "[data-product_disable=\"true\"]",
+          "matchSelf": true
         }
       },
       "productPage": {

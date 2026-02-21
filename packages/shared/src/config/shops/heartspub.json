@@ -14,7 +14,15 @@
         "value": "h2.product-title a",
         "extract": "href"
       },
-      "titleFromUrl": true
+      "titleFromUrl": true,
+      "price": {
+        "type": "css",
+        "value": "span.price"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Brak towaru"
+      }
     },
     "productPage": {
       "price": {

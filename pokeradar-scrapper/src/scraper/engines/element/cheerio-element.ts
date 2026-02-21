@@ -41,6 +41,11 @@ export class CheerioElement implements IElement {
     return new CheerioElement(found.first(), this.$);
   }
 
+  async matches(selector: Selector): Promise<boolean> {
+    const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;
+    return this.element.is(value);
+  }
+
   async findAll(selector: Selector): Promise<IElement[]> {
     const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;
     // Text selectors use case-insensitive matching; CSS/XPath use direct selector

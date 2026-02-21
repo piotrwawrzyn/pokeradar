@@ -17,6 +17,19 @@
       "title": {
         "type": "css",
         "value": "a.prodname"
+      },
+      "available": {
+          "type": "css",
+          "value": "button.addtobasket:not([disabled])"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": ".product_inactive",
+        "matchSelf": true
+      },
+      "price": {
+        "type": "css",
+        "value": "div.price em"
       }
     },
     "productPage": {

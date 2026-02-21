@@ -2,7 +2,7 @@
  * Search and navigation logic for product scraping.
  */
 
-import { ShopConfig, WatchlistProductInternal } from '../../../shared/types';
+import { ShopConfig, WatchlistProductInternal, Selector } from '../../../shared/types';
 import { IEngine, IElement } from '../../engines/engine.interface';
 import { normalizeUrl, buildSearchUrl, extractTitleFromUrl } from '../../../shared/utils/url-normalizer';
 import { ProductMatcher, ProductCandidate } from './product-matcher';
@@ -401,9 +401,15 @@ export class SearchNavigator {
     const priceSelector = searchSelectors.price!;
 
     // Run all find operations in parallel
+    // Selectors with matchSelf=true check the article element itself; others search descendants
+    const findOrMatch = (selector: Selector, el: IElement) =>
+      selector.matchSelf
+        ? el.matches(selector).then(matched => matched ? el : null)
+        : el.find(selector);
+
     const [availElements, unavailElements, priceElement] = await Promise.all([
-      Promise.all(availSelectors.map(selector => article.find(selector))),
-      Promise.all(unavailSelectors.map(selector => article.find(selector))),
+      Promise.all(availSelectors.map(selector => findOrMatch(selector, article))),
+      Promise.all(unavailSelectors.map(selector => findOrMatch(selector, article))),
       article.find(priceSelector),
     ]);
 

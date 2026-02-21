@@ -28,6 +28,11 @@ export interface IElement {
    * Find all child elements matching the selector.
    */
   findAll(selector: Selector): Promise<IElement[]>;
+
+  /**
+   * Check if this element itself matches the selector (not its descendants).
+   */
+  matches(selector: Selector): Promise<boolean>;
 }
 
 /**

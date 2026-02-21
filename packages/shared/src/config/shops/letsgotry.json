@@ -17,7 +17,25 @@
       "title": {
         "type": "css",
         "value": "h3.product-title span"
-      }
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add_to_cart:not([disabled])"
+      },
+      "unavailable": [
+        {
+          "type": "css",
+          "value": "button.add_to_cart[disabled]"
+        },
+        {
+          "type": "text",
+          "value": "Brak"
+        }
+      ]
     },
     "productPage": {
       "price": {
