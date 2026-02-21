@@ -17,6 +17,14 @@
       "title": {
         "type": "css",
         "value": "h3"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price__value"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.btn_primary:not([disabled])"
       }
     },
     "productPage": {

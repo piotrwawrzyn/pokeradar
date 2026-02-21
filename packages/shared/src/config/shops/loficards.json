@@ -18,6 +18,18 @@
       "title": {
         "type": "css",
         "value": "div.product-name"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.core_priceFormat"
+      },
+      "available": {
+        "type": "css",
+        "value": "i.fa-shopping-basket"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Oczekuje na dostawę"
       }
     },
     "productPage": {

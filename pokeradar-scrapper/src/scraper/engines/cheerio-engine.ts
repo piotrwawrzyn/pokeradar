@@ -299,6 +299,8 @@ export class CheerioEngine implements IEngine {
         return element.text().trim() || null;
       case 'innerHTML':
         return element.html() || null;
+      case 'ownText':
+        return element.contents().filter((_, n) => n.type === 'text').text().trim() || null;
       default:
         return element.text().trim() || null;
     }

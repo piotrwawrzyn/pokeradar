@@ -17,6 +17,15 @@
       "title": {
         "type": "css",
         "value": "div.card__information h3 a"
+      },
+      "price": {
+        "type": "css",
+        "value": ["span.price-item--last", "span.price-item--regular"],
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.price--sold-out"
       }
     },
     "productPage": {

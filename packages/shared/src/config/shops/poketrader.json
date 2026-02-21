@@ -7,7 +7,7 @@
     "searchPage": {
       "article": {
         "type": "css",
-        "value": "div.ProdCena"
+        "value": "div.Okno"
       },
       "productUrl": {
         "type": "css",
@@ -17,6 +17,20 @@
       "title": {
         "type": "css",
         "value": "h3"
+      },
+      "price": {
+        "type": "css",
+        "value": ["span.Cena", "span.CenaPromocyjna"],
+        "extract": "ownText"
+      },
+      "available": {
+        "type": "text",
+        "value": "Do koszyka"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": ".ProduktBezZakupu",
+        "matchSelf": true
       }
     },
     "productPage": {

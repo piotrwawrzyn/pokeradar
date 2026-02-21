@@ -348,6 +348,10 @@ export class PlaywrightEngine implements IEngine {
           return text?.trim() || null;
         case 'innerHTML':
           return await locator.innerHTML();
+        case 'ownText': {
+          const html = await locator.innerHTML();
+          return html.replace(/<[^>]+>[\s\S]*?<\/[^>]+>/g, '').trim() || null;
+        }
         default:
           const defaultText = await locator.textContent();
           return defaultText?.trim() || null;

@@ -17,6 +17,19 @@
       "title": {
         "type": "css",
         "value": "h3.c-product-box__title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.at-product-box-primary-price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.c-avaibility--avaible"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.c-avaibility--none"
       }
     },
     "productPage": {

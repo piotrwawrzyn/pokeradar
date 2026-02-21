@@ -4,7 +4,7 @@
 
 export type SelectorType = 'css' | 'xpath' | 'text';
 export type PriceFormat = 'european' | 'us';
-export type ExtractType = 'href' | 'text' | 'innerHTML';
+export type ExtractType = 'href' | 'text' | 'innerHTML' | 'ownText';
 
 export interface Selector {
   type: SelectorType;

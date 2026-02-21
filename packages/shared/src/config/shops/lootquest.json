@@ -18,6 +18,20 @@
       "title": {
         "type": "css",
         "value": "h2"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.amount bdi"
+      },
+      "available": {
+        "type": "css",
+        "value": ".instock",
+        "matchSelf": true
+      },
+      "unavailable": {
+        "type": "css",
+        "value": ".outofstock",
+        "matchSelf": true
       }
     },
     "productPage": {

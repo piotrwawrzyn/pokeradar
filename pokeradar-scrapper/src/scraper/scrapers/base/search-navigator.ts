@@ -439,7 +439,9 @@ export class SearchNavigator {
 
     if (priceElement) {
       let priceText: string | null = null;
-      if (priceSelector.extract && priceSelector.extract !== 'text') {
+      if (priceSelector.extract === 'ownText') {
+        priceText = await priceElement.getOwnText();
+      } else if (priceSelector.extract && priceSelector.extract !== 'text') {
         priceText = await priceElement.getAttribute(priceSelector.extract);
       } else {
         priceText = await priceElement.getText();

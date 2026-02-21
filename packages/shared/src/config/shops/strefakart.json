@@ -3,7 +3,7 @@
     "name": "strefakart.pl",
     "fetchingTier": "super-slow",
     "antiBot": {
-      "requestDelayMs": 2000,
+      "requestDelayMs": 1000,
       "maxConcurrency": 1,
       "useProxy": true
     },

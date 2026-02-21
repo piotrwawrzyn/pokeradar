@@ -17,6 +17,19 @@
       "title": {
         "type": "css",
         "value": "h2.product-miniature__title a"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button[data-button-action='add-to-cart']:not([disabled])"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "button[data-button-action='add-to-cart'][disabled]"
       }
     },
     "productPage": {

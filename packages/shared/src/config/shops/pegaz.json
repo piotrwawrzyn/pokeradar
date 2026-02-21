@@ -17,6 +17,18 @@
       "title": {
         "type": "css",
         "value": "h3.product-title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not([disabled])"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "button.add-to-cart[disabled]"
       }
     },
     "productPage": {

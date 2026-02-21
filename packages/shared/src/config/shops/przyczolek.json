@@ -17,6 +17,19 @@
       "title": {
         "type": "css",
         "value": "span.productname"
+      },
+      "price": {
+        "type": "css",
+        "value": "div.price em",
+        "extract": "ownText"
+      },
+      "available": {
+        "type": "text",
+        "value": "Do koszyka"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Powiadom mnie o dostępności"
       }
     },
     "productPage": {

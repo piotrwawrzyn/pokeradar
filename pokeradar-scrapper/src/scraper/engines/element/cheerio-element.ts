@@ -22,23 +22,33 @@ export class CheerioElement implements IElement {
     return text || null;
   }
 
+  async getOwnText(): Promise<string | null> {
+    const text = this.element
+      .contents()
+      .filter((_, n) => n.type === 'text')
+      .text()
+      .trim();
+    return text || null;
+  }
+
   async getAttribute(name: string): Promise<string | null> {
     const attr = this.element.attr(name);
     return attr || null;
   }
 
   async find(selector: Selector): Promise<IElement | null> {
-    const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;
-    // Text selectors use case-insensitive matching; CSS/XPath use direct selector
-    const found = selector.type === 'text'
-      ? findByTextInsensitive(this.$, this.element, value)
-      : this.element.find(value);
+    const values = Array.isArray(selector.value) ? selector.value : [selector.value];
+    for (const value of values) {
+      // Text selectors use case-insensitive matching; CSS/XPath use direct selector
+      const found = selector.type === 'text'
+        ? findByTextInsensitive(this.$, this.element, value)
+        : this.element.find(value);
 
-    if (found.length === 0) {
-      return null;
+      if (found.length > 0) {
+        return new CheerioElement(found.first(), this.$);
+      }
     }
-
-    return new CheerioElement(found.first(), this.$);
+    return null;
   }
 
   async matches(selector: Selector): Promise<boolean> {

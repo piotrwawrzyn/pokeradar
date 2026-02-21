@@ -17,6 +17,19 @@
       "title": {
         "type": "css",
         "value": "div.product-item-name"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": ".expedice-date .green_text"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": ".expedice-date .red_text, .expedice-date .orange_text"
       }
     },
     "productPage": {

@@ -6,6 +6,7 @@ import { Locator } from 'playwright';
 import { Selector } from '../../../shared/types';
 import { IElement } from '../engine.interface';
 
+
 /**
  * Logger interface for element operations.
  */
@@ -31,6 +32,20 @@ export class PlaywrightElement implements IElement {
     }
   }
 
+  async getOwnText(): Promise<string | null> {
+    try {
+      const html = await this.locator.innerHTML();
+      // Strip child elements (opening tag + content + closing tag), leaving only direct text nodes
+      const text = html.replace(/<[^>]+>[\s\S]*?<\/[^>]+>/g, '').trim();
+      return text || null;
+    } catch (error) {
+      this.logger?.debug('PlaywrightElement.getOwnText failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return null;
+    }
+  }
+
   async getAttribute(name: string): Promise<string | null> {
     try {
       return await this.locator.getAttribute(name);
@@ -45,25 +60,26 @@ export class PlaywrightElement implements IElement {
 
   async find(selector: Selector): Promise<IElement | null> {
     try {
-      const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;
-      let locator: Locator;
+      const values = Array.isArray(selector.value) ? selector.value : [selector.value];
+      for (const value of values) {
+        let locator: Locator;
 
-      // Handle text selector with case-insensitive matching
-      if (selector.type === 'text') {
-        locator = this.locator.getByText(new RegExp(value, 'i'));
-      } else {
-        const selectorString = this.getSelectorString(selector);
-        locator = this.locator.locator(selectorString);
+        // Handle text selector with case-insensitive matching
+        if (selector.type === 'text') {
+          locator = this.locator.getByText(new RegExp(value, 'i'));
+        } else {
+          locator = this.locator.locator(this.getSelectorString({ ...selector, value }));
+        }
+
+        // Use all() which returns immediately without waiting
+        const elements = await locator.all();
+
+        if (elements.length > 0) {
+          return new PlaywrightElement(locator.first(), this.logger);
+        }
       }
 
-      // Use all() which returns immediately without waiting
-      const elements = await locator.all();
-
-      if (elements.length === 0) {
-        return null;
-      }
-
-      return new PlaywrightElement(locator.first(), this.logger);
+      return null;
     } catch (error) {
       this.logger?.debug('PlaywrightElement.find failed', {
         selector: selector.value,

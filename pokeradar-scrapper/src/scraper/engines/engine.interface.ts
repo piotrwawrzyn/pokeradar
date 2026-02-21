@@ -15,6 +15,11 @@ export interface IElement {
   getText(): Promise<string | null>;
 
   /**
+   * Get only the direct text node content of this element, excluding child element text.
+   */
+  getOwnText(): Promise<string | null>;
+
+  /**
    * Get an attribute value from this element.
    */
   getAttribute(name: string): Promise<string | null>;
