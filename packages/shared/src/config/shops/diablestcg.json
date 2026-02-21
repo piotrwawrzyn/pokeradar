@@ -1,0 +1,47 @@
+{
+  "id": "diablestcg",
+  "name": "DiablesTCG",
+  "baseUrl": "https://diablestcg.pl",
+  "searchUrl": "/pl/searchquery/{query}/1/full/4",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "product-tile"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "product-link a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product-tile__name"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price__value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "buy-button[is-buyable='1']"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "span.btn_special-disabled"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.price__value",
+        "format": "european"
+      },
+      "available": {
+        "type": "text",
+        "value": "Dodaj do koszyka"
+      }
+    }
+  }
+}
