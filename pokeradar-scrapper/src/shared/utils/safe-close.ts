@@ -11,7 +11,7 @@
  */
 export async function safeClose(
   closeable: { close(): Promise<void> } | null | undefined,
-  timeoutMs: number = 5000
+  timeoutMs: number = 5000,
 ): Promise<void> {
   if (!closeable) {
     return;

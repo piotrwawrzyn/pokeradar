@@ -2,7 +2,10 @@ import request from 'supertest';
 import app from '../../../src/app';
 import { createTestUser } from '../../helpers/auth.helper';
 import { seedProducts } from '../../helpers/db.helper';
-import { NotificationModel, NotificationStateModel } from '../../../src/infrastructure/database/models';
+import {
+  NotificationModel,
+  NotificationStateModel,
+} from '../../../src/infrastructure/database/models';
 
 describe('Watchlist API', () => {
   let token: string;
@@ -62,9 +65,7 @@ describe('Watchlist API', () => {
 
   describe('GET /watchlist', () => {
     it('should return empty array when no entries', async () => {
-      const res = await request(app)
-        .get('/watchlist')
-        .set('Authorization', `Bearer ${token}`);
+      const res = await request(app).get('/watchlist').set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual([]);
@@ -76,9 +77,7 @@ describe('Watchlist API', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({ productId: 'pokemon-151-booster-box', maxPrice: 200 });
 
-      const res = await request(app)
-        .get('/watchlist')
-        .set('Authorization', `Bearer ${token}`);
+      const res = await request(app).get('/watchlist').set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(1);
@@ -101,9 +100,7 @@ describe('Watchlist API', () => {
         .set('Authorization', `Bearer ${other.token}`)
         .send({ productId: 'pokemon-151-booster-box', maxPrice: 200 });
 
-      const res = await request(app)
-        .get('/watchlist')
-        .set('Authorization', `Bearer ${token}`);
+      const res = await request(app).get('/watchlist').set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual([]);
@@ -156,9 +153,7 @@ describe('Watchlist API', () => {
 
       expect(res.status).toBe(204);
 
-      const list = await request(app)
-        .get('/watchlist')
-        .set('Authorization', `Bearer ${token}`);
+      const list = await request(app).get('/watchlist').set('Authorization', `Bearer ${token}`);
 
       expect(list.body).toEqual([]);
     });

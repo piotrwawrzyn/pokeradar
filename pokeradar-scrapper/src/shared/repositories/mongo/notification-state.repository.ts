@@ -28,7 +28,7 @@ export class MongoNotificationStateRepository implements INotificationStateRepos
         lastPrice: state.lastPrice,
         wasAvailable: state.wasAvailable,
       },
-      { upsert: true }
+      { upsert: true },
     );
   }
 
@@ -64,7 +64,9 @@ export class MongoNotificationStateRepository implements INotificationStateRepos
     await NotificationStateModel.deleteOne({ key });
   }
 
-  async deleteBatch(keys: Array<{ userId: string; productId: string; shopId: string }>): Promise<void> {
+  async deleteBatch(
+    keys: Array<{ userId: string; productId: string; shopId: string }>,
+  ): Promise<void> {
     if (keys.length === 0) return;
 
     const operations = keys.map(({ userId, productId, shopId }) => ({

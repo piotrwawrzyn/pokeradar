@@ -53,10 +53,9 @@ describe('HelpCommand', () => {
 
     await command.execute(msg, '');
 
-    expect(mockBot.sendMessage).toHaveBeenCalledWith(
-      12345,
-      expect.any(String),
-      { parse_mode: 'Markdown', disable_web_page_preview: true }
-    );
+    expect(mockBot.sendMessage).toHaveBeenCalledWith(12345, expect.any(String), {
+      parse_mode: 'Markdown',
+      disable_web_page_preview: true,
+    });
   });
 });

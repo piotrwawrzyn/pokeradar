@@ -13,11 +13,11 @@ import { ShopConfig } from '../types';
 
 /** Parsed proxy connection details, derived from PROXY_URL env var. */
 export interface ProxyConfig {
-  url: string;       // Full proxy URL (e.g. http://user:pass@host:port)
-  host: string;      // Proxy hostname (e.g. p.webshare.io)
-  port: number;      // Proxy port (e.g. 80)
-  username: string;  // Proxy auth username
-  password: string;  // Proxy auth password
+  url: string; // Full proxy URL (e.g. http://user:pass@host:port)
+  host: string; // Proxy hostname (e.g. p.webshare.io)
+  port: number; // Proxy port (e.g. 80)
+  username: string; // Proxy auth username
+  password: string; // Proxy auth password
 }
 
 /**
@@ -39,7 +39,7 @@ export function getProxyConfig(shop: ShopConfig): ProxyConfig | null {
   return {
     url: proxyUrl,
     host: parsed.hostname,
-    port: parsed.port ? parseInt(parsed.port, 10) : (parsed.protocol === 'https:' ? 443 : 80),
+    port: parsed.port ? parseInt(parsed.port, 10) : parsed.protocol === 'https:' ? 443 : 80,
     username: decodeURIComponent(parsed.username),
     password: decodeURIComponent(parsed.password),
   };

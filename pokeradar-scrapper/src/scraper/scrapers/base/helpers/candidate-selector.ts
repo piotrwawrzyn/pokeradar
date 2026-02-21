@@ -58,9 +58,7 @@ function compareCandidates(a: ProductCandidate, b: ProductCandidate): number {
  * Selects the best candidate from a list of viable (above-threshold) candidates.
  * Returns the winning candidate, or null if the list is empty.
  */
-export function selectBestCandidate(
-  candidates: ProductCandidate[]
-): ProductCandidate | null {
+export function selectBestCandidate(candidates: ProductCandidate[]): ProductCandidate | null {
   if (candidates.length === 0) return null;
 
   const sorted = [...candidates].sort(compareCandidates);

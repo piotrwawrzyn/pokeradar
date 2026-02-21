@@ -49,7 +49,9 @@ export function toNotificationStateArray(docs: INotificationStateDoc[]): Notific
 /**
  * Maps a NotificationState domain model to MongoDB document fields.
  */
-export function toNotificationStateDoc(state: NotificationState): Omit<INotificationStateDoc, 'updatedAt'> {
+export function toNotificationStateDoc(
+  state: NotificationState,
+): Omit<INotificationStateDoc, 'updatedAt'> {
   return {
     key: getStateKey(state.userId, state.productId, state.shopId),
     userId: state.userId,

@@ -21,16 +21,19 @@ A TypeScript-based web scraper that monitors Pokemon product prices across multi
 1. Clone or navigate to this directory
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.example .env
 ```
 
 4. Edit `.env` and add your Telegram credentials:
+
 ```
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 TELEGRAM_CHAT_ID=your_chat_id_here
@@ -51,7 +54,7 @@ Edit `src/config/watchlist.json`:
       "id": "unique-product-id",
       "name": "Product Name",
       "searchPhrases": ["Search Phrase 1", "Search Phrase 2"],
-      "maxPrice": 100.00
+      "maxPrice": 100.0
     }
   ]
 }
@@ -201,6 +204,7 @@ export class CustomShopScraper extends BaseScraper {
 ## Logging
 
 Logs are written to:
+
 - Console (stdout/stderr)
 - `logs/app.log` file
 
@@ -209,16 +213,19 @@ Set `LOG_LEVEL=debug` in `.env` for verbose logging.
 ## Troubleshooting
 
 ### No products found
+
 - Check that selectors in shop config are correct
 - Use browser DevTools to inspect the shop's HTML
 - Enable debug logging to see what's being extracted
 
 ### Telegram notifications not working
+
 - Verify bot token and chat ID are correct
 - Check that the bot has permission to send messages to the chat
 - Look for errors in the logs
 
 ### Scraping fails
+
 - Some shops may have bot detection
 - Try adjusting wait times in BaseScraper
 - Consider adding custom scraper logic

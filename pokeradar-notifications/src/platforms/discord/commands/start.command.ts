@@ -9,7 +9,7 @@ export class DiscordStartCommand implements IDiscordCommand {
 
   constructor(
     private appUrl: string,
-    private logger: ILogger
+    private logger: ILogger,
   ) {}
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {

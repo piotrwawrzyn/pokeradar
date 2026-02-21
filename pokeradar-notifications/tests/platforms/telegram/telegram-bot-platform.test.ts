@@ -75,7 +75,7 @@ describe('TelegramBotPlatform', () => {
     expect(mockBot.sendMessage).toHaveBeenCalledWith(
       'chat-123',
       expect.any(String),
-      expect.objectContaining({ parse_mode: 'Markdown' })
+      expect.objectContaining({ parse_mode: 'Markdown' }),
     );
   });
 
@@ -85,9 +85,7 @@ describe('TelegramBotPlatform', () => {
     // onText should be called for each command
     expect(mockBot.onText).toHaveBeenCalledTimes(3);
 
-    const patterns = mockBot.onText.mock.calls.map(
-      (call: any[]) => call[0].toString()
-    );
+    const patterns = mockBot.onText.mock.calls.map((call: any[]) => call[0].toString());
     expect(patterns.some((p: string) => p.includes('start'))).toBe(true);
     expect(patterns.some((p: string) => p.includes('link'))).toBe(true);
     expect(patterns.some((p: string) => p.includes('help'))).toBe(true);

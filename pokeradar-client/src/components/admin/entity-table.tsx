@@ -59,7 +59,9 @@ export function EntityTable({
                 const label = typeof header === 'string' ? header : header.label;
                 const className = typeof header === 'string' ? undefined : header.className;
                 return (
-                  <TableHead key={label || idx} className={className}>{label}</TableHead>
+                  <TableHead key={label || idx} className={className}>
+                    {label}
+                  </TableHead>
                 );
               })}
             </TableRow>
@@ -67,7 +69,10 @@ export function EntityTable({
           <TableBody>
             {isEmpty ? (
               <TableRow>
-                <TableCell colSpan={headers.length} className="text-center text-muted-foreground py-8">
+                <TableCell
+                  colSpan={headers.length}
+                  className="text-center text-muted-foreground py-8"
+                >
                   {emptyLabel}
                 </TableCell>
               </TableRow>

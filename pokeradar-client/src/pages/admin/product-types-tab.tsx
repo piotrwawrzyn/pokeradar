@@ -102,7 +102,13 @@ export function ProductTypesTab() {
         addLabel="Dodaj typ produktu"
         isEmpty={!types || types.length === 0}
         emptyLabel="Brak typów produktów"
-        headers={['Nazwa', 'Produkty', 'Frazy wyszukiwania', 'Wykluczenia', { label: '', className: 'w-16' }]}
+        headers={[
+          'Nazwa',
+          'Produkty',
+          'Frazy wyszukiwania',
+          'Wykluczenia',
+          { label: '', className: 'w-16' },
+        ]}
       >
         {types?.map((type) => (
           <TableRow
@@ -156,7 +162,9 @@ export function ProductTypesTab() {
         </div>
 
         <div>
-          <Label htmlFor="type-searchPhrases" className="mb-2 block">Frazy wyszukiwania (oddzielone przecinkami)</Label>
+          <Label htmlFor="type-searchPhrases" className="mb-2 block">
+            Frazy wyszukiwania (oddzielone przecinkami)
+          </Label>
           <Textarea
             id="type-searchPhrases"
             value={formData.searchPhrases}
@@ -166,7 +174,9 @@ export function ProductTypesTab() {
         </div>
 
         <div>
-          <Label htmlFor="type-searchExclude" className="mb-2 block">Wykluczenia (oddzielone przecinkami)</Label>
+          <Label htmlFor="type-searchExclude" className="mb-2 block">
+            Wykluczenia (oddzielone przecinkami)
+          </Label>
           <Textarea
             id="type-searchExclude"
             value={formData.searchExclude}

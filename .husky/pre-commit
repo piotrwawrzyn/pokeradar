@@ -1,3 +1,5 @@
+npx lint-staged
+
 # Check if any scrapper files are being committed
 SCRAPPER_FILES=$(git diff --cached --name-only | grep "^pokeradar-scrapper/" || true)
 

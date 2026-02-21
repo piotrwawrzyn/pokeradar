@@ -6,7 +6,13 @@
  * Handles retries with exponential backoff and rate limiting per channel.
  */
 
-import { INotificationDoc, IDelivery, NotificationChannel, NotificationModel, UserModel } from '@pokeradar/shared';
+import {
+  INotificationDoc,
+  IDelivery,
+  NotificationChannel,
+  NotificationModel,
+  UserModel,
+} from '@pokeradar/shared';
 import { INotificationChannel } from './channels';
 import { RateLimiter } from './rate-limiter';
 import { ILogger } from '../shared/logger';
@@ -27,7 +33,7 @@ export class NotificationProcessor {
 
   constructor(
     private retryConfig: RetryConfig,
-    private logger: ILogger
+    private logger: ILogger,
   ) {}
 
   /**
@@ -77,7 +83,7 @@ export class NotificationProcessor {
     // so we re-process and complete any failed deliveries.
     const stuckSending = await NotificationModel.updateMany(
       { status: 'sending' },
-      { $set: { status: 'pending' } }
+      { $set: { status: 'pending' } },
     );
     if (stuckSending.modifiedCount > 0) {
       this.logger.info('Reset stuck sending notifications to pending', {
@@ -126,14 +132,20 @@ export class NotificationProcessor {
       deliveries = await this.buildDeliveries(doc.userId);
       if (deliveries.length === 0) {
         // User has no channels configured — mark as sent and move on
-        this.logger.warn('No channels configured for user, skipping notification', { id, userId: doc.userId });
-        await NotificationModel.updateOne({ _id: doc._id }, { $set: { status: 'sent', deliveries: [] } });
+        this.logger.warn('No channels configured for user, skipping notification', {
+          id,
+          userId: doc.userId,
+        });
+        await NotificationModel.updateOne(
+          { _id: doc._id },
+          { $set: { status: 'sent', deliveries: [] } },
+        );
         return;
       }
 
       await NotificationModel.updateOne(
         { _id: doc._id },
-        { $set: { status: 'sending', deliveries } }
+        { $set: { status: 'sending', deliveries } },
       );
     } else {
       await NotificationModel.updateOne({ _id: doc._id }, { $set: { status: 'sending' } });
@@ -141,7 +153,7 @@ export class NotificationProcessor {
 
     // Deliver to all channels concurrently, each with independent retry
     await Promise.allSettled(
-      deliveries.map((delivery, idx) => this.deliverOne(doc, delivery, idx))
+      deliveries.map((delivery, idx) => this.deliverOne(doc, delivery, idx)),
     );
 
     // Mark overall notification as 'sent' once all deliveries are settled
@@ -196,8 +208,18 @@ export class NotificationProcessor {
 
     const channel = this.channels.get(delivery.channel);
     if (!channel) {
-      this.logger.error('Unknown channel in delivery, skipping', { channel: delivery.channel, id: doc._id?.toString() });
-      await this.updateDelivery(doc, idx, 'failed', `Unknown channel: ${delivery.channel}`, 1, null);
+      this.logger.error('Unknown channel in delivery, skipping', {
+        channel: delivery.channel,
+        id: doc._id?.toString(),
+      });
+      await this.updateDelivery(
+        doc,
+        idx,
+        'failed',
+        `Unknown channel: ${delivery.channel}`,
+        1,
+        null,
+      );
       return;
     }
 
@@ -238,7 +260,7 @@ export class NotificationProcessor {
 
         const delay = Math.min(
           this.retryConfig.initialDelayMs * Math.pow(2, attempt - 1),
-          this.retryConfig.maxDelayMs
+          this.retryConfig.maxDelayMs,
         );
 
         this.logger.warn('Delivery failed, retrying', {
@@ -260,7 +282,7 @@ export class NotificationProcessor {
     status: 'sent' | 'failed',
     error: string | null,
     attempts: number,
-    sentAt: Date | null
+    sentAt: Date | null,
   ): Promise<void> {
     await NotificationModel.updateOne(
       { _id: doc._id },
@@ -271,7 +293,7 @@ export class NotificationProcessor {
           [`deliveries.${idx}.error`]: error,
           [`deliveries.${idx}.sentAt`]: sentAt,
         },
-      }
+      },
     );
   }
 }

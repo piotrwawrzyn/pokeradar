@@ -12,7 +12,14 @@ import {
 import { StatCard } from '@/components/admin/stat-card';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminShopDetail } from '@/hooks/use-admin';
-import { ArrowLeft, Package, CheckCircle, AlertTriangle, ExternalLink, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Package,
+  CheckCircle,
+  AlertTriangle,
+  ExternalLink,
+  Loader2,
+} from 'lucide-react';
 
 export function AdminShopDetailPage() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -112,52 +119,54 @@ export function AdminShopDetailPage() {
                   if (a.setReleaseDate && !b.setReleaseDate) return -1;
                   if (!a.setReleaseDate && b.setReleaseDate) return 1;
                   if (a.setReleaseDate && b.setReleaseDate) {
-                    return new Date(b.setReleaseDate).getTime() - new Date(a.setReleaseDate).getTime();
+                    return (
+                      new Date(b.setReleaseDate).getTime() - new Date(a.setReleaseDate).getTime()
+                    );
                   }
 
                   return 0;
                 })
                 .map((product) => (
-                <TableRow key={product.productId}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      {product.productImageUrl && (
-                        <img
-                          src={product.productImageUrl}
-                          alt={product.productName}
-                          className="h-10 w-10 rounded object-cover"
-                        />
+                  <TableRow key={product.productId}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {product.productImageUrl && (
+                          <img
+                            src={product.productImageUrl}
+                            alt={product.productName}
+                            className="h-10 w-10 rounded object-cover"
+                          />
+                        )}
+                        <span className="font-medium">{product.productName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {product.isAvailable ? (
+                        <StatusBadge status="ok" label="Dostępny" />
+                      ) : (
+                        <StatusBadge status="inactive" label="Niedostępny" />
                       )}
-                      <span className="font-medium">{product.productName}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {product.isAvailable ? (
-                      <StatusBadge status="ok" label="Dostępny" />
-                    ) : (
-                      <StatusBadge status="inactive" label="Niedostępny" />
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {product.price ? `${product.price.toFixed(2)} zł` : '-'}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {new Date(product.lastSeen).toLocaleString('pl-PL')}
-                  </TableCell>
-                  <TableCell>
-                    {product.productUrl && (
-                      <a
-                        href={product.productUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 hover:text-blue-600"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {product.price ? `${product.price.toFixed(2)} zł` : '-'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {new Date(product.lastSeen).toLocaleString('pl-PL')}
+                    </TableCell>
+                    <TableCell>
+                      {product.productUrl && (
+                        <a
+                          href={product.productUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-500 hover:text-blue-600"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
             )}
           </TableBody>
         </Table>

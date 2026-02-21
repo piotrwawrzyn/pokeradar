@@ -32,7 +32,9 @@ export function WatchlistPage() {
             Nie przegap żadnej okazji na <span className="text-primary">Pokémon TCG</span>
           </h1>
           <p className="text-muted-foreground mt-3 text-sm sm:text-base leading-relaxed">
-            Monitorujemy ceny w <span className="text-foreground font-semibold">ponad 100 polskich sklepach</span> i wysyłamy
+            Monitorujemy ceny w{' '}
+            <span className="text-foreground font-semibold">ponad 100 polskich sklepach</span> i
+            wysyłamy
             <span className="text-foreground font-semibold"> natychmiastowe powiadomienia</span>.
           </p>
 

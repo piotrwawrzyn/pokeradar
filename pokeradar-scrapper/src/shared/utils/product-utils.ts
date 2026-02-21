@@ -48,7 +48,9 @@ export interface SetGroup {
 /**
  * Builds a series index mapping series names to all set names in that series.
  */
-function buildSeriesIndex(setMap: Map<string, { name: string; series: string }>): Map<string, string[]> {
+function buildSeriesIndex(
+  setMap: Map<string, { name: string; series: string }>,
+): Map<string, string[]> {
   const seriesIndex = new Map<string, string[]>();
   for (const [, set] of setMap.entries()) {
     if (!seriesIndex.has(set.series)) {
@@ -64,7 +66,7 @@ function buildSeriesIndex(setMap: Map<string, { name: string; series: string }>)
  */
 function partitionProductsBySet(
   products: WatchlistProductInternal[],
-  setMap: Map<string, { name: string; series: string }>
+  setMap: Map<string, { name: string; series: string }>,
 ): { bySet: Map<string, WatchlistProductInternal[]>; ungrouped: WatchlistProductInternal[] } {
   const bySet = new Map<string, WatchlistProductInternal[]>();
   const ungrouped: WatchlistProductInternal[] = [];
@@ -90,16 +92,20 @@ function createSetGroupWithExclusions(
   setId: string,
   members: WatchlistProductInternal[],
   setMap: Map<string, { name: string; series: string }>,
-  seriesIndex: Map<string, string[]>
+  seriesIndex: Map<string, string[]>,
 ): SetGroup {
   const set = setMap.get(setId)!;
 
   // Auto-exclude other sets in series for generic sets (name === series)
-  const otherSetsInSeries = (set.name === set.series && seriesIndex.has(set.series))
-    ? seriesIndex.get(set.series)!.filter(name => name !== set.name).map(name => name.toLowerCase())
-    : [];
+  const otherSetsInSeries =
+    set.name === set.series && seriesIndex.has(set.series)
+      ? seriesIndex
+          .get(set.series)!
+          .filter((name) => name !== set.name)
+          .map((name) => name.toLowerCase())
+      : [];
 
-  const membersWithExcludes = members.map(product => ({
+  const membersWithExcludes = members.map((product) => ({
     ...product,
     search: {
       ...(product.search ?? {}),
@@ -167,7 +173,7 @@ function createSetGroupWithExclusions(
  */
 export function groupProductsBySet(
   products: WatchlistProductInternal[],
-  setMap: Map<string, { name: string; series: string }>
+  setMap: Map<string, { name: string; series: string }>,
 ): { setGroups: SetGroup[]; ungrouped: WatchlistProductInternal[] } {
   const seriesIndex = buildSeriesIndex(setMap);
   const { bySet, ungrouped } = partitionProductsBySet(products, setMap);

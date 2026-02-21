@@ -34,7 +34,7 @@ export class UsersService {
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { $set: { 'telegram.linkToken': token } },
-      { new: true }
+      { new: true },
     );
 
     if (!user) throw new NotFoundError('User not found');
@@ -45,7 +45,7 @@ export class UsersService {
   async unlinkTelegram(userId: string): Promise<void> {
     const result = await UserModel.updateOne(
       { _id: userId },
-      { $set: { 'telegram.channelId': null, 'telegram.linkToken': null } }
+      { $set: { 'telegram.channelId': null, 'telegram.linkToken': null } },
     );
 
     if (result.matchedCount === 0) throw new NotFoundError('User not found');
@@ -57,7 +57,7 @@ export class UsersService {
     const user = await UserModel.findByIdAndUpdate(
       userId,
       { $set: { 'discord.linkToken': token } },
-      { new: true }
+      { new: true },
     );
 
     if (!user) throw new NotFoundError('User not found');
@@ -68,7 +68,7 @@ export class UsersService {
   async unlinkDiscord(userId: string): Promise<void> {
     const result = await UserModel.updateOne(
       { _id: userId },
-      { $set: { 'discord.channelId': null, 'discord.linkToken': null } }
+      { $set: { 'discord.channelId': null, 'discord.linkToken': null } },
     );
 
     if (result.matchedCount === 0) throw new NotFoundError('User not found');

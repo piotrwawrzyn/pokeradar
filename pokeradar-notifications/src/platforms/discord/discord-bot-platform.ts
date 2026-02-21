@@ -32,7 +32,7 @@ export class DiscordBotPlatform implements IBotPlatform {
   constructor(
     token: string,
     appUrl: string,
-    private logger: ILogger
+    private logger: ILogger,
   ) {
     this.token = token;
     this.client = new Client({
@@ -46,8 +46,14 @@ export class DiscordBotPlatform implements IBotPlatform {
     const baseCommands: IDiscordCommand[] = [startCommand, linkCommand];
     const helpCommand = new DiscordHelpCommand(
       appUrl,
-      [...baseCommands, { command: 'help', description: 'Wyświetl dostępne komendy i informacje o bocie' } as IDiscordCommand],
-      this.logger
+      [
+        ...baseCommands,
+        {
+          command: 'help',
+          description: 'Wyświetl dostępne komendy i informacje o bocie',
+        } as IDiscordCommand,
+      ],
+      this.logger,
     );
 
     this.commands = [...baseCommands, helpCommand];
@@ -62,11 +68,17 @@ export class DiscordBotPlatform implements IBotPlatform {
 
     this.client.on('interactionCreate', async (interaction: Interaction) => {
       if (!interaction.isChatInputCommand()) return;
-      this.logger.debug('Discord interaction received', { command: interaction.commandName, userId: interaction.user.id });
+      this.logger.debug('Discord interaction received', {
+        command: interaction.commandName,
+        userId: interaction.user.id,
+      });
       try {
         await this.handleCommand(interaction);
       } catch (error) {
-        this.logger.error('Unhandled error in Discord interaction handler', { command: interaction.commandName, error });
+        this.logger.error('Unhandled error in Discord interaction handler', {
+          command: interaction.commandName,
+          error,
+        });
       }
     });
 
@@ -94,7 +106,7 @@ export class DiscordBotPlatform implements IBotPlatform {
       // The /link command needs a token option
       if (cmd.command === 'link') {
         builder.addStringOption((option) =>
-          option.setName('token').setDescription('Token połączenia z pokeradar').setRequired(true)
+          option.setName('token').setDescription('Token połączenia z pokeradar').setRequired(true),
         );
       }
 
@@ -109,7 +121,7 @@ export class DiscordBotPlatform implements IBotPlatform {
 
   private async fetchClientId(rest: REST): Promise<string> {
     // Fetch bot user to get the client ID before client.application is populated
-    const data = await rest.get(Routes.user('@me')) as { id: string };
+    const data = (await rest.get(Routes.user('@me'))) as { id: string };
     return data.id;
   }
 

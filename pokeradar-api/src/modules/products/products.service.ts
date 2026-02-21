@@ -1,7 +1,4 @@
-import {
-  WatchlistProductModel,
-  ProductResultModel,
-} from '../../infrastructure/database/models';
+import { WatchlistProductModel, ProductResultModel } from '../../infrastructure/database/models';
 import { Product, ProductWithPrice, ProductPriceResponse } from '../../shared/types';
 
 function getFreshnessCutoff(): Date {
@@ -84,7 +81,7 @@ export class ProductsService {
   }
 
   private async getBestPrices(
-    productIds: string[]
+    productIds: string[],
   ): Promise<Map<string, { bestPrice: number; shopId: string; productUrl: string }>> {
     if (productIds.length === 0) return new Map();
 

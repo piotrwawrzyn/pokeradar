@@ -11,7 +11,7 @@ export class LinkCommand implements ITelegramCommand {
   constructor(
     private bot: TelegramBot,
     private appUrl: string,
-    private logger: ILogger
+    private logger: ILogger,
   ) {}
 
   async execute(msg: TelegramBot.Message, args: string): Promise<void> {
@@ -21,7 +21,10 @@ export class LinkCommand implements ITelegramCommand {
 
     if (!token) {
       try {
-        await this.bot.sendMessage(chatId, messages.linkUsage, { parse_mode: 'Markdown', disable_web_page_preview: true });
+        await this.bot.sendMessage(chatId, messages.linkUsage, {
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true,
+        });
       } catch (error) {
         this.logger.error('Failed to send /link usage response', { chatId, error });
       }
@@ -35,11 +38,14 @@ export class LinkCommand implements ITelegramCommand {
           $set: { 'telegram.channelId': chatId.toString() },
           $unset: { 'telegram.linkToken': '' },
         },
-        { new: true }
+        { new: true },
       );
 
       if (!user) {
-        await this.bot.sendMessage(chatId, messages.linkInvalidToken, { parse_mode: 'Markdown', disable_web_page_preview: true });
+        await this.bot.sendMessage(chatId, messages.linkInvalidToken, {
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true,
+        });
         return;
       }
 
@@ -48,7 +54,10 @@ export class LinkCommand implements ITelegramCommand {
         chatId,
       });
 
-      await this.bot.sendMessage(chatId, messages.linkSuccess, { parse_mode: 'Markdown', disable_web_page_preview: true });
+      await this.bot.sendMessage(chatId, messages.linkSuccess, {
+        parse_mode: 'Markdown',
+        disable_web_page_preview: true,
+      });
     } catch (error) {
       this.logger.error('Failed to process /link command', { chatId, token, error });
 

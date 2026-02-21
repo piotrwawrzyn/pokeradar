@@ -79,7 +79,12 @@ export function ProductsTab() {
 
   // Auto-fill product name as "{set} {type}" when both are selected and name is still empty (create mode only)
   const tryAutoFillName = (updated: typeof formData) => {
-    if (!dialog.selected && !updated.name && updated.productSetId !== 'none' && updated.productTypeId !== 'none') {
+    if (
+      !dialog.selected &&
+      !updated.name &&
+      updated.productSetId !== 'none' &&
+      updated.productTypeId !== 'none'
+    ) {
       const setName = sets?.find((s) => s.id === updated.productSetId)?.name ?? '';
       const typeName = types?.find((t) => t.id === updated.productTypeId)?.name ?? '';
       updated.name = `${setName} ${typeName}`;
@@ -103,7 +108,11 @@ export function ProductsTab() {
   const populateForm = (product: AdminProduct) => {
     image.reset();
     setFormError(null);
-    const hasCustomSearch = Boolean(product.search?.phrases?.length || product.search?.exclude?.length || product.search?.override);
+    const hasCustomSearch = Boolean(
+      product.search?.phrases?.length ||
+      product.search?.exclude?.length ||
+      product.search?.override,
+    );
     setCustomSearch(hasCustomSearch);
     setFormData({
       name: product.name,
@@ -143,8 +152,12 @@ export function ProductsTab() {
 
     if (customSearch) {
       payload.search = {
-        phrases: formData.searchPhrases ? formData.searchPhrases.split(',').map((s) => s.trim()) : undefined,
-        exclude: formData.searchExclude ? formData.searchExclude.split(',').map((s) => s.trim()) : undefined,
+        phrases: formData.searchPhrases
+          ? formData.searchPhrases.split(',').map((s) => s.trim())
+          : undefined,
+        exclude: formData.searchExclude
+          ? formData.searchExclude.split(',').map((s) => s.trim())
+          : undefined,
         override: formData.searchOverride,
       };
     } else if (dialog.selected) {
@@ -236,7 +249,11 @@ export function ProductsTab() {
     return new Map(sortedEntries);
   }, [products, sets]);
 
-  const isPending = createProduct.isPending || updateProduct.isPending || uploadImage.isPending || uploadImageOnly.isPending;
+  const isPending =
+    createProduct.isPending ||
+    updateProduct.isPending ||
+    uploadImage.isPending ||
+    uploadImageOnly.isPending;
 
   if (isLoading) {
     return (
@@ -289,11 +306,13 @@ export function ProductsTab() {
                         {setName}
                         {set?.releaseDate && (
                           <span className="ml-2 text-muted-foreground font-normal">
-                            ({new Date(set.releaseDate).toLocaleDateString('pl-PL', {
+                            (
+                            {new Date(set.releaseDate).toLocaleDateString('pl-PL', {
                               year: 'numeric',
                               month: 'long',
-                              day: 'numeric'
-                            })})
+                              day: 'numeric',
+                            })}
+                            )
                           </span>
                         )}
                       </TableCell>
@@ -341,7 +360,9 @@ export function ProductsTab() {
                             <TableCell className="text-right">
                               {product.bestPrice ? `${product.bestPrice.toFixed(2)} zł` : '-'}
                             </TableCell>
-                            <TableCell className="text-center">{product.shopFinds.length}</TableCell>
+                            <TableCell className="text-center">
+                              {product.shopFinds.length}
+                            </TableCell>
                             <TableCell>
                               {product.disabled ? (
                                 <StatusBadge status="inactive" label="Wyłączony" />
@@ -368,7 +389,9 @@ export function ProductsTab() {
                             <TableRow>
                               <TableCell colSpan={9} className="bg-muted/30">
                                 <div className="p-4">
-                                  <p className="text-sm font-semibold mb-2">Wyniki ze sklepów (ostatnia godzina):</p>
+                                  <p className="text-sm font-semibold mb-2">
+                                    Wyniki ze sklepów (ostatnia godzina):
+                                  </p>
                                   {(() => {
                                     const hourAgo = Date.now() - 60 * 60 * 1000;
                                     const recentFinds = product.shopFinds.filter((f) => {
@@ -379,7 +402,11 @@ export function ProductsTab() {
                                     });
 
                                     if (recentFinds.length === 0) {
-                                      return <p className="text-sm text-muted-foreground">Brak wyników z ostatniej godziny</p>;
+                                      return (
+                                        <p className="text-sm text-muted-foreground">
+                                          Brak wyników z ostatniej godziny
+                                        </p>
+                                      );
                                     }
 
                                     return (
@@ -388,7 +415,12 @@ export function ProductsTab() {
                                           .sort((a, b) => {
                                             if (!a.isAvailable && b.isAvailable) return 1;
                                             if (a.isAvailable && !b.isAvailable) return -1;
-                                            if (a.isAvailable && b.isAvailable && a.price && b.price) {
+                                            if (
+                                              a.isAvailable &&
+                                              b.isAvailable &&
+                                              a.price &&
+                                              b.price
+                                            ) {
                                               return a.price - b.price;
                                             }
                                             return 0;
@@ -402,12 +434,16 @@ export function ProductsTab() {
                                                   : 'border-border bg-background'
                                               }`}
                                             >
-                                              <span className="font-medium min-w-[150px]">{find.shopName}</span>
+                                              <span className="font-medium min-w-[150px]">
+                                                {find.shopName}
+                                              </span>
                                               <div className="flex items-center gap-4">
                                                 {find.isAvailable ? (
                                                   <>
                                                     <span className="text-green-500 font-semibold min-w-[80px] text-right">
-                                                      {find.price ? `${find.price.toFixed(2)} zł` : '-'}
+                                                      {find.price
+                                                        ? `${find.price.toFixed(2)} zł`
+                                                        : '-'}
                                                     </span>
                                                     <a
                                                       href={find.productUrl}
@@ -421,7 +457,9 @@ export function ProductsTab() {
                                                   </>
                                                 ) : (
                                                   <>
-                                                    <span className="text-muted-foreground min-w-[80px] text-right">Niedostępny</span>
+                                                    <span className="text-muted-foreground min-w-[80px] text-right">
+                                                      Niedostępny
+                                                    </span>
                                                     <a
                                                       href={find.productUrl}
                                                       target="_blank"
@@ -485,7 +523,9 @@ export function ProductsTab() {
 
           <div className="flex gap-4">
             <div className="w-48">
-              <Label htmlFor="productSetId" className="mb-2 block">Set</Label>
+              <Label htmlFor="productSetId" className="mb-2 block">
+                Set
+              </Label>
               <Select
                 value={formData.productSetId}
                 onValueChange={(value) => {
@@ -509,7 +549,9 @@ export function ProductsTab() {
             </div>
 
             <div className="w-48">
-              <Label htmlFor="productTypeId" className="mb-2 block">Typ produktu</Label>
+              <Label htmlFor="productTypeId" className="mb-2 block">
+                Typ produktu
+              </Label>
               <Select
                 value={formData.productTypeId}
                 onValueChange={(value) => {
@@ -534,11 +576,7 @@ export function ProductsTab() {
           </div>
 
           <div className="flex items-center space-x-2 pt-2">
-            <Switch
-              id="customSearch"
-              checked={customSearch}
-              onCheckedChange={setCustomSearch}
-            />
+            <Switch id="customSearch" checked={customSearch} onCheckedChange={setCustomSearch} />
             <Label htmlFor="customSearch">Dostosuj frazy wyszukiwania</Label>
           </div>
 
@@ -557,7 +595,9 @@ export function ProductsTab() {
               </div>
 
               <div>
-                <Label htmlFor="searchExclude" className="mb-2 block">Wykluczenia (oddzielone przecinkami)</Label>
+                <Label htmlFor="searchExclude" className="mb-2 block">
+                  Wykluczenia (oddzielone przecinkami)
+                </Label>
                 <Input
                   id="searchExclude"
                   value={formData.searchExclude}

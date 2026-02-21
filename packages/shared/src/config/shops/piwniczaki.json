@@ -1,45 +1,45 @@
 {
-    "id": "piwniczaki",
-    "name": "piwniczaki",
-    "baseUrl": "https://www.sklep-piwniczaki.pl",
-    "searchUrl": "/szukaj/price_desc/1?word=",
-    "selectors": {
-      "searchPage": {
-        "article": {
-          "type": "css",
-          "value": "div.l-listing div.c-product-box"
-        },
-        "productUrl": {
-          "type": "css",
-          "value": "a.c-product-box__block-part",
-          "extract": "href"
-        },
-        "title": {
-          "type": "css",
-          "value": "h3.at-product-box-title"
-        },
-        "price": {
-          "type": "css",
-          "value": "span.at-product-box-primary-price"
-        },
-      "available": {
-          "type": "css",
-          "value": "div.c-avaibility--avaible"
-        },
-      "unavailable": {
-          "type": "css",
-          "value": "div.c-avaibility--none"
-      }
+  "id": "piwniczaki",
+  "name": "piwniczaki",
+  "baseUrl": "https://www.sklep-piwniczaki.pl",
+  "searchUrl": "/szukaj/price_desc/1?word=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.l-listing div.c-product-box"
       },
-      "productPage": {
-        "price": {
-          "type": "css",
-          "value": "section.m-product-data-1 span.at-product-data-price"
-        },
-        "available": {
-          "type": "css",
-          "value": "section.m-product-data-1 button#product-card-add-to-card:not(.u-hide)"
-        }
+      "productUrl": {
+        "type": "css",
+        "value": "a.c-product-box__block-part",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.at-product-box-title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.at-product-box-primary-price"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.c-avaibility--avaible"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.c-avaibility--none"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "section.m-product-data-1 span.at-product-data-price"
+      },
+      "available": {
+        "type": "css",
+        "value": "section.m-product-data-1 button#product-card-add-to-card:not(.u-hide)"
       }
     }
   }
+}

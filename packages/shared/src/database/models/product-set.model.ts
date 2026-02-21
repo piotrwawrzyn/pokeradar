@@ -16,7 +16,4 @@ const ProductSetSchema = new Schema<IProductSetDoc>({
   releaseDate: { type: Date },
 });
 
-export const ProductSetModel = mongoose.model<IProductSetDoc>(
-  'ProductSet',
-  ProductSetSchema
-);
+export const ProductSetModel = mongoose.model<IProductSetDoc>('ProductSet', ProductSetSchema);

@@ -15,7 +15,11 @@ export class Logger implements ILogger {
   private logLevel: LogLevel;
   private silent: boolean;
 
-  constructor(logFileName: string = 'app.log', logLevel: LogLevel = 'info', silent: boolean = false) {
+  constructor(
+    logFileName: string = 'app.log',
+    logLevel: LogLevel = 'info',
+    silent: boolean = false,
+  ) {
     this.logFile = path.join(process.cwd(), 'logs', logFileName);
     this.logLevel = logLevel;
     this.silent = silent;

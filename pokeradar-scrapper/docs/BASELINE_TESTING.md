@@ -5,12 +5,14 @@ This project includes a simple baseline testing system to catch regressions in t
 ## Quick Start
 
 ### Record a baseline (first time):
+
 ```bash
 cd pokeradar-scrapper
 npm run baseline
 ```
 
 ### Check for regressions (after code changes):
+
 ```bash
 npm run baseline:check
 ```
@@ -32,11 +34,13 @@ npm run baseline:check
 The baseline system runs your **production scraping code** (no custom test engines) and saves/compares results:
 
 **Recording:**
+
 - Runs real production scraping against live shops (both Cheerio and Playwright)
 - Saves results to `_baseline.json` (committed to git)
 - No HTML fixtures - just the results
 
 **Checking:**
+
 - Runs production scraping again
 - Compares results against `_baseline.json`
 - Reports differences with color-coded output
@@ -58,6 +62,7 @@ npm run baseline:check basanti
 ## When to Re-Record
 
 Re-record the baseline when **inputs** change:
+
 - ✅ Added/removed products from watchlist
 - ✅ Added/removed shops
 - ✅ Intentionally changed shop selectors
@@ -68,6 +73,7 @@ Do **NOT** re-record when **code** changes — that's what `check` is for!
 ## Typical Workflows
 
 **Initial setup:**
+
 ```bash
 npm run baseline                  # Record baseline
 npm run baseline:check            # Verify (should show 0 differences)
@@ -76,12 +82,14 @@ git commit -m "Add baseline"
 ```
 
 **Making code changes:**
+
 ```bash
 # Make your changes...
 npm run baseline:check            # Catch regressions
 ```
 
 **Working on a single shop config:**
+
 ```bash
 # Edit shop config...
 npm run baseline:check pokesmart  # Fast check for just that shop
@@ -92,6 +100,7 @@ npm run baseline                  # Updates entire baseline
 ## What Gets Compared
 
 For each `(shopId, productId)` pair:
+
 - **Price** - did it change unexpectedly?
 - **Availability** - did it change unexpectedly?
 - **Product URL** - did routing change?
@@ -103,6 +112,7 @@ Price and availability changes are **warnings** (shops update inventory), but UR
 ## CI/CD Integration
 
 Add to your pipeline:
+
 ```yaml
 - name: Run baseline check
   run: npm run baseline:check

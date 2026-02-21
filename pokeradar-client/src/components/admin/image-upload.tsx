@@ -40,12 +40,14 @@ export function ImageUpload({
           alt="Preview"
           className="mt-3 h-24 w-24 rounded object-cover border-2 border-border"
         />
-      ) : currentImageUrl && (
-        <img
-          src={currentImageUrl}
-          alt="Current"
-          className="mt-3 h-24 w-24 rounded object-cover border-2 border-muted"
-        />
+      ) : (
+        currentImageUrl && (
+          <img
+            src={currentImageUrl}
+            alt="Current"
+            className="mt-3 h-24 w-24 rounded object-cover border-2 border-muted"
+          />
+        )
       )}
     </div>
   );

@@ -26,9 +26,7 @@ export function TelegramStatus() {
         onClick={handleUnlink}
         disabled={unlinkTelegram.isPending}
       >
-        {unlinkTelegram.isPending && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
+        {unlinkTelegram.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Odłącz
       </Button>
     </div>

@@ -19,8 +19,8 @@
         "value": "a.prodname"
       },
       "available": {
-          "type": "css",
-          "value": "button.addtobasket:not([disabled])"
+        "type": "css",
+        "value": "button.addtobasket:not([disabled])"
       },
       "unavailable": {
         "type": "css",

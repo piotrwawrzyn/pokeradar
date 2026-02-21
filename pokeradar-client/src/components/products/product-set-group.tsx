@@ -19,11 +19,7 @@ export function ProductSetGroup({
     <div className="space-y-3">
       <div className="flex items-center justify-center sm:justify-start gap-4 pb-3 border-b border-border">
         {set?.imageUrl && (
-          <img
-            src={set.imageUrl}
-            alt={set.name}
-            className="h-14 w-14 object-contain shrink-0"
-          />
+          <img src={set.imageUrl} alt={set.name} className="h-14 w-14 object-contain shrink-0" />
         )}
         <div className="min-w-0 sm:flex-1">
           <h2 className="font-semibold text-base truncate text-foreground">

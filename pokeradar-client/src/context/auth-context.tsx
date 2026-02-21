@@ -48,8 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? {
           id: user.id,
           email: user.primaryEmailAddress?.emailAddress ?? '',
-          displayName:
-            user.fullName ?? user.primaryEmailAddress?.emailAddress ?? '',
+          displayName: user.fullName ?? user.primaryEmailAddress?.emailAddress ?? '',
         }
       : null,
     logout,

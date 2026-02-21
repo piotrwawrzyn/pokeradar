@@ -11,9 +11,9 @@ export type FetchingTier = 'super-slow' | 'slow' | 'fast' | 'super-fast';
  * Anti-bot detection configuration for shops.
  */
 export interface AntiBotConfig {
-  requestDelayMs?: number;  // Base delay (ms) before each request, with ±30% random jitter. Default: 0
-  maxConcurrency?: number;  // Max concurrent product page requests for this shop. Default: PRODUCT_CONCURRENCY env var
-  useProxy?: boolean;       // Route requests through rotating proxy. Default: false
+  requestDelayMs?: number; // Base delay (ms) before each request, with ±30% random jitter. Default: 0
+  maxConcurrency?: number; // Max concurrent product page requests for this shop. Default: PRODUCT_CONCURRENCY env var
+  useProxy?: boolean; // Route requests through rotating proxy. Default: false
 }
 
 export interface ShopConfig {
@@ -32,9 +32,9 @@ export interface ShopConfig {
       productUrl: Selector;
       title?: Selector;
       titleFromUrl?: boolean;
-      price?: Selector;                       // Optional: price within article element
-      available?: Selector | Selector[];      // Optional: any match = product is available
-      unavailable?: Selector | Selector[];    // Optional: any match = product is unavailable
+      price?: Selector; // Optional: price within article element
+      available?: Selector | Selector[]; // Optional: any match = product is available
+      unavailable?: Selector | Selector[]; // Optional: any match = product is unavailable
     };
     productPage: {
       title?: Selector; // Optional: for direct hit validation

@@ -48,8 +48,14 @@ async function main() {
 
   // Register each platform's notification channel with its own rate limiter
   const rateLimiterConfigs: Record<string, { size: number; intervalMs: number }> = {
-    telegram: { size: config.rateLimiting.telegramBatchSize, intervalMs: config.rateLimiting.telegramBatchIntervalMs },
-    discord: { size: config.rateLimiting.discordBatchSize, intervalMs: config.rateLimiting.discordBatchIntervalMs },
+    telegram: {
+      size: config.rateLimiting.telegramBatchSize,
+      intervalMs: config.rateLimiting.telegramBatchIntervalMs,
+    },
+    discord: {
+      size: config.rateLimiting.discordBatchSize,
+      intervalMs: config.rateLimiting.discordBatchIntervalMs,
+    },
   };
 
   for (const platform of platforms) {

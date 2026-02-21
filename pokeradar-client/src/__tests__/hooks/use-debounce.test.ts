@@ -18,10 +18,9 @@ describe('useDebounce', () => {
   });
 
   it('does not update the value before the delay', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'hello', delay: 500 } },
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'hello', delay: 500 },
+    });
 
     rerender({ value: 'world', delay: 500 });
     act(() => {
@@ -32,10 +31,9 @@ describe('useDebounce', () => {
   });
 
   it('updates the value after the delay', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'hello', delay: 500 } },
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'hello', delay: 500 },
+    });
 
     rerender({ value: 'world', delay: 500 });
     act(() => {
@@ -46,10 +44,9 @@ describe('useDebounce', () => {
   });
 
   it('resets the timer when value changes before delay expires', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 'a', delay: 500 } },
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'a', delay: 500 },
+    });
 
     rerender({ value: 'b', delay: 500 });
     act(() => {
@@ -71,10 +68,9 @@ describe('useDebounce', () => {
   });
 
   it('works with number values', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      { initialProps: { value: 100, delay: 300 } },
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 100, delay: 300 },
+    });
 
     rerender({ value: 200, delay: 300 });
     act(() => {

@@ -32,7 +32,7 @@ export class NotificationStateService {
 
   constructor(
     private logger?: ILogger,
-    private repository?: INotificationStateRepository
+    private repository?: INotificationStateRepository,
   ) {}
 
   /**
@@ -91,7 +91,12 @@ export class NotificationStateService {
    * Updates tracked state for a user/product/shop (called on every scan for each watcher).
    * Enables reset condition detection.
    */
-  updateTrackedState(userId: string, productId: string, shopId: string, result: ProductResult): void {
+  updateTrackedState(
+    userId: string,
+    productId: string,
+    shopId: string,
+    result: ProductResult,
+  ): void {
     const key = this.getKey(userId, productId, shopId);
     const prevState = this.state.get(key);
 
@@ -168,7 +173,7 @@ export class NotificationStateService {
 
   private checkResetConditions(
     prevState: NotificationState,
-    currentResult: ProductResult
+    currentResult: ProductResult,
   ): boolean {
     // Product became unavailable
     if (prevState.wasAvailable && !currentResult.isAvailable) {
@@ -187,10 +192,7 @@ export class NotificationStateService {
     return false;
   }
 
-  private getResetReason(
-    prevState: NotificationState,
-    currentResult: ProductResult
-  ): string {
+  private getResetReason(prevState: NotificationState, currentResult: ProductResult): string {
     if (prevState.wasAvailable && !currentResult.isAvailable) {
       return 'product_became_unavailable';
     }

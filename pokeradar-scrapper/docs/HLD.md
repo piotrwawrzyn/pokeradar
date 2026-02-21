@@ -49,6 +49,7 @@ Pokeradar is a Pokemon TCG price-monitoring platform. It tracks prices of Pokemo
 **Tech:** TypeScript, Cheerio, Playwright, Mongoose ^9.1.5, node-telegram-bot-api
 
 **Key flow:**
+
 1. Connect to MongoDB, load product catalog and shop configs
 2. Preload all user watch entries + notification targets (2 DB queries)
 3. Load notification states for subscribed products (1 DB query)
@@ -74,21 +75,21 @@ Pokeradar is a Pokemon TCG price-monitoring platform. It tracks prices of Pokemo
 
 **Endpoints:**
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/auth/google` | No | Redirect to Google OAuth |
-| GET | `/auth/google/callback` | No | OAuth callback, generate JWT, redirect to frontend |
-| GET | `/auth/me` | JWT | Current user profile |
-| GET | `/products` | No | Product catalog |
-| GET | `/products/:id/prices` | No | Latest prices per shop (last hour) |
-| GET | `/product-sets` | No | TCG set groupings |
-| GET | `/watchlist` | JWT | User's watched products + current best prices |
-| POST | `/watchlist` | JWT | Add product to watchlist with maxPrice |
-| PATCH | `/watchlist/:id` | JWT | Update maxPrice or toggle active |
-| DELETE | `/watchlist/:id` | JWT | Remove from watchlist |
-| GET | `/users/me` | JWT | Profile + Telegram link status |
-| POST | `/users/me/telegram/link-token` | JWT | Generate UUID for Telegram linking |
-| DELETE | `/users/me/telegram` | JWT | Unlink Telegram |
+| Method | Path                            | Auth | Description                                        |
+| ------ | ------------------------------- | ---- | -------------------------------------------------- |
+| GET    | `/auth/google`                  | No   | Redirect to Google OAuth                           |
+| GET    | `/auth/google/callback`         | No   | OAuth callback, generate JWT, redirect to frontend |
+| GET    | `/auth/me`                      | JWT  | Current user profile                               |
+| GET    | `/products`                     | No   | Product catalog                                    |
+| GET    | `/products/:id/prices`          | No   | Latest prices per shop (last hour)                 |
+| GET    | `/product-sets`                 | No   | TCG set groupings                                  |
+| GET    | `/watchlist`                    | JWT  | User's watched products + current best prices      |
+| POST   | `/watchlist`                    | JWT  | Add product to watchlist with maxPrice             |
+| PATCH  | `/watchlist/:id`                | JWT  | Update maxPrice or toggle active                   |
+| DELETE | `/watchlist/:id`                | JWT  | Remove from watchlist                              |
+| GET    | `/users/me`                     | JWT  | Profile + Telegram link status                     |
+| POST   | `/users/me/telegram/link-token` | JWT  | Generate UUID for Telegram linking                 |
+| DELETE | `/users/me/telegram`            | JWT  | Unlink Telegram                                    |
 
 ---
 
@@ -102,11 +103,11 @@ Pokeradar is a Pokemon TCG price-monitoring platform. It tracks prices of Pokemo
 
 **Routes:**
 
-| Path | Page | Auth | Description |
-|------|------|------|-------------|
-| `/` | Watchlist | No | Product catalog grouped by TCG set, watchlist toggles, price display |
-| `/ustawienia` | Settings | Yes | Profile info, Telegram notification setup |
-| `/auth/callback` | Auth Callback | No | Captures JWT from OAuth redirect |
+| Path             | Page          | Auth | Description                                                          |
+| ---------------- | ------------- | ---- | -------------------------------------------------------------------- |
+| `/`              | Watchlist     | No   | Product catalog grouped by TCG set, watchlist toggles, price display |
+| `/ustawienia`    | Settings      | Yes  | Profile info, Telegram notification setup                            |
+| `/auth/callback` | Auth Callback | No   | Captures JWT from OAuth redirect                                     |
 
 **Theme:** Pikachu dark — charcoal (#1a1a2e) backgrounds, amber (#FFC107) accents.
 
@@ -116,14 +117,14 @@ Pokeradar is a Pokemon TCG price-monitoring platform. It tracks prices of Pokemo
 
 All three services connect to the same MongoDB instance. Collection ownership:
 
-| Collection | Owner | Other readers |
-|------------|-------|---------------|
-| `watchlistproducts` | scrapper | api |
-| `productresults` | scrapper (write), 24h TTL | api (read) |
-| `notificationstates` | scrapper | — |
-| `users` | api | scrapper (for Telegram chatId) |
-| `userwatchentries` | api | scrapper (for notification fan-out) |
-| `productsets` | api | — |
+| Collection           | Owner                     | Other readers                       |
+| -------------------- | ------------------------- | ----------------------------------- |
+| `watchlistproducts`  | scrapper                  | api                                 |
+| `productresults`     | scrapper (write), 24h TTL | api (read)                          |
+| `notificationstates` | scrapper                  | —                                   |
+| `users`              | api                       | scrapper (for Telegram chatId)      |
+| `userwatchentries`   | api                       | scrapper (for notification fan-out) |
+| `productsets`        | api                       | —                                   |
 
 ---
 
@@ -144,6 +145,7 @@ All three services connect to the same MongoDB instance. Collection ownership:
 ## Cross-Service Flows
 
 ### User Registration + Login
+
 ```
 Client → GET /auth/google → Google OAuth → GET /auth/google/callback
 → API creates/finds User → generates JWT → redirects to Client /auth/callback?token=xxx
@@ -151,6 +153,7 @@ Client → GET /auth/google → Google OAuth → GET /auth/google/callback
 ```
 
 ### Telegram Linking
+
 ```
 Client → POST /users/me/telegram/link-token → API generates UUID, stores on User
 → Client displays: "Send /link <token> to @tcg_pokemon_bot"
@@ -159,6 +162,7 @@ Client → POST /users/me/telegram/link-token → API generates UUID, stores on 
 ```
 
 ### Price Alert (end-to-end)
+
 ```
 Scrapper runs scan cycle → scrapes product at shop → price=85zł, available=true
 → Dispatcher checks: User A watches this product with maxPrice=100zł
@@ -168,6 +172,7 @@ Scrapper runs scan cycle → scrapes product at shop → price=85zł, available=
 ```
 
 ### Browsing Products (no auth)
+
 ```
 Client → GET /products → API reads watchlistproducts collection → returns catalog
 Client → GET /products/:id/prices → API aggregates productresults (last hour, best per shop)
@@ -179,25 +184,25 @@ Client → GET /products/:id/prices → API aggregates productresults (last hour
 
 Designed for up to 25K users:
 
-| Resource | At 25K users | Notes |
-|----------|-------------|-------|
-| Watch entry preload | ~250K entries, ~25 MB | 1 DB query |
-| User target preload | ~25K entries, ~2.5 MB | 1 DB query |
-| Notification states | <100K realistic, ~15 MB | Only exists for sent notifications |
-| DB queries per scan cycle | **4 total** | Independent of user count |
-| Telegram send rate | 25 msgs/sec | Under Telegram's 30/sec limit |
-| Worst-case notification time | ~17 minutes for 25K messages | Rarely all users notified at once |
+| Resource                     | At 25K users                 | Notes                              |
+| ---------------------------- | ---------------------------- | ---------------------------------- |
+| Watch entry preload          | ~250K entries, ~25 MB        | 1 DB query                         |
+| User target preload          | ~25K entries, ~2.5 MB        | 1 DB query                         |
+| Notification states          | <100K realistic, ~15 MB      | Only exists for sent notifications |
+| DB queries per scan cycle    | **4 total**                  | Independent of user count          |
+| Telegram send rate           | 25 msgs/sec                  | Under Telegram's 30/sec limit      |
+| Worst-case notification time | ~17 minutes for 25K messages | Rarely all users notified at once  |
 
 ---
 
 ## Tech Stack Summary
 
-| | Scrapper | API | Client |
-|--|---------|-----|--------|
-| Runtime | Node.js 18+ | Node.js 18+ | Browser |
-| Language | TypeScript | TypeScript | TypeScript |
-| Framework | — | Express 4 | React 19 + Vite |
-| DB | Mongoose 9 | Mongoose 9 | — |
-| Auth | — | Passport + JWT | Axios interceptor |
-| Styling | — | — | Tailwind v4 + shadcn/ui |
-| Testing | — | Jest + supertest | Vitest + RTL + MSW |
+|           | Scrapper    | API              | Client                  |
+| --------- | ----------- | ---------------- | ----------------------- |
+| Runtime   | Node.js 18+ | Node.js 18+      | Browser                 |
+| Language  | TypeScript  | TypeScript       | TypeScript              |
+| Framework | —           | Express 4        | React 19 + Vite         |
+| DB        | Mongoose 9  | Mongoose 9       | —                       |
+| Auth      | —           | Passport + JWT   | Axios interceptor       |
+| Styling   | —           | —                | Tailwind v4 + shadcn/ui |
+| Testing   | —           | Jest + supertest | Vitest + RTL + MSW      |

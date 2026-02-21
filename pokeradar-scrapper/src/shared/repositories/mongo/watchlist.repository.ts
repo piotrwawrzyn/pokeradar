@@ -35,7 +35,7 @@ export class MongoWatchlistRepository implements IWatchlistRepository {
         name: product.name,
         search: product.search,
         disabled: product.disabled,
-      }
+      },
     );
   }
 

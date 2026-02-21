@@ -44,9 +44,7 @@ export class AdminProductsService {
 
   async listProducts(): Promise<AdminProduct[]> {
     const shops = loadShopInfos();
-    const shopNameMap = new Map<string, string>(
-      shops.map((s: ShopInfo) => [s.id, s.name]),
-    );
+    const shopNameMap = new Map<string, string>(shops.map((s: ShopInfo) => [s.id, s.name]));
 
     const products = await WatchlistProductModel.find().lean();
     const productIds = products.map((p) => p.id);

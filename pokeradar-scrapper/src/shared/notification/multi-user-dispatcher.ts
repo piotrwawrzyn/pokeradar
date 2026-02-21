@@ -13,8 +13,14 @@
 import { WatchlistProductInternal, ProductResult, ShopConfig } from '../types';
 import { NotificationStateService } from './notification-state.service';
 import { MongoUserRepository, UserNotificationTarget } from '../repositories/mongo/user.repository';
-import { MongoUserWatchEntryRepository, UserWatchInfo } from '../repositories/mongo/user-watch-entry.repository';
-import { MongoNotificationRepository, NotificationInsert } from '../repositories/mongo/notification.repository';
+import {
+  MongoUserWatchEntryRepository,
+  UserWatchInfo,
+} from '../repositories/mongo/user-watch-entry.repository';
+import {
+  MongoNotificationRepository,
+  NotificationInsert,
+} from '../repositories/mongo/notification.repository';
 import { ILogger } from '../logger';
 
 interface QueuedNotification {
@@ -35,7 +41,7 @@ export class MultiUserNotificationDispatcher {
     private userWatchEntryRepo: MongoUserWatchEntryRepository,
     private userRepo: MongoUserRepository,
     private notificationRepo: MongoNotificationRepository,
-    private logger: ILogger
+    private logger: ILogger,
   ) {}
 
   /**
@@ -45,7 +51,8 @@ export class MultiUserNotificationDispatcher {
    */
   async preloadForCycle(allProductIds: string[]): Promise<Set<string>> {
     // 1. Batch load all active watchers for all products (1 DB query)
-    this.watchersByProduct = await this.userWatchEntryRepo.getActiveWatchersByProductIds(allProductIds);
+    this.watchersByProduct =
+      await this.userWatchEntryRepo.getActiveWatchersByProductIds(allProductIds);
 
     // 2. Collect all unique user IDs
     const allUserIds = new Set<string>();
@@ -73,11 +80,7 @@ export class MultiUserNotificationDispatcher {
    * Processes a scrape result against all watching users.
    * Enqueues notifications for later batch insertion. Zero DB queries.
    */
-  processResult(
-    product: WatchlistProductInternal,
-    result: ProductResult,
-    shop: ShopConfig
-  ): void {
+  processResult(product: WatchlistProductInternal, result: ProductResult, shop: ShopConfig): void {
     const watchers = this.watchersByProduct.get(product.id);
     if (!watchers || watchers.length === 0) return;
 

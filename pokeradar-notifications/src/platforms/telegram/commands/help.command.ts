@@ -11,7 +11,7 @@ export class HelpCommand implements ITelegramCommand {
     private bot: TelegramBot,
     private appUrl: string,
     private commands: ITelegramCommand[],
-    private logger: ILogger
+    private logger: ILogger,
   ) {}
 
   async execute(msg: TelegramBot.Message, _args: string): Promise<void> {
@@ -22,7 +22,10 @@ export class HelpCommand implements ITelegramCommand {
       .join('\n');
 
     try {
-      await this.bot.sendMessage(chatId, botMessages.help(commandList), { parse_mode: 'Markdown', disable_web_page_preview: true });
+      await this.bot.sendMessage(chatId, botMessages.help(commandList), {
+        parse_mode: 'Markdown',
+        disable_web_page_preview: true,
+      });
     } catch (error) {
       this.logger.error('Failed to send /help response', { chatId, error });
     }

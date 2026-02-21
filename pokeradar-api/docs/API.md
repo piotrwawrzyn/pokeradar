@@ -57,17 +57,17 @@ Validation errors (400) include details:
 
 Common status codes:
 
-| Code | Meaning |
-|------|---------|
-| 200 | Success |
-| 201 | Created |
-| 204 | No Content (success, empty body) |
-| 400 | Validation error |
-| 401 | Missing/invalid/expired token |
-| 404 | Resource not found |
-| 409 | Conflict (duplicate resource) |
-| 429 | Rate limit exceeded |
-| 500 | Internal server error |
+| Code | Meaning                          |
+| ---- | -------------------------------- |
+| 200  | Success                          |
+| 201  | Created                          |
+| 204  | No Content (success, empty body) |
+| 400  | Validation error                 |
+| 401  | Missing/invalid/expired token    |
+| 404  | Resource not found               |
+| 409  | Conflict (duplicate resource)    |
+| 429  | Rate limit exceeded              |
+| 500  | Internal server error            |
 
 ---
 
@@ -96,6 +96,7 @@ Common status codes:
 Redirects the browser to the Google OAuth consent screen. The frontend should navigate the user to this URL (full page redirect, not AJAX).
 
 **Flow:**
+
 1. Browser navigates to `GET /auth/google`
 2. Server redirects to Google consent screen (scope: `profile`, `email`)
 3. User grants consent
@@ -201,6 +202,7 @@ Returns all products in the catalog, enriched with the current best price from a
 ```
 
 **Notes:**
+
 - `productSetId` is optional — may be `undefined`/absent if the product is not associated with a set
 - `disabled` is optional — when `true`, notifications are globally disabled for this product (users cannot override this)
 - `imageUrl` is always present
@@ -214,6 +216,7 @@ Returns all products in the catalog, enriched with the current best price from a
 Returns a single product by its string ID.
 
 **URL params:**
+
 - `id` — Product ID (kebab-case string, e.g. `pokemon-151-booster-box`)
 
 **Response** `200`:
@@ -243,6 +246,7 @@ Returns a single product by its string ID.
 Returns the latest price from each shop for the given product. Only includes results from the last hour. Results are sorted by price ascending (cheapest first).
 
 **URL params:**
+
 - `id` — Product ID (kebab-case string)
 
 **Response** `200`:
@@ -288,6 +292,7 @@ Returns the latest price from each shop for the given product. Only includes res
 ```
 
 **Notes:**
+
 - `price` can be `null` when the product is listed but price is unavailable
 - `isAvailable` indicates whether the shop currently has the product in stock
 - Only the latest result per shop is returned (deduplication by `shopId`)
@@ -326,6 +331,7 @@ Returns all product sets.
 ```
 
 **Notes:**
+
 - `releaseDate` is optional — may be `undefined`/absent
 - `series` groups sets together (e.g. all "Scarlet & Violet" sets share the same series value)
 
@@ -336,6 +342,7 @@ Returns all product sets.
 Returns a single product set by its string ID.
 
 **URL params:**
+
 - `id` — Product set ID (e.g. `sv-surging-sparks`)
 
 **Response** `200`:
@@ -390,6 +397,7 @@ Returns the authenticated user's watchlist entries. Product names and prices are
 ```
 
 **Notes:**
+
 - `id` is the watchlist entry's ID (MongoDB ObjectId as string), not the product ID
 - Product names and current best prices are now available on `GET /products` — the frontend joins client-side
 
@@ -409,6 +417,7 @@ Adds a product to the user's watchlist.
 ```
 
 **Validation rules:**
+
 - `productId` — required, non-empty string, must exist in the product catalog
 - `maxPrice` — required, positive number
 
@@ -441,6 +450,7 @@ Adds a product to the user's watchlist.
 ```
 
 **Notes:**
+
 - Each user can only have one watchlist entry per product (unique constraint on `userId` + `productId`)
 - New entries default to `isActive: true`
 
@@ -451,6 +461,7 @@ Adds a product to the user's watchlist.
 Updates a watchlist entry's max price or active status.
 
 **URL params:**
+
 - `id` — Watchlist entry ID (MongoDB ObjectId string)
 
 **Request body** (at least one field required):
@@ -463,6 +474,7 @@ Updates a watchlist entry's max price or active status.
 ```
 
 **Validation rules:**
+
 - `maxPrice` — optional, positive number
 - `isActive` — optional, boolean
 - At least one of `maxPrice` or `isActive` must be provided
@@ -502,6 +514,7 @@ Updates a watchlist entry's max price or active status.
 ```
 
 **Notes:**
+
 - Users can only update their own entries — attempting to update another user's entry returns 404
 - Both fields can be updated in a single request
 
@@ -512,9 +525,10 @@ Updates a watchlist entry's max price or active status.
 Removes a product from the user's watchlist.
 
 **URL params:**
+
 - `id` — Watchlist entry ID (MongoDB ObjectId string)
 
-**Response** `204`: *(empty body)*
+**Response** `204`: _(empty body)_
 
 **Response** `404`:
 
@@ -525,6 +539,7 @@ Removes a product from the user's watchlist.
 ```
 
 **Notes:**
+
 - Users can only delete their own entries — attempting to delete another user's entry returns 404
 
 ---
@@ -547,6 +562,7 @@ Returns the authenticated user's profile.
 ```
 
 **Notes:**
+
 - `telegramLinked` is `true` when the user has linked their Telegram account via the bot
 
 ---
@@ -566,6 +582,7 @@ Generates a one-time token for linking a Telegram account. The user sends this t
 ```
 
 **Notes:**
+
 - Token is a UUID v4 string
 - Calling this endpoint again overwrites any previous unlinked token
 - After the bot processes the `/link` command, the token is cleared and `telegramLinked` becomes `true`
@@ -576,9 +593,10 @@ Generates a one-time token for linking a Telegram account. The user sends this t
 
 Unlinks the user's Telegram account.
 
-**Response** `204`: *(empty body)*
+**Response** `204`: _(empty body)_
 
 **Notes:**
+
 - Clears both the Telegram chat ID and any pending link token
 - After unlinking, the user can re-link by generating a new token
 
@@ -616,7 +634,7 @@ interface ProductSet {
   name: string;
   series: string;
   imageUrl: string;
-  releaseDate?: Date;       // ISO 8601 string in JSON
+  releaseDate?: Date; // ISO 8601 string in JSON
 }
 
 // GET /products/:id/prices — array items
@@ -625,7 +643,7 @@ interface ProductPriceResponse {
   price: number | null;
   isAvailable: boolean;
   productUrl: string;
-  timestamp: Date;           // ISO 8601 string in JSON
+  timestamp: Date; // ISO 8601 string in JSON
 }
 
 // GET /watchlist — array items
@@ -634,7 +652,7 @@ interface WatchlistEntryResponse {
   productId: string;
   maxPrice: number;
   isActive: boolean;
-  createdAt: Date;           // ISO 8601 string in JSON
+  createdAt: Date; // ISO 8601 string in JSON
 }
 
 // POST /watchlist — response
@@ -644,7 +662,7 @@ interface WatchlistEntryMutationResponse {
   productId: string;
   maxPrice: number;
   isActive: boolean;
-  createdAt: Date;           // ISO 8601 string in JSON
+  createdAt: Date; // ISO 8601 string in JSON
 }
 
 // GET /auth/me, GET /users/me
@@ -662,13 +680,13 @@ interface TelegramLinkTokenResponse {
 
 // POST /watchlist — request body
 interface AddWatchEntryRequest {
-  productId: string;         // min 1 character
-  maxPrice: number;          // must be positive
+  productId: string; // min 1 character
+  maxPrice: number; // must be positive
 }
 
 // PATCH /watchlist/:id — request body (at least one field required)
 interface UpdateWatchEntryRequest {
-  maxPrice?: number;         // must be positive if provided
+  maxPrice?: number; // must be positive if provided
   isActive?: boolean;
 }
 ```
@@ -677,22 +695,22 @@ interface UpdateWatchEntryRequest {
 
 ## Endpoint Summary
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/health` | No | Health check |
-| GET | `/auth/google` | No | Start Google OAuth flow (browser redirect) |
-| GET | `/auth/google/callback` | No | OAuth callback (not called directly) |
-| GET | `/auth/failure` | No | OAuth failure page |
-| GET | `/auth/me` | JWT | Get authenticated user profile |
-| GET | `/products` | No | List all products |
-| GET | `/products/:id` | No | Get single product |
-| GET | `/products/:id/prices` | No | Get latest prices per shop |
-| GET | `/product-sets` | No | List all product sets |
-| GET | `/product-sets/:id` | No | Get single product set |
-| GET | `/watchlist` | JWT | Get user's watchlist with live prices |
-| POST | `/watchlist` | JWT | Add product to watchlist |
-| PATCH | `/watchlist/:id` | JWT | Update watchlist entry |
-| DELETE | `/watchlist/:id` | JWT | Remove from watchlist |
-| GET | `/users/me` | JWT | Get user profile |
-| POST | `/users/me/telegram/link-token` | JWT | Generate Telegram link token |
-| DELETE | `/users/me/telegram` | JWT | Unlink Telegram account |
+| Method | Path                            | Auth | Description                                |
+| ------ | ------------------------------- | ---- | ------------------------------------------ |
+| GET    | `/health`                       | No   | Health check                               |
+| GET    | `/auth/google`                  | No   | Start Google OAuth flow (browser redirect) |
+| GET    | `/auth/google/callback`         | No   | OAuth callback (not called directly)       |
+| GET    | `/auth/failure`                 | No   | OAuth failure page                         |
+| GET    | `/auth/me`                      | JWT  | Get authenticated user profile             |
+| GET    | `/products`                     | No   | List all products                          |
+| GET    | `/products/:id`                 | No   | Get single product                         |
+| GET    | `/products/:id/prices`          | No   | Get latest prices per shop                 |
+| GET    | `/product-sets`                 | No   | List all product sets                      |
+| GET    | `/product-sets/:id`             | No   | Get single product set                     |
+| GET    | `/watchlist`                    | JWT  | Get user's watchlist with live prices      |
+| POST   | `/watchlist`                    | JWT  | Add product to watchlist                   |
+| PATCH  | `/watchlist/:id`                | JWT  | Update watchlist entry                     |
+| DELETE | `/watchlist/:id`                | JWT  | Remove from watchlist                      |
+| GET    | `/users/me`                     | JWT  | Get user profile                           |
+| POST   | `/users/me/telegram/link-token` | JWT  | Generate Telegram link token               |
+| DELETE | `/users/me/telegram`            | JWT  | Unlink Telegram account                    |

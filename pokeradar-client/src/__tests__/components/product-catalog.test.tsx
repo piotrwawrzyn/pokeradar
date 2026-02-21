@@ -53,9 +53,9 @@ describe('ProductCatalog', () => {
       expect(screen.getByText('Scarlet & Violet')).toBeInTheDocument();
     });
 
-    const headings = screen.getAllByRole('button').filter((el) =>
-      el.textContent?.includes('Scarlet') || el.textContent?.includes('Sword'),
-    );
+    const headings = screen
+      .getAllByRole('button')
+      .filter((el) => el.textContent?.includes('Scarlet') || el.textContent?.includes('Sword'));
 
     // Scarlet & Violet (2024-01-15) should appear before Sword & Shield (2023-06-01)
     if (headings.length >= 2) {

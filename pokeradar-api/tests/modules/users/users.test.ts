@@ -15,9 +15,7 @@ describe('Users API', () => {
 
   describe('GET /users/me', () => {
     it('should return user profile', async () => {
-      const res = await request(app)
-        .get('/users/me')
-        .set('Authorization', `Bearer ${token}`);
+      const res = await request(app).get('/users/me').set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body.email).toBeDefined();
@@ -27,14 +25,9 @@ describe('Users API', () => {
     });
 
     it('should return telegram.linked true when channelId is set', async () => {
-      await UserModel.updateOne(
-        { _id: userId },
-        { $set: { 'telegram.channelId': '123456789' } }
-      );
+      await UserModel.updateOne({ _id: userId }, { $set: { 'telegram.channelId': '123456789' } });
 
-      const res = await request(app)
-        .get('/users/me')
-        .set('Authorization', `Bearer ${token}`);
+      const res = await request(app).get('/users/me').set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body.telegram.linked).toBe(true);
@@ -82,7 +75,7 @@ describe('Users API', () => {
     it('should clear telegram.channelId and telegram.linkToken', async () => {
       await UserModel.updateOne(
         { _id: userId },
-        { $set: { 'telegram.channelId': '123456789', 'telegram.linkToken': 'some-token' } }
+        { $set: { 'telegram.channelId': '123456789', 'telegram.linkToken': 'some-token' } },
       );
 
       const res = await request(app)

@@ -5,6 +5,7 @@ This guide will walk you through deploying all 4 services to Railway with your O
 ## Architecture Overview
 
 Your application consists of 4 services:
+
 1. **pokeradar-api** - Backend API (Express.js + MongoDB)
 2. **pokeradar-client** - Frontend (React + Vite)
 3. **pokeradar-notifications** - Telegram Bot Service
@@ -25,12 +26,14 @@ Your application consists of 4 services:
 You have two options:
 
 ### Option A: Railway MongoDB (Recommended for simplicity)
+
 1. Go to your Railway project
 2. Click "New" → "Database" → "Add MongoDB"
 3. Once deployed, copy the `MONGO_URL` from the Variables tab
 4. This will be your `MONGODB_URI`
 
 ### Option B: MongoDB Atlas (Recommended for production)
+
 1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
 2. Create a free cluster (or paid for better performance)
 3. Create a database user
@@ -44,12 +47,14 @@ You have two options:
 ## Step 2: Create Railway Services
 
 ### 2.1 Create a New Railway Project
+
 1. Go to [Railway Dashboard](https://railway.app/dashboard)
 2. Click "New Project"
 3. Select "Empty Project"
 4. Name it "pokeradar"
 
 ### 2.2 Connect Your GitHub Repository
+
 1. In the Railway project, click "New"
 2. Select "GitHub Repo"
 3. Authorize Railway to access your repository
@@ -60,6 +65,7 @@ You have two options:
 Railway will detect your monorepo. You need to create 4 separate services:
 
 #### Service 1: API Backend
+
 1. Click "New" → "GitHub Repo" → Select your repo
 2. Configure:
    - **Name**: `pokeradar-api`
@@ -68,6 +74,7 @@ Railway will detect your monorepo. You need to create 4 separate services:
 3. Railway will auto-detect the `railway.json` config
 
 #### Service 2: Frontend Client
+
 1. Click "New" → "GitHub Repo" → Select your repo
 2. Configure:
    - **Name**: `pokeradar-client`
@@ -75,6 +82,7 @@ Railway will detect your monorepo. You need to create 4 separate services:
    - **Branch**: `main`
 
 #### Service 3: Notifications Service
+
 1. Click "New" → "GitHub Repo" → Select your repo
 2. Configure:
    - **Name**: `pokeradar-notifications`
@@ -82,6 +90,7 @@ Railway will detect your monorepo. You need to create 4 separate services:
    - **Branch**: `main`
 
 #### Service 4: Scraper Service
+
 1. Click "New" → "GitHub Repo" → Select your repo
 2. Configure:
    - **Name**: `pokeradar-scrapper`
@@ -121,6 +130,7 @@ RATE_LIMIT_MAX=100
 ```
 
 **How to get Google OAuth credentials:**
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Create a new project or select existing
 3. Enable "Google+ API"
@@ -130,6 +140,7 @@ RATE_LIMIT_MAX=100
 7. Copy Client ID and Client Secret
 
 **Generate JWT_SECRET:**
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -162,6 +173,7 @@ LOG_LEVEL=info
 ```
 
 **How to get Telegram Bot Token:**
+
 1. Open Telegram and search for `@BotFather`
 2. Send `/newbot` and follow instructions
 3. Copy the token provided
@@ -189,7 +201,9 @@ MAX_RETRY_ATTEMPTS=1
 Railway provides default URLs like `pokeradar-api.up.railway.app`, but you want to use your OVH domain.
 
 ### 4.1 Get Railway URLs
+
 After deployment, Railway assigns URLs to each service. Note them down:
+
 - API: `pokeradar-api-production-xxxx.up.railway.app`
 - Client: `pokeradar-client-production-xxxx.up.railway.app`
 
@@ -216,6 +230,7 @@ After deployment, Railway assigns URLs to each service. Note them down:
 3. Add the following records:
 
 **For API:**
+
 ```
 Type: CNAME
 Name: api
@@ -226,6 +241,7 @@ TTL: 300
 **For Frontend (Root Domain):**
 
 If Railway gives you a CNAME:
+
 ```
 Type: CNAME
 Name: @
@@ -234,6 +250,7 @@ TTL: 300
 ```
 
 If Railway requires A records (for root domain):
+
 ```
 Type: A
 Name: @
@@ -242,6 +259,7 @@ TTL: 300
 ```
 
 Also add www subdomain:
+
 ```
 Type: CNAME
 Name: www
@@ -261,18 +279,21 @@ TTL: 300
 After setting up your domains, update these environment variables:
 
 ### API Service
+
 ```env
 GOOGLE_CALLBACK_URL=https://api.yourdomain.com/auth/google/callback
 CORS_ORIGIN=https://yourdomain.com
 ```
 
 Also update Google OAuth settings:
+
 1. Go to Google Cloud Console → Credentials
 2. Edit your OAuth 2.0 Client
 3. Update Authorized JavaScript origins: `https://yourdomain.com`
 4. Update Authorized redirect URIs: `https://api.yourdomain.com/auth/google/callback`
 
 ### Client Service
+
 ```env
 VITE_API_URL=https://api.yourdomain.com
 ```
@@ -280,6 +301,7 @@ VITE_API_URL=https://api.yourdomain.com
 **Important**: After updating `VITE_API_URL`, redeploy the client service.
 
 ### Notifications Service
+
 ```env
 APP_URL=https://yourdomain.com
 ```
@@ -310,10 +332,12 @@ APP_URL=https://yourdomain.com
 ## Step 7: Database Backups (Important!)
 
 ### Railway MongoDB
+
 - Railway Pro plan includes automatic backups
 - Export manually: Railway dashboard → MongoDB service → Backups
 
 ### MongoDB Atlas
+
 - Automatic backups are included in free tier
 - Configure backup schedule in Atlas dashboard
 
@@ -322,24 +346,32 @@ APP_URL=https://yourdomain.com
 ## Troubleshooting
 
 ### Issue: "CORS error" when logging in
+
 **Fix**: Make sure `CORS_ORIGIN` in API matches your frontend domain exactly (including https://)
 
 ### Issue: "Cannot find module" errors
+
 **Fix**: Railway build might need workspace dependencies. Check `railway.json` buildCommand includes `cd .. && npm install`
 
 ### Issue: Scraper crashes with "Chrome not found"
+
 **Fix**: Ensure `postinstall` script runs: `npx patchright install chrome`. Check Railway build logs.
 
 ### Issue: Notifications not working
+
 **Fix**: MongoDB must support change streams (replica sets). Use Railway MongoDB or Atlas (not standalone MongoDB).
 
 ### Issue: Google OAuth redirect fails
+
 **Fix**:
+
 1. Check `GOOGLE_CALLBACK_URL` matches actual domain
 2. Update Google Cloud Console → Credentials → Authorized redirect URIs
 
 ### Issue: DNS not resolving
+
 **Fix**:
+
 1. Wait up to 48 hours for full propagation (usually 5-30 minutes)
 2. Check DNS with: `nslookup yourdomain.com` or `dig yourdomain.com`
 3. Clear browser cache and try incognito mode
@@ -370,6 +402,7 @@ Before going live:
 ## Cost Estimates
 
 ### Railway
+
 - **Hobby Plan** (free): $5/month credit, good for testing
 - **Pro Plan** ($20/month): Better for production
   - More resources
@@ -377,10 +410,12 @@ Before going live:
   - Priority support
 
 ### MongoDB Atlas
+
 - **Free Tier**: 512MB storage (good for starting)
 - **M10** (~$57/month): Recommended for production
 
 ### Total Estimated Monthly Cost
+
 - **Minimal**: ~$20-30 (Railway Pro + MongoDB Free)
 - **Production**: ~$80-100 (Railway Pro + MongoDB M10)
 
@@ -389,6 +424,7 @@ Before going live:
 ## Maintenance
 
 ### Regular Tasks
+
 1. Monitor Railway logs weekly
 2. Check MongoDB storage usage
 3. Review scraper performance
@@ -396,6 +432,7 @@ Before going live:
 5. Rotate JWT_SECRET every 6-12 months
 
 ### Scaling
+
 - If traffic grows, upgrade Railway plan or add more replicas
 - MongoDB Atlas can auto-scale
 - Consider adding Redis for caching (Railway has a Redis addon)

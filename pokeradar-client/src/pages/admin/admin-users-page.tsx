@@ -28,9 +28,7 @@ export function AdminUsersPage() {
       </div>
 
       {!debouncedQuery.trim() && (
-        <p className="text-muted-foreground text-sm">
-          Wpisz zapytanie, aby wyszukać użytkowników.
-        </p>
+        <p className="text-muted-foreground text-sm">Wpisz zapytanie, aby wyszukać użytkowników.</p>
       )}
 
       {debouncedQuery.trim() && isLoading && (

@@ -23,7 +23,7 @@ export class TelegramBotPlatform implements IBotPlatform {
   constructor(
     token: string,
     appUrl: string,
-    private logger: ILogger
+    private logger: ILogger,
   ) {
     this.bot = new TelegramBot(token, { polling: false });
     this.channelAdapter = new TelegramNotificationAdapter(this.bot);
@@ -36,8 +36,14 @@ export class TelegramBotPlatform implements IBotPlatform {
     const helpCommand = new HelpCommand(
       this.bot,
       appUrl,
-      [...baseCommands, { command: 'help', description: 'Wyświetl dostępne komendy i informacje o bocie' } as ITelegramCommand],
-      this.logger
+      [
+        ...baseCommands,
+        {
+          command: 'help',
+          description: 'Wyświetl dostępne komendy i informacje o bocie',
+        } as ITelegramCommand,
+      ],
+      this.logger,
     );
 
     this.commands = [...baseCommands, helpCommand];
@@ -78,7 +84,7 @@ export class TelegramBotPlatform implements IBotPlatform {
   private async setMenuCommands(): Promise<void> {
     try {
       await this.bot.setMyCommands(
-        this.commands.map((cmd) => ({ command: cmd.command, description: cmd.description }))
+        this.commands.map((cmd) => ({ command: cmd.command, description: cmd.description })),
       );
       this.logger.info('Telegram bot commands registered', { count: this.commands.length });
     } catch (error) {

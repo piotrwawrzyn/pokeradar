@@ -6,7 +6,7 @@ const router = Router();
 const controller = new AuthController();
 
 router.get('/me', authMiddleware, (req: Request, res: Response, next: NextFunction) =>
-  controller.getMe(req, res, next)
+  controller.getMe(req, res, next),
 );
 
 export default router;

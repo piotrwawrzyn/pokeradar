@@ -39,31 +39,41 @@ const NotificationPayloadSchema = new Schema<INotificationPayload>(
     maxPrice: { type: Number, required: true },
     productUrl: { type: String, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const DeliverySchema = new Schema<IDelivery>(
   {
     channel: { type: String, required: true, enum: ['telegram', 'discord'] },
     channelTarget: { type: String, required: true },
-    status: { type: String, required: true, enum: ['pending', 'sent', 'failed'], default: 'pending' },
+    status: {
+      type: String,
+      required: true,
+      enum: ['pending', 'sent', 'failed'],
+      default: 'pending',
+    },
     attempts: { type: Number, required: true, default: 0 },
     error: { type: String, default: null },
     sentAt: { type: Date, default: null },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const NotificationSchema = new Schema<INotificationDoc>(
   {
     userId: { type: String, required: true },
-    status: { type: String, required: true, enum: ['pending', 'sending', 'sent', 'failed'], default: 'pending' },
+    status: {
+      type: String,
+      required: true,
+      enum: ['pending', 'sending', 'sent', 'failed'],
+      default: 'pending',
+    },
     payload: { type: NotificationPayloadSchema, required: true },
     deliveries: { type: [DeliverySchema], default: [] },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },
-  }
+  },
 );
 
 NotificationSchema.index({ status: 1, createdAt: 1 });
@@ -72,5 +82,5 @@ NotificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 
 
 export const NotificationModel = mongoose.model<INotificationDoc>(
   'Notification',
-  NotificationSchema
+  NotificationSchema,
 );

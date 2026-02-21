@@ -58,7 +58,9 @@ export function DiscordInstructions() {
                     </a>
                   </>
                 ) : (
-                  <>Dołącz do serwera Discord <span className="font-bold">pokeradar</span></>
+                  <>
+                    Dołącz do serwera Discord <span className="font-bold">pokeradar</span>
+                  </>
                 )}
               </span>
             </div>
@@ -86,7 +88,9 @@ export function DiscordInstructions() {
                 </a>
               </>
             ) : (
-              <>Otwórz prywatną wiadomość z botem <span className="font-bold">pokeradar</span></>
+              <>
+                Otwórz prywatną wiadomość z botem <span className="font-bold">pokeradar</span>
+              </>
             )}
           </span>
         </li>
@@ -98,14 +102,8 @@ export function DiscordInstructions() {
             <div className="flex flex-col gap-2">
               <p className="leading-6">Wygeneruj token połączenia:</p>
               <div>
-                <Button
-                  size="sm"
-                  onClick={handleGenerate}
-                  disabled={generateToken.isPending}
-                >
-                  {generateToken.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
+                <Button size="sm" onClick={handleGenerate} disabled={generateToken.isPending}>
+                  {generateToken.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Wygeneruj token
                 </Button>
               </div>
@@ -118,12 +116,12 @@ export function DiscordInstructions() {
             </span>
             <div className="flex flex-col gap-2 flex-1 min-w-0">
               <p className="leading-6">
-                Użyj komendy <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">/link</code> i wklej poniższy token:
+                Użyj komendy{' '}
+                <code className="font-mono text-xs bg-muted px-1 py-0.5 rounded">/link</code> i
+                wklej poniższy token:
               </p>
               <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2">
-                <code className="text-xs flex-1 break-all font-mono">
-                  {token}
-                </code>
+                <code className="text-xs flex-1 break-all font-mono">{token}</code>
                 <Button
                   variant="ghost"
                   size="icon"

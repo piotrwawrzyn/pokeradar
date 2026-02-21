@@ -58,9 +58,7 @@ export function AdminShopsPage() {
                   <div>
                     <div className="flex items-center gap-2">
                       {shop.shopName}
-                      {shop.hasWarning && (
-                        <AlertTriangle className="h-4 w-4 text-orange-500" />
-                      )}
+                      {shop.hasWarning && <AlertTriangle className="h-4 w-4 text-orange-500" />}
                     </div>
                     <div className="text-xs text-muted-foreground">{shop.baseUrl}</div>
                   </div>

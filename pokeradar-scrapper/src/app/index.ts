@@ -5,7 +5,11 @@
  * Notification delivery is handled by the pokeradar-notifications service.
  */
 
-console.log('[BOOT] Process starting', { pid: process.pid, node: process.version, cwd: process.cwd() });
+console.log('[BOOT] Process starting', {
+  pid: process.pid,
+  node: process.version,
+  cwd: process.cwd(),
+});
 
 import * as dotenv from 'dotenv';
 
@@ -37,9 +41,7 @@ import { ScraperFactory } from '../scraper/scrapers';
 dotenv.config();
 
 // Create file-based repositories (shops loaded from @pokeradar/shared config)
-const shopRepository: IShopRepository = new FileShopRepository(
-  getShopConfigDir()
-);
+const shopRepository: IShopRepository = new FileShopRepository(getShopConfigDir());
 
 async function main() {
   const startTime = Date.now();
@@ -81,7 +83,10 @@ async function main() {
     notificationRepository = new MongoNotificationRepository();
     console.log('MongoDB connected');
   } catch (error) {
-    console.error('Failed to connect to MongoDB:', error instanceof Error ? error.message : String(error));
+    console.error(
+      'Failed to connect to MongoDB:',
+      error instanceof Error ? error.message : String(error),
+    );
     process.exit(1);
   }
 
@@ -95,7 +100,7 @@ async function main() {
       userWatchEntryRepository,
       userRepository,
       notificationRepository,
-      logger
+      logger,
     );
 
     // Create monitor with multi-user architecture

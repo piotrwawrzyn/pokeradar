@@ -71,11 +71,7 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
             ) : (
               <div className="min-w-0">{priceContent}</div>
             )}
-            <WatchlistToggle
-              product={product}
-              entry={entry}
-              disabled={watchlistDisabled}
-            />
+            <WatchlistToggle product={product} entry={entry} disabled={watchlistDisabled} />
           </div>
           {isWatched && (
             <div className="mt-auto">

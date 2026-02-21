@@ -28,7 +28,7 @@ export class WatchlistController {
       const entry = await watchlistService.updateEntry(
         req.user!.userId,
         req.params.id as string,
-        req.body
+        req.body,
       );
       res.json(entry);
     } catch (error) {

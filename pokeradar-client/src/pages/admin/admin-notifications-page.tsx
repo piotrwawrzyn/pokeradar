@@ -159,9 +159,7 @@ export function AdminNotificationsPage() {
                         {new Date(notif.createdAt).toLocaleString('pl-PL')}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {firstSentAt
-                          ? new Date(firstSentAt).toLocaleString('pl-PL')
-                          : '-'}
+                        {firstSentAt ? new Date(firstSentAt).toLocaleString('pl-PL') : '-'}
                       </TableCell>
                     </TableRow>
                     {isExpanded && (
@@ -206,11 +204,17 @@ export function AdminNotificationsPage() {
                                 <div className="space-y-1">
                                   {notif.deliveries.map((d, i) => (
                                     <div key={i} className="text-sm flex gap-4 items-start">
-                                      <span className="font-mono text-muted-foreground w-20">{d.channel}</span>
+                                      <span className="font-mono text-muted-foreground w-20">
+                                        {d.channel}
+                                      </span>
                                       <span>{d.status}</span>
-                                      <span className="text-muted-foreground">próby: {d.attempts}</span>
+                                      <span className="text-muted-foreground">
+                                        próby: {d.attempts}
+                                      </span>
                                       {d.error && (
-                                        <span className="text-red-400 font-mono truncate">{d.error}</span>
+                                        <span className="text-red-400 font-mono truncate">
+                                          {d.error}
+                                        </span>
                                       )}
                                     </div>
                                   ))}

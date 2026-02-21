@@ -49,8 +49,7 @@ export function useCreateProduct() {
 export function useUpdateProduct() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: unknown }) =>
-      adminApi.updateProduct(id, data),
+    mutationFn: ({ id, data }: { id: string; data: unknown }) => adminApi.updateProduct(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'products'] });
       qc.invalidateQueries({ queryKey: ['products'] });
@@ -78,8 +77,7 @@ export function useUploadImageOnly() {
 export function useUploadProductImage() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, file }: { id: string; file: File }) =>
-      adminApi.uploadProductImage(id, file),
+    mutationFn: ({ id, file }: { id: string; file: File }) => adminApi.uploadProductImage(id, file),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'products'] });
       qc.invalidateQueries({ queryKey: ['products'] });

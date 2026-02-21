@@ -10,7 +10,7 @@ export class StartCommand implements ITelegramCommand {
   constructor(
     private bot: TelegramBot,
     private appUrl: string,
-    private logger: ILogger
+    private logger: ILogger,
   ) {}
 
   async execute(msg: TelegramBot.Message, _args: string): Promise<void> {
@@ -18,7 +18,10 @@ export class StartCommand implements ITelegramCommand {
     const messages = getTelegramMessages(this.appUrl);
 
     try {
-      await this.bot.sendMessage(chatId, messages.start, { parse_mode: 'Markdown', disable_web_page_preview: true });
+      await this.bot.sendMessage(chatId, messages.start, {
+        parse_mode: 'Markdown',
+        disable_web_page_preview: true,
+      });
     } catch (error) {
       this.logger.error('Failed to send /start response', { chatId, error });
     }

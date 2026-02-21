@@ -10,10 +10,7 @@ dotenv.config();
 
 const shopRepository = new FileShopRepository(getShopConfigDir());
 
-async function runWithConcurrency(
-  tasks: (() => Promise<void>)[],
-  limit: number
-): Promise<void> {
+async function runWithConcurrency(tasks: (() => Promise<void>)[], limit: number): Promise<void> {
   const queue = [...tasks];
   const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
     while (queue.length > 0) {
@@ -27,7 +24,7 @@ async function runWithConcurrency(
 async function scrapeProduct(
   shop: ShopConfig,
   product: WatchlistProductInternal,
-  logger: Logger
+  logger: Logger,
 ): Promise<{ result: ProductResult | null; durationMs: number }> {
   const start = Date.now();
   const scraper = ScraperFactory.create(shop, logger);
@@ -47,7 +44,7 @@ async function scrapeProduct(
 async function benchmarkFullySequential(
   shops: ShopConfig[],
   products: WatchlistProductInternal[],
-  logger: Logger
+  logger: Logger,
 ): Promise<{ totalMs: number; shopTimings: { shop: string; ms: number }[] }> {
   const shopTimings: { shop: string; ms: number }[] = [];
   const totalStart = Date.now();
@@ -69,7 +66,7 @@ async function benchmarkFullySequential(
 async function benchmarkShopsParallelProductsSequential(
   shops: ShopConfig[],
   products: WatchlistProductInternal[],
-  logger: Logger
+  logger: Logger,
 ): Promise<{ totalMs: number; shopTimings: { shop: string; ms: number }[] }> {
   const shopTimings: { shop: string; ms: number }[] = [];
   const totalStart = Date.now();
@@ -94,7 +91,7 @@ async function benchmarkShopsParallelProductsParallel(
   shops: ShopConfig[],
   products: WatchlistProductInternal[],
   logger: Logger,
-  productConcurrency: number
+  productConcurrency: number,
 ): Promise<{ totalMs: number; shopTimings: { shop: string; ms: number }[] }> {
   const shopTimings: { shop: string; ms: number }[] = [];
   const totalStart = Date.now();
@@ -129,7 +126,9 @@ async function main() {
 
   const logger = new Logger('info', true); // silent mode
 
-  console.log(`\nBenchmark: ${shops.length} cheerio shops x ${products.length} products = ${shops.length * products.length} requests\n`);
+  console.log(
+    `\nBenchmark: ${shops.length} cheerio shops x ${products.length} products = ${shops.length * products.length} requests\n`,
+  );
 
   // --- Mode 0: Fully sequential ---
   console.log('=== Mode 0: Fully sequential (no concurrency) ===');
@@ -141,7 +140,7 @@ async function main() {
   }
 
   console.log('');
-  await new Promise(r => setTimeout(r, 3000));
+  await new Promise((r) => setTimeout(r, 3000));
 
   // --- Mode A: Current approach ---
   console.log('=== Mode A: Parallel shops (10), sequential products ===');
@@ -153,7 +152,7 @@ async function main() {
   }
 
   console.log('');
-  await new Promise(r => setTimeout(r, 3000));
+  await new Promise((r) => setTimeout(r, 3000));
 
   // --- Mode B: Parallel products (3 per shop) ---
   console.log('=== Mode B: Parallel shops (10) + parallel products (3) ===');
@@ -166,14 +165,18 @@ async function main() {
 
   console.log('\n=== Summary ===');
   console.log(`Mode 0 (sequential):        ${(s.totalMs / 1000).toFixed(1)}s`);
-  console.log(`Mode A (shop conc. 10):     ${(a.totalMs / 1000).toFixed(1)}s  (${((1 - a.totalMs / s.totalMs) * 100).toFixed(0)}% faster than sequential)`);
-  console.log(`Mode B (+ product conc. 3): ${(b.totalMs / 1000).toFixed(1)}s  (${((1 - b.totalMs / s.totalMs) * 100).toFixed(0)}% faster than sequential)`);
+  console.log(
+    `Mode A (shop conc. 10):     ${(a.totalMs / 1000).toFixed(1)}s  (${((1 - a.totalMs / s.totalMs) * 100).toFixed(0)}% faster than sequential)`,
+  );
+  console.log(
+    `Mode B (+ product conc. 3): ${(b.totalMs / 1000).toFixed(1)}s  (${((1 - b.totalMs / s.totalMs) * 100).toFixed(0)}% faster than sequential)`,
+  );
   console.log('');
 
   await disconnectDB();
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('Benchmark error:', error);
   process.exit(1);
 });

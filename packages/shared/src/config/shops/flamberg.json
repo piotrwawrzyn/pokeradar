@@ -1,48 +1,48 @@
 {
-    "id": "flamberg",
-    "name": "Flamberg",
-    "baseUrl": "https://flamberg.com.pl",
-    "searchUrl": "/pl/search?text=",
-    "selectors": {
-      "searchPage": {
-        "article": {
-          "type": "css",
-          "value": "div.product"
-        },
-        "productUrl": {
-          "type": "css",
-          "value": "a.product__name",
-          "extract": "href"
-        },
-        "title": {
-          "type": "css",
-          "value": "a.product__name"
-        },
-        "price": {
-          "type": "css",
-          "value": "div.product__prices strong.price"
-        },
-        "available": {
-          "type": "css",
-          "value": ":not([data-product_disable=\"true\"])",
-          "matchSelf": true
-        },
-        "unavailable": {
-          "type": "css",
-          "value": "[data-product_disable=\"true\"]",
-          "matchSelf": true
-        }
+  "id": "flamberg",
+  "name": "Flamberg",
+  "baseUrl": "https://flamberg.com.pl",
+  "searchUrl": "/pl/search?text=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.product"
       },
-      "productPage": {
-        "price": {
-          "type": "css",
-          "value": "h2#projector_price_value",
-          "format": "european"
-        },
-        "available": {
-          "type": "css",
-          "value": ".projector_buy:not(.--hidden)"
-        }
+      "productUrl": {
+        "type": "css",
+        "value": "a.product__name",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "a.product__name"
+      },
+      "price": {
+        "type": "css",
+        "value": "div.product__prices strong.price"
+      },
+      "available": {
+        "type": "css",
+        "value": ":not([data-product_disable=\"true\"])",
+        "matchSelf": true
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "[data-product_disable=\"true\"]",
+        "matchSelf": true
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "h2#projector_price_value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": ".projector_buy:not(.--hidden)"
       }
     }
   }
+}

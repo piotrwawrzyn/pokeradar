@@ -1,24 +1,24 @@
-import { defineConfig, type Plugin } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
+import { defineConfig, type Plugin } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 function wwwRedirect(): Plugin {
   return {
     name: 'www-redirect',
     configurePreviewServer(server) {
       server.middlewares.use((req, res, next) => {
-        const host = req.headers.host || ''
+        const host = req.headers.host || '';
         if (host.startsWith('www.')) {
-          const newHost = host.slice(4)
-          res.writeHead(301, { Location: `https://${newHost}${req.url}` })
-          res.end()
-          return
+          const newHost = host.slice(4);
+          res.writeHead(301, { Location: `https://${newHost}${req.url}` });
+          res.end();
+          return;
         }
-        next()
-      })
+        next();
+      });
     },
-  }
+  };
 }
 
 export default defineConfig({
@@ -31,4 +31,4 @@ export default defineConfig({
   preview: {
     allowedHosts: ['.pokeradar.pl', '.railway.app', 'localhost'],
   },
-})
+});

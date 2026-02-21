@@ -1,6 +1,7 @@
 # Pokeradar Client — React Frontend Implementation Plan
 
 ## Tech Stack
+
 - **React 19 + Vite + TypeScript**
 - **shadcn/ui + Tailwind CSS v4** (components copied into `src/components/ui/`)
 - **TanStack Query v5** (server state), **React Context** (auth only)
@@ -80,17 +81,18 @@ pokeradar-client/
 
 ## Routing
 
-| Path | Page | Auth |
-|------|------|------|
-| `/` | WatchlistPage | No (toggles disabled for guests) |
-| `/ustawienia` | SettingsPage | Yes (AuthGuard redirects to login) |
-| `/auth/callback` | AuthCallbackPage | No |
+| Path             | Page             | Auth                               |
+| ---------------- | ---------------- | ---------------------------------- |
+| `/`              | WatchlistPage    | No (toggles disabled for guests)   |
+| `/ustawienia`    | SettingsPage     | Yes (AuthGuard redirects to login) |
+| `/auth/callback` | AuthCallbackPage | No                                 |
 
 Settings page is accessed via **user dropdown menu** (gear icon / "Ustawienia" option), not a top-level tab. This keeps the main nav clean — only the watchlist/catalog is in the primary navigation.
 
 ## Key Design Decisions
 
 ### Auth Flow
+
 1. User clicks "Zaloguj przez Google" → browser navigates to `API/auth/google`
 2. Google OAuth → API generates JWT → redirects to `/auth/callback?token=xxx`
 3. `AuthCallbackPage` reads token from URL, stores in localStorage, fetches `/auth/me`, redirects to `/`
@@ -98,6 +100,7 @@ Settings page is accessed via **user dropdown menu** (gear icon / "Ustawienia" o
 5. Axios interceptor: attaches `Authorization: Bearer <token>`, catches 401 → logout
 
 ### Watchlist Tab (main page)
+
 - Products grouped by `productSetId`, sets sorted by `releaseDate` descending
 - Products without a set go into "Inne" category at the bottom
 - **Prices shown for all products** — `GET /products` returns `currentBestPrice` for each product. Used for both display and maxPrice validation
@@ -109,12 +112,14 @@ Settings page is accessed via **user dropdown menu** (gear icon / "Ustawienia" o
 #### Watchlist disabled states (with clear informational messages)
 
 **State 1: Not logged in**
+
 - All watchlist toggles are visually disabled (grayed out)
 - Prominent banner/alert at the top of the catalog:
   - "Zaloguj sie, aby skonfigurowac swoja liste obserwowanych"
   - Includes a "Zaloguj przez Google" button directly in the banner for quick access
 
 **State 2: Logged in, but no notification channel linked**
+
 - All watchlist toggles are visually disabled (grayed out)
 - Prominent banner/alert at the top of the catalog:
   - "Aby korzystac z listy obserwowanych, najpierw skonfiguruj powiadomienia."
@@ -122,9 +127,11 @@ Settings page is accessed via **user dropdown menu** (gear icon / "Ustawienia" o
   - Includes a link/button: "Przejdz do ustawien" → navigates to `/ustawienia`
 
 **State 3: Logged in + notification linked**
+
 - All toggles are enabled, full watchlist functionality available
 
 ### Settings Page (`/ustawienia`) — accessed from user dropdown menu
+
 - **Section 1: Profil** — display name, email (read-only info from Google)
 - **Section 2: Powiadomienia** — notification channel management (scalable)
   - Config-driven: array of `NotificationChannelConfig` objects
@@ -138,12 +145,14 @@ Settings page is accessed via **user dropdown menu** (gear icon / "Ustawienia" o
   - Info alert: "Obecnie wspieramy tylko powiadomienia przez Telegram. Pracujemy nad dodaniem kolejnych opcji."
 
 ### Theme (Pikachu Dark)
+
 - Dark mode default: charcoal (#1a1a2e) backgrounds
 - Primary: amber (#FFC107), used for buttons, toggles, accents, ring/focus
 - Cards: slightly lighter dark surface
 - All shadcn CSS variables overridden in globals.css
 
 ### Responsive / Mobile-First Design
+
 - **Product grid**: 1 column on mobile, 2 on tablet, 3-4 on desktop (Tailwind `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`)
 - **Header**: logo + hamburger menu on mobile; full nav on desktop. User menu collapses into hamburger
 - **Product cards**: stack image above text on mobile, keep compact layout
@@ -199,9 +208,11 @@ interface UserProfile {
 ## Testing
 
 ### Stack
+
 - **Vitest** + **React Testing Library** + **MSW** (Mock Service Worker)
 
 ### Key test scenarios
+
 - **Unlogged user**: catalog visible, toggles disabled, login prompt shown
 - **Logged user without Telegram**: watchlist toggles disabled, message to set up notifications
 - **Logged user with Telegram**: full watchlist functionality enabled
@@ -211,6 +222,7 @@ interface UserProfile {
 - **Telegram linking flow**: generate token → display → copy → linked state → unlink
 
 ## Verification
+
 1. **API tests**: `cd pokeradar-api && npm test` — all tests pass
 2. **Frontend dev**: `cd pokeradar-client && npm run dev` — starts without errors on `localhost:5173`
 3. **Frontend tests**: `cd pokeradar-client && npm test` — all tests pass

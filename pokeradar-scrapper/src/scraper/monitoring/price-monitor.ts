@@ -52,10 +52,7 @@ export class PriceMonitor {
   private cycleRunner: ScanCycleRunner;
 
   constructor(private config: PriceMonitorConfig) {
-    this.resultBuffer = new ResultBuffer(
-      config.productResultRepository,
-      config.logger
-    );
+    this.resultBuffer = new ResultBuffer(config.productResultRepository, config.logger);
 
     this.cycleRunner = new ScanCycleRunner({
       scraperFactory: config.scraperFactory,
@@ -105,7 +102,7 @@ export class PriceMonitor {
     const { resolved: resolvedProducts, productTypeCount } = await loadAndResolveProducts(
       this.products,
       setMap,
-      this.config.logger
+      this.config.logger,
     );
 
     const unresolvedCount = this.products.length - resolvedProducts.length;
@@ -159,7 +156,11 @@ export class PriceMonitor {
     }
 
     // Run Playwright cycle
-    await this.cycleRunner.runPlaywrightScanCycle(this.shops, this.setGroups, this.ungroupedProducts);
+    await this.cycleRunner.runPlaywrightScanCycle(
+      this.shops,
+      this.setGroups,
+      this.ungroupedProducts,
+    );
 
     // Flush all buffered data to MongoDB
     await this.flushAllChanges();
@@ -178,7 +179,11 @@ export class PriceMonitor {
    * Runs only Playwright scan cycle.
    */
   async runPlaywrightScanCycle(): Promise<void> {
-    await this.cycleRunner.runPlaywrightScanCycle(this.shops, this.setGroups, this.ungroupedProducts);
+    await this.cycleRunner.runPlaywrightScanCycle(
+      this.shops,
+      this.setGroups,
+      this.ungroupedProducts,
+    );
   }
 
   /**

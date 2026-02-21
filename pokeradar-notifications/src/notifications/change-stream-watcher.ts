@@ -40,9 +40,7 @@ export class ChangeStreamWatcher {
   private watch(onNotification: NotificationHandler): void {
     if (!this.running) return;
 
-    const pipeline = [
-      { $match: { operationType: 'insert' } },
-    ];
+    const pipeline = [{ $match: { operationType: 'insert' } }];
 
     this.changeStream = NotificationModel.watch(pipeline, { fullDocument: 'updateLookup' });
 

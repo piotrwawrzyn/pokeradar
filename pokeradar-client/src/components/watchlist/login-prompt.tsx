@@ -28,8 +28,8 @@ export function WatchlistBanner() {
         <Info className="h-5 w-5 text-primary" />
         <AlertTitle>Lista obserwowanych</AlertTitle>
         <AlertDescription className="mt-2">
-          Zaloguj się, aby skonfigurować swoją listę obserwowanych i otrzymywać
-          powiadomienia o zmianach cen.
+          Zaloguj się, aby skonfigurować swoją listę obserwowanych i otrzymywać powiadomienia o
+          zmianach cen.
         </AlertDescription>
       </Alert>
     );
@@ -44,8 +44,7 @@ export function WatchlistBanner() {
           Aby korzystać z listy obserwowanych, najpierw skonfiguruj powiadomienia.
         </p>
         <p className="text-muted-foreground text-sm mb-3">
-          Bez aktywnego kanału powiadomień nie będziemy mogli informować Cię o
-          zmianach cen.
+          Bez aktywnego kanału powiadomień nie będziemy mogli informować Cię o zmianach cen.
         </p>
         <Button asChild size="sm">
           <Link to="/ustawienia">Przejdź do ustawień</Link>

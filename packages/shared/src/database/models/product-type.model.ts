@@ -24,7 +24,4 @@ const ProductTypeSchema = new Schema<IProductTypeDoc>({
   },
 });
 
-export const ProductTypeModel = mongoose.model<IProductTypeDoc>(
-  'ProductType',
-  ProductTypeSchema
-);
+export const ProductTypeModel = mongoose.model<IProductTypeDoc>('ProductType', ProductTypeSchema);

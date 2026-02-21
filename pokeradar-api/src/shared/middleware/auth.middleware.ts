@@ -22,7 +22,7 @@ export const clerkAuthMiddleware = requireAuth();
 export async function resolveDbUser(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> {
   const { userId: clerkId } = getAuth(req);
   if (!clerkId) {
@@ -32,7 +32,7 @@ export async function resolveDbUser(
   const user = await UserModel.findOneAndUpdate(
     { clerkId },
     { $setOnInsert: { clerkId } },
-    { upsert: true, new: true, lean: true }
+    { upsert: true, new: true, lean: true },
   );
   if (!user) {
     res.status(500).json({ error: 'Failed to resolve user' });

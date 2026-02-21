@@ -24,14 +24,11 @@ export class ScraperFactory {
   /**
    * Creates a scraper for the given shop configuration.
    */
-  static create(
-    shop: ShopConfig,
-    logger?: IScraperLogger,
-    browser?: Browser
-  ): IScraper {
-    const engine = shop.engine === 'playwright'
-      ? new PlaywrightEngine(shop, browser, logger)
-      : new CheerioEngine(shop, logger);
+  static create(shop: ShopConfig, logger?: IScraperLogger, browser?: Browser): IScraper {
+    const engine =
+      shop.engine === 'playwright'
+        ? new PlaywrightEngine(shop, browser, logger)
+        : new CheerioEngine(shop, logger);
 
     return new DefaultScraper(shop, engine, logger);
   }

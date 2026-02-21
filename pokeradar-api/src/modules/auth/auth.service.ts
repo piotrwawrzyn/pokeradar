@@ -3,10 +3,7 @@ import { UserModel } from '../../infrastructure/database/models';
 import { UserProfileResponse } from '../../shared/types';
 
 export class AuthService {
-  async getUserProfile(
-    userId: string,
-    clerkId: string
-  ): Promise<UserProfileResponse | null> {
+  async getUserProfile(userId: string, clerkId: string): Promise<UserProfileResponse | null> {
     const [user, clerkUser] = await Promise.all([
       UserModel.findById(userId).lean(),
       clerkClient.users.getUser(clerkId),

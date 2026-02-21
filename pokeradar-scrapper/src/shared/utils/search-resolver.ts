@@ -107,10 +107,7 @@ export interface ProductTypeSearch {
  * buildTypePhrases(["Booster Box"], undefined)
  * // => [] (no set = too generic, don't use type phrases)
  */
-function buildTypePhrases(
-  typePhrases: string[],
-  setName: string | undefined
-): string[] {
+function buildTypePhrases(typePhrases: string[], setName: string | undefined): string[] {
   if (!setName) {
     return [];
   }
@@ -142,7 +139,7 @@ function dedupe(arr: string[]): string[] {
 export function resolveSearchConfig(
   product: WatchlistProductInternal,
   productTypeMap: Map<string, ProductTypeSearch>,
-  setMap: Map<string, { name: string; series: string }>
+  setMap: Map<string, { name: string; series: string }>,
 ): ResolvedWatchlistProduct | null {
   const productPhrases = product.search?.phrases ?? [];
   const productExclude = product.search?.exclude ?? [];
@@ -189,9 +186,7 @@ export function resolveSearchConfig(
   }
 
   // Build type-derived phrases (joined with set name if product belongs to a set)
-  const setName = product.productSetId
-    ? setMap.get(product.productSetId)?.name
-    : undefined;
+  const setName = product.productSetId ? setMap.get(product.productSetId)?.name : undefined;
   const typePhrases = buildTypePhrases(productType.phrases ?? [], setName);
   const typeExclude = productType.exclude ?? [];
 
@@ -221,7 +216,7 @@ export function resolveAllProducts(
   products: WatchlistProductInternal[],
   productTypeMap: Map<string, ProductTypeSearch>,
   setMap: Map<string, { name: string; series: string }>,
-  logger?: { error(message: string, meta?: Record<string, unknown>): void }
+  logger?: { error(message: string, meta?: Record<string, unknown>): void },
 ): ResolvedWatchlistProduct[] {
   const resolved: ResolvedWatchlistProduct[] = [];
 
@@ -248,7 +243,7 @@ export function resolveAllProducts(
 export async function loadAndResolveProducts(
   products: WatchlistProductInternal[],
   setMap: Map<string, { name: string; series: string }>,
-  logger?: { error(message: string, meta?: Record<string, unknown>): void }
+  logger?: { error(message: string, meta?: Record<string, unknown>): void },
 ): Promise<{ resolved: ResolvedWatchlistProduct[]; productTypeCount: number }> {
   const productTypeDocs = await ProductTypeModel.find().lean();
   const productTypeMap = new Map<string, ProductTypeSearch>();

@@ -34,11 +34,10 @@ describe('StartCommand', () => {
     await command.execute(msg, '');
 
     expect(mockBot.sendMessage).toHaveBeenCalledTimes(1);
-    expect(mockBot.sendMessage).toHaveBeenCalledWith(
-      12345,
-      expect.any(String),
-      { parse_mode: 'Markdown', disable_web_page_preview: true }
-    );
+    expect(mockBot.sendMessage).toHaveBeenCalledWith(12345, expect.any(String), {
+      parse_mode: 'Markdown',
+      disable_web_page_preview: true,
+    });
   });
 
   it('includes pokeradar link in the welcome message', async () => {

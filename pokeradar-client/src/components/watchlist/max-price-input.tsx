@@ -64,9 +64,7 @@ export function MaxPriceInput({
 
   // Compute slider max once on mount so it stays consistent during the session
   const maxRef = useRef(
-    currentBestPrice !== null
-      ? Math.max(currentBestPrice, currentMaxPrice)
-      : Infinity,
+    currentBestPrice !== null ? Math.max(currentBestPrice, currentMaxPrice) : Infinity,
   );
   const max = maxRef.current;
 

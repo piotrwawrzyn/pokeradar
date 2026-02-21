@@ -16,15 +16,12 @@ const PRODUCT_CONCURRENCY = 3;
 
 function countTotalProducts(
   setGroups: SetGroup[],
-  ungroupedProducts: WatchlistProductInternal[]
+  ungroupedProducts: WatchlistProductInternal[],
 ): number {
   return setGroups.reduce((sum, g) => sum + g.products.length, 0) + ungroupedProducts.length;
 }
 
-async function runWithConcurrency(
-  tasks: (() => Promise<void>)[],
-  limit: number
-): Promise<void> {
+async function runWithConcurrency(tasks: (() => Promise<void>)[], limit: number): Promise<void> {
   const queue = [...tasks];
   const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
     while (queue.length > 0) {
@@ -123,7 +120,7 @@ export class ScanCycleRunner {
   async runCheerioScanCycle(
     shops: ShopConfig[],
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[]
+    ungroupedProducts: WatchlistProductInternal[],
   ): Promise<void> {
     const { cheerio: cheerioShops } = this.config.scraperFactory.groupByEngine(shops);
 
@@ -160,7 +157,7 @@ export class ScanCycleRunner {
   async runPlaywrightScanCycle(
     shops: ShopConfig[],
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[]
+    ungroupedProducts: WatchlistProductInternal[],
   ): Promise<void> {
     const { playwright: playwrightShops } = this.config.scraperFactory.groupByEngine(shops);
 
@@ -184,10 +181,7 @@ export class ScanCycleRunner {
       const { chromium } = await import('playwright');
       browser = await chromium.launch({
         headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-        ],
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
 
       const breaker = new ShopCircuitBreaker();
@@ -214,7 +208,7 @@ export class ScanCycleRunner {
     shop: ShopConfig,
     setGroups: SetGroup[],
     ungroupedProducts: WatchlistProductInternal[],
-    breaker: ShopCircuitBreaker
+    breaker: ShopCircuitBreaker,
   ): Promise<void> {
     // Phase 1: Resolve set-based URLs using a single scraper
     const productTasks = await this.resolveSetSearches(shop, setGroups, ungroupedProducts, breaker);
@@ -233,7 +227,7 @@ export class ScanCycleRunner {
           const result = scraper.createResultFromSearchData(
             task.product,
             task.resolvedUrl!,
-            task.searchPageData
+            task.searchPageData,
           );
           this.handleResult(task.product, result, shop);
         } else if (task.resolvedUrl) {
@@ -248,10 +242,10 @@ export class ScanCycleRunner {
           if (result) {
             this.handleResult(task.product, result, shop);
           }
-        // } else {
-        //   // Individual fallback search — disabled for now (not optimal, too many requests)
-        //   const result = await scraper.scrapeProduct(task.product);
-        //   this.handleResult(task.product, result, shop);
+          // } else {
+          //   // Individual fallback search — disabled for now (not optimal, too many requests)
+          //   const result = await scraper.scrapeProduct(task.product);
+          //   this.handleResult(task.product, result, shop);
         }
       } catch (error) {
         this.config.logger.error('Error scanning product', {
@@ -278,7 +272,7 @@ export class ScanCycleRunner {
     setGroups: SetGroup[],
     ungroupedProducts: WatchlistProductInternal[],
     browser: Browser,
-    breaker: ShopCircuitBreaker
+    breaker: ShopCircuitBreaker,
   ): Promise<void> {
     const scraper = this.config.scraperFactory.create(shop, this.config.logger, browser);
 
@@ -319,7 +313,7 @@ export class ScanCycleRunner {
     shop: ShopConfig,
     setGroups: SetGroup[],
     ungroupedProducts: WatchlistProductInternal[],
-    breaker: ShopCircuitBreaker
+    breaker: ShopCircuitBreaker,
   ): Promise<ProductTask[]> {
     const tasks: ProductTask[] = [];
 
@@ -413,7 +407,7 @@ export class ScanCycleRunner {
     scraper: IScraper,
     shop: ShopConfig,
     setGroup: SetGroup,
-    breaker: ShopCircuitBreaker
+    breaker: ShopCircuitBreaker,
   ): Promise<void> {
     const navigator = scraper.getNavigator();
 
@@ -439,7 +433,7 @@ export class ScanCycleRunner {
               const result = scraper.createResultFromSearchData(
                 product,
                 match.url,
-                match.searchPageData
+                match.searchPageData,
               );
               this.handleResult(product, result, shop);
             } else {
@@ -492,7 +486,7 @@ export class ScanCycleRunner {
   private async scanProductIndividual(
     scraper: IScraper,
     shop: ShopConfig,
-    product: WatchlistProductInternal
+    product: WatchlistProductInternal,
   ): Promise<void> {
     try {
       const result = await scraper.scrapeProduct(product);
@@ -512,10 +506,7 @@ export class ScanCycleRunner {
    * Called when a product is not found in search or skipped due to circuit breaker.
    * No-op: unfound products are not stored or dispatched to avoid false state resets.
    */
-  private handleNotFound(
-    _product: WatchlistProductInternal,
-    shop: ShopConfig
-  ): void {
+  private handleNotFound(_product: WatchlistProductInternal, shop: ShopConfig): void {
     // Intentionally empty — transient failures should not affect notification state
     const stats = this.getOrCreateStats(shop.id);
     stats.notFound++;
@@ -527,7 +518,7 @@ export class ScanCycleRunner {
   private handleResult(
     product: WatchlistProductInternal,
     result: ProductResult,
-    shop: ShopConfig
+    shop: ShopConfig,
   ): void {
     this.config.resultBuffer.add(result);
     this.config.dispatcher.processResult(product, result, shop);
@@ -538,7 +529,11 @@ export class ScanCycleRunner {
   /**
    * Logs cycle completion with memory stats and per-shop results summary.
    */
-  private logCycleCompletion(engine: string, startTime: number, breaker?: ShopCircuitBreaker): void {
+  private logCycleCompletion(
+    engine: string,
+    startTime: number,
+    breaker?: ShopCircuitBreaker,
+  ): void {
     const duration = Date.now() - startTime;
     const memUsage = process.memoryUsage();
     const trippedShops = breaker?.getTrippedShops() ?? [];
@@ -554,7 +549,7 @@ export class ScanCycleRunner {
 
     // Log per-shop results summary
     const statsArray = Array.from(this.shopStats.values())
-      .filter(s => s.found > 0 || s.notFound > 0)
+      .filter((s) => s.found > 0 || s.notFound > 0)
       .sort((a, b) => a.shopId.localeCompare(b.shopId));
 
     if (statsArray.length > 0) {

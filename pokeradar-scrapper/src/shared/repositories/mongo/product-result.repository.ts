@@ -39,7 +39,7 @@ export class MongoProductResultRepository implements IProductResultRepository {
         price: r.price,
         isAvailable: r.isAvailable,
         timestamp: r.timestamp,
-      }))
+      })),
     );
   }
 
@@ -87,7 +87,14 @@ export class MongoProductResultRepository implements IProductResultRepository {
 
   async getCurrentBestOffer(productId: string): Promise<ProductResult | null> {
     const [doc] = await ProductResultModel.aggregate([
-      { $match: { productId, isAvailable: true, price: { $ne: null }, timestamp: { $gte: getFreshnessCutoff() } } },
+      {
+        $match: {
+          productId,
+          isAvailable: true,
+          price: { $ne: null },
+          timestamp: { $gte: getFreshnessCutoff() },
+        },
+      },
       { $sort: { shopId: 1, timestamp: -1 } },
       { $group: { _id: '$shopId', doc: { $first: '$$ROOT' } } },
       { $replaceRoot: { newRoot: '$doc' } },
@@ -113,9 +120,18 @@ export class MongoProductResultRepository implements IProductResultRepository {
 
     // Find best available offers among fresh results
     const docs = await ProductResultModel.aggregate([
-      { $match: { productId: { $in: productIds }, isAvailable: true, price: { $ne: null }, timestamp: { $gte: cutoff } } },
+      {
+        $match: {
+          productId: { $in: productIds },
+          isAvailable: true,
+          price: { $ne: null },
+          timestamp: { $gte: cutoff },
+        },
+      },
       { $sort: { productId: 1, shopId: 1, timestamp: -1 } },
-      { $group: { _id: { productId: '$productId', shopId: '$shopId' }, doc: { $first: '$$ROOT' } } },
+      {
+        $group: { _id: { productId: '$productId', shopId: '$shopId' }, doc: { $first: '$$ROOT' } },
+      },
       { $replaceRoot: { newRoot: '$doc' } },
       { $sort: { productId: 1, price: 1 } },
       { $group: { _id: '$productId', doc: { $first: '$$ROOT' } } },

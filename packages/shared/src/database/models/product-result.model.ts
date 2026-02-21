@@ -23,17 +23,14 @@ const ProductResultSchema = new Schema<IProductResultDoc>(
   },
   {
     timestamps: { createdAt: true, updatedAt: false },
-  }
+  },
 );
 
-ProductResultSchema.index(
-  { productId: 1, shopId: 1, hourBucket: 1 },
-  { unique: true }
-);
+ProductResultSchema.index({ productId: 1, shopId: 1, hourBucket: 1 }, { unique: true });
 ProductResultSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 });
 ProductResultSchema.index({ productId: 1, timestamp: -1 });
 
 export const ProductResultModel = mongoose.model<IProductResultDoc>(
   'ProductResult',
-  ProductResultSchema
+  ProductResultSchema,
 );

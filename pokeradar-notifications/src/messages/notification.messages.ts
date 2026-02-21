@@ -11,12 +11,16 @@ function formatPricePL(price: number): string {
   return `${price.toFixed(2).replace('.', ',')} zł`;
 }
 
-function buildNotificationLines(payload: INotificationPayload, bold: (s: string) => string): string[] {
+function buildNotificationLines(
+  payload: INotificationPayload,
+  bold: (s: string) => string,
+): string[] {
   const priceStr = formatPricePL(payload.price);
   const maxPriceStr = formatPricePL(payload.maxPrice);
-  const priceLine = payload.price < payload.maxPrice
-    ? `🏷️ Cena: ${priceStr} (maks: ${maxPriceStr})`
-    : `🏷️ Cena: ${priceStr}`;
+  const priceLine =
+    payload.price < payload.maxPrice
+      ? `🏷️ Cena: ${priceStr} (maks: ${maxPriceStr})`
+      : `🏷️ Cena: ${priceStr}`;
 
   return [
     '🎯 Produkt dostępny!',

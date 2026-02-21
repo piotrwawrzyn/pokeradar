@@ -32,14 +32,14 @@ const queryClient = new QueryClient({
 
 const clerkAppearance = {
   variables: {
-    colorBackground:      theme.background,
+    colorBackground: theme.background,
     colorInputBackground: theme.input,
-    colorPrimary:         theme.primary,
-    colorText:            theme.foreground,
-    colorTextSecondary:   theme.mutedFg,
-    colorInputText:       theme.foreground,
-    colorDanger:          theme.destructive,
-    borderRadius:         theme.radius,
+    colorPrimary: theme.primary,
+    colorText: theme.foreground,
+    colorTextSecondary: theme.mutedFg,
+    colorInputText: theme.foreground,
+    colorDanger: theme.destructive,
+    borderRadius: theme.radius,
     fontFamily: 'inherit',
     spacingUnit: '1rem',
   },
@@ -62,7 +62,7 @@ const clerkAppearance = {
     },
     headerSubtitle: { color: theme.mutedFg, fontSize: '0.875rem' },
     socialButtonsBlockButton: {
-      backgroundColor: theme.border,   // needs contrast against card
+      backgroundColor: theme.border, // needs contrast against card
       border: `1px solid ${theme.borderLight}`,
       color: theme.foreground,
       fontWeight: '500',
@@ -113,7 +113,7 @@ const clerkAppearance = {
     },
     // Secondary "use another method" button
     alternativeMethodsBlockButton: {
-      backgroundColor: theme.border,   // needs contrast against card
+      backgroundColor: theme.border, // needs contrast against card
       border: `1px solid ${theme.borderLight}`,
       color: theme.foreground,
       transition: 'background-color 0.15s ease, border-color 0.15s ease',
@@ -148,7 +148,6 @@ const clerkAppearance = {
     lastAuthenticationStrategyBadge: { display: 'none' },
   },
 };
-
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

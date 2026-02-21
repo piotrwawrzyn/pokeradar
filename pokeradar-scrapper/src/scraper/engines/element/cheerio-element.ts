@@ -14,7 +14,7 @@ import { findByTextInsensitive } from '../selector-utils';
 export class CheerioElement implements IElement {
   constructor(
     private element: cheerio.Cheerio<AnyNode>,
-    private $: cheerio.CheerioAPI
+    private $: cheerio.CheerioAPI,
   ) {}
 
   async getText(): Promise<string | null> {
@@ -40,9 +40,10 @@ export class CheerioElement implements IElement {
     const values = Array.isArray(selector.value) ? selector.value : [selector.value];
     for (const value of values) {
       // Text selectors use case-insensitive matching; CSS/XPath use direct selector
-      const found = selector.type === 'text'
-        ? findByTextInsensitive(this.$, this.element, value)
-        : this.element.find(value);
+      const found =
+        selector.type === 'text'
+          ? findByTextInsensitive(this.$, this.element, value)
+          : this.element.find(value);
 
       if (found.length > 0) {
         return new CheerioElement(found.first(), this.$);
@@ -59,9 +60,10 @@ export class CheerioElement implements IElement {
   async findAll(selector: Selector): Promise<IElement[]> {
     const value = Array.isArray(selector.value) ? selector.value[0] : selector.value;
     // Text selectors use case-insensitive matching; CSS/XPath use direct selector
-    const found = selector.type === 'text'
-      ? findByTextInsensitive(this.$, this.element, value)
-      : this.element.find(value);
+    const found =
+      selector.type === 'text'
+        ? findByTextInsensitive(this.$, this.element, value)
+        : this.element.find(value);
 
     const elements: IElement[] = [];
     found.each((_, el) => {

@@ -10,7 +10,7 @@ export class DiscordHelpCommand implements IDiscordCommand {
   constructor(
     private appUrl: string,
     private commands: IDiscordCommand[],
-    private logger: ILogger
+    private logger: ILogger,
   ) {}
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {

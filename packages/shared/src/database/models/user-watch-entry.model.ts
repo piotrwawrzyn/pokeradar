@@ -16,7 +16,7 @@ const UserWatchEntrySchema = new Schema<IUserWatchEntryDoc>(
     maxPrice: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 UserWatchEntrySchema.index({ userId: 1, productId: 1 }, { unique: true });
@@ -25,5 +25,5 @@ UserWatchEntrySchema.index({ userId: 1, isActive: 1 });
 
 export const UserWatchEntryModel = mongoose.model<IUserWatchEntryDoc>(
   'UserWatchEntry',
-  UserWatchEntrySchema
+  UserWatchEntrySchema,
 );

@@ -46,7 +46,7 @@ export class ProductMatcher {
     title: string,
     phrase: string,
     product: WatchlistProductInternal,
-    shopId: string
+    shopId: string,
   ): number | null {
     // Check exclude list
     if (product.search?.exclude && product.search?.exclude.length > 0) {
@@ -56,7 +56,7 @@ export class ProductMatcher {
       // e.g. "tin" (exclude for Mini Tin) would incorrectly block "Destined Rivals"
       // because "destined" contains "tin" as a substring.
       const isExcluded = product.search?.exclude.some((word) =>
-        new RegExp(`(?<![a-z])${word.toLowerCase()}(?![a-z])`).test(titleLower)
+        new RegExp(`(?<![a-z])${word.toLowerCase()}(?![a-z])`).test(titleLower),
       );
       if (isExcluded) {
         this.logger?.debug('Title contains excluded word', {
@@ -81,9 +81,7 @@ export class ProductMatcher {
       return bestMatch;
     });
 
-    const missingTokens = phraseTokens.filter(
-      (_, i) => tokenScores[i] < TOKEN_THRESHOLD
-    );
+    const missingTokens = phraseTokens.filter((_, i) => tokenScores[i] < TOKEN_THRESHOLD);
 
     if (missingTokens.length > 0) {
       this.logger?.debug('Title missing phrase tokens', {
@@ -122,7 +120,7 @@ export class ProductMatcher {
     candidates: ProductCandidate[],
     product: WatchlistProductInternal,
     phrase: string,
-    shopId: string
+    shopId: string,
   ): string | null {
     if (candidates.length === 0) return null;
 

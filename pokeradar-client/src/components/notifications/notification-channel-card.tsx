@@ -38,14 +38,10 @@ export function NotificationChannelCard({
               Aktywny
             </Badge>
           )}
-          {!isAvailable && (
-            <Badge variant="secondary">Wkrótce</Badge>
-          )}
+          {!isAvailable && <Badge variant="secondary">Wkrótce</Badge>}
         </div>
       </CardHeader>
-      {isAvailable && (
-        <CardContent className="pt-0">{children}</CardContent>
-      )}
+      {isAvailable && <CardContent className="pt-0">{children}</CardContent>}
     </Card>
   );
 }

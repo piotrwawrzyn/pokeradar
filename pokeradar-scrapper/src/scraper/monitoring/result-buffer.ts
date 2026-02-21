@@ -27,7 +27,7 @@ export class ResultBuffer {
 
   constructor(
     private repository?: IProductResultRepository,
-    private logger?: ILogger
+    private logger?: ILogger,
   ) {}
 
   /**

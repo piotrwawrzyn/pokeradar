@@ -11,9 +11,7 @@ describe('WatchlistPage', () => {
 
   it('renders the page description', () => {
     renderWithProviders(<WatchlistPage />);
-    expect(
-      screen.getByText(/Przegladaj produkty Pokemon TCG/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Przegladaj produkty Pokemon TCG/)).toBeInTheDocument();
   });
 
   it('renders the product catalog', async () => {

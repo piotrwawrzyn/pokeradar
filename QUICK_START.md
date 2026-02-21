@@ -17,11 +17,13 @@ Follow these steps to deploy PokeRadar to production in ~30 minutes.
 ### 1️⃣ Set Up MongoDB (5 minutes)
 
 **Option A: Railway MongoDB** (Easiest)
+
 1. Go to Railway → New → Database → MongoDB
 2. Copy the `MONGO_URL` variable
 3. Use this as `MONGODB_URI` for all services
 
 **Option B: MongoDB Atlas** (Better for production)
+
 1. Go to [mongodb.com/cloud/atlas](https://www.mongodb.com/cloud/atlas)
 2. Create free cluster
 3. Create database user
@@ -82,11 +84,13 @@ RATE_LIMIT_MAX=100
 ```
 
 **Generate JWT_SECRET:**
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 **Get Google OAuth Credentials:**
+
 - Go to: [console.cloud.google.com](https://console.cloud.google.com)
 - Create project → Enable Google+ API
 - Credentials → Create OAuth 2.0 Client ID
@@ -108,6 +112,7 @@ LOG_LEVEL=info
 ```
 
 **Get Telegram Bot Token:**
+
 - Open Telegram → Search `@BotFather`
 - Send: `/newbot`
 - Follow instructions
@@ -131,11 +136,13 @@ After adding variables, Railway will automatically redeploy.
 #### In Railway:
 
 **API Service:**
+
 1. Click API service → Settings → Domains
 2. Add Custom Domain: `api.yourdomain.com`
 3. Copy the CNAME target shown (looks like: `pokeradar-api-production-xxxx.up.railway.app`)
 
 **Client Service:**
+
 1. Click Client service → Settings → Domains
 2. Add Custom Domain: `yourdomain.com`
 3. Copy the CNAME/A record target shown
@@ -170,22 +177,26 @@ TTL: 300
 After domains are live, update these in Railway:
 
 **API Service:**
+
 ```env
 GOOGLE_CALLBACK_URL=https://api.yourdomain.com/auth/google/callback
 CORS_ORIGIN=https://yourdomain.com
 ```
 
 **Client Service:**
+
 ```env
 VITE_API_URL=https://api.yourdomain.com
 ```
 
 **Notifications Service:**
+
 ```env
 APP_URL=https://yourdomain.com
 ```
 
 Also update Google Cloud Console:
+
 - Credentials → Edit OAuth Client
 - Authorized origins: `https://yourdomain.com`
 - Authorized redirect: `https://api.yourdomain.com/auth/google/callback`
@@ -214,6 +225,7 @@ Your app is now running in production!
 ### Monitoring
 
 Check Railway logs regularly:
+
 1. Go to each service
 2. Click "Deployments" → Latest
 3. "View Logs"
@@ -230,20 +242,24 @@ Check Railway logs regularly:
 ## 🐛 Troubleshooting
 
 **DNS not working?**
+
 - Wait up to 48 hours (usually 5-30 mins)
 - Check: `nslookup yourdomain.com`
 - Try incognito mode
 
 **Login fails?**
+
 - Check `CORS_ORIGIN` matches frontend URL exactly
 - Check `GOOGLE_CALLBACK_URL` in both Railway and Google Console
 
 **Scraper crashes?**
+
 - Check Railway logs
 - Patchright should auto-install Chrome during build
 - May need more memory → upgrade Railway plan
 
 **Notifications not working?**
+
 - MongoDB must support change streams (replica sets)
 - Railway MongoDB and Atlas work out of the box
 - Check Telegram token is correct

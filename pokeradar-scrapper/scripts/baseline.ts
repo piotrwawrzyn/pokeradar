@@ -23,7 +23,11 @@ import { MongoWatchlistRepository } from '../src/shared/repositories/mongo/watch
 import { Logger } from '../src/shared/logger';
 import { groupProductsBySet } from '../src/shared/utils/product-utils';
 import { loadAndResolveProducts } from '../src/shared/utils/search-resolver';
-import { ScanCycleRunner, IScraperFactory, IMultiUserDispatcher } from '../src/scraper/monitoring/scan-cycle-runner';
+import {
+  ScanCycleRunner,
+  IScraperFactory,
+  IMultiUserDispatcher,
+} from '../src/scraper/monitoring/scan-cycle-runner';
 import { ResultBuffer } from '../src/scraper/monitoring/result-buffer';
 import { ScraperFactory } from '../src/scraper/scrapers/scraper-factory';
 import { WatchlistProductInternal, ProductResult, ShopConfig } from '../src/shared/types';
@@ -130,7 +134,7 @@ class RequestCountingEngine implements IEngine {
   constructor(
     private wrapped: IEngine,
     private shopId: string,
-    private counter: RequestCounter
+    private counter: RequestCounter,
   ) {}
 
   async goto(url: string): Promise<void> {
@@ -166,7 +170,7 @@ class TimedNavigator {
   constructor(
     private wrapped: any,
     private shopId: string,
-    private timingTracker: TimingTracker
+    private timingTracker: TimingTracker,
   ) {}
 
   async extractSearchCandidates(searchPhrase: string): Promise<any[]> {
@@ -202,14 +206,10 @@ class TimedScraper implements IScraper {
   constructor(
     private wrapped: IScraper,
     private shopId: string,
-    private timingTracker: TimingTracker
+    private timingTracker: TimingTracker,
   ) {
     // Wrap the navigator to track search timing
-    this.timedNavigator = new TimedNavigator(
-      this.wrapped.getNavigator(),
-      shopId,
-      timingTracker
-    );
+    this.timedNavigator = new TimedNavigator(this.wrapped.getNavigator(), shopId, timingTracker);
   }
 
   async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult> {
@@ -221,7 +221,10 @@ class TimedScraper implements IScraper {
     }
   }
 
-  async scrapeProductWithUrl(product: WatchlistProductInternal, url: string): Promise<ProductResult> {
+  async scrapeProductWithUrl(
+    product: WatchlistProductInternal,
+    url: string,
+  ): Promise<ProductResult> {
     this.timingTracker.start(this.shopId);
     try {
       return await this.wrapped.scrapeProductWithUrl(product, url);
@@ -230,7 +233,11 @@ class TimedScraper implements IScraper {
     }
   }
 
-  createResultFromSearchData(product: WatchlistProductInternal, url: string, searchPageData: any): ProductResult {
+  createResultFromSearchData(
+    product: WatchlistProductInternal,
+    url: string,
+    searchPageData: any,
+  ): ProductResult {
     return this.wrapped.createResultFromSearchData(product, url, searchPageData);
   }
 
@@ -249,7 +256,7 @@ class TimedScraper implements IScraper {
 class InstrumentedScraperFactory {
   constructor(
     private requestCounter: RequestCounter,
-    private timingTracker: TimingTracker
+    private timingTracker: TimingTracker,
   ) {}
 
   create(shop: ShopConfig, logger?: any, browser?: Browser): IScraper {
@@ -333,7 +340,7 @@ async function runScraping(
   shops: ShopConfig[],
   products: WatchlistProductInternal[],
   setMap: Map<string, { name: string; series: string }>,
-  logger: Logger
+  logger: Logger,
 ): Promise<ScrapingResult> {
   // Group products by set for efficient searching
   const { setGroups, ungrouped } = groupProductsBySet(products, setMap);
@@ -379,8 +386,8 @@ async function runScraping(
 
   // Filter out not-found results (empty URL) and strip timestamps
   const baselineResults: BaselineResult[] = allResults
-    .filter(r => r.productUrl !== '')
-    .map(r => ({
+    .filter((r) => r.productUrl !== '')
+    .map((r) => ({
       productId: r.productId,
       shopId: r.shopId,
       productUrl: r.productUrl,
@@ -408,8 +415,8 @@ async function runScraping(
   // Ensure all shops that were scraped appear in all metrics (even with 0 results)
   // Collect all unique shop IDs from timing and requests
   const allScrapedShops = new Set<string>();
-  Object.keys(perShopTiming).forEach(id => allScrapedShops.add(id));
-  Object.keys(requestCounts).forEach(id => allScrapedShops.add(id));
+  Object.keys(perShopTiming).forEach((id) => allScrapedShops.add(id));
+  Object.keys(requestCounts).forEach((id) => allScrapedShops.add(id));
 
   // Add missing shops to all metrics with 0 values
   for (const shopId of allScrapedShops) {
@@ -421,7 +428,9 @@ async function runScraping(
     }
   }
 
-  console.log(`\n✓ Scraping complete: ${baselineResults.length} results (${allResults.length - baselineResults.length} not found)\n`);
+  console.log(
+    `\n✓ Scraping complete: ${baselineResults.length} results (${allResults.length - baselineResults.length} not found)\n`,
+  );
   console.log(`⏱️  Total time: ${totalSeconds.toFixed(1)}s`);
   console.log(`🌐 Total requests: ${totalRequests}\n`);
 
@@ -459,23 +468,27 @@ function saveBaseline(scrapingResult: ScrapingResult): void {
   fs.writeFileSync(baselinePath, JSON.stringify(snapshot, null, 2), 'utf-8');
 
   console.log(`💾 Saved baseline to: ${baselinePath}\n`);
-  console.log(`📊 ${scrapingResult.results.length} results from ${Object.keys(scrapingResult.productCounts.perShop).length} shops\n`);
+  console.log(
+    `📊 ${scrapingResult.results.length} results from ${Object.keys(scrapingResult.productCounts.perShop).length} shops\n`,
+  );
 
   // Print per-shop breakdown - include all shops that were scraped (even with 0 results)
   console.log('Per-shop breakdown:');
 
   // Collect all unique shop IDs from timing, requests, and results
   const allShopIds = new Set<string>();
-  Object.keys(scrapingResult.timing.perShop).forEach(id => allShopIds.add(id));
-  Object.keys(scrapingResult.requestCounts.perShop).forEach(id => allShopIds.add(id));
-  Object.keys(scrapingResult.productCounts.perShop).forEach(id => allShopIds.add(id));
+  Object.keys(scrapingResult.timing.perShop).forEach((id) => allShopIds.add(id));
+  Object.keys(scrapingResult.requestCounts.perShop).forEach((id) => allShopIds.add(id));
+  Object.keys(scrapingResult.productCounts.perShop).forEach((id) => allShopIds.add(id));
 
   // Sort and display all shops
   for (const shopId of Array.from(allShopIds).sort()) {
     const count = scrapingResult.productCounts.perShop[shopId] || 0;
     const timing = scrapingResult.timing.perShop[shopId]?.toFixed(1) || '0.0';
     const requests = scrapingResult.requestCounts.perShop[shopId] || 0;
-    console.log(`  ${shopId.padEnd(20)} ${String(count).padStart(4)} results  ${timing.padStart(6)}s  ${String(requests).padStart(3)} requests`);
+    console.log(
+      `  ${shopId.padEnd(20)} ${String(count).padStart(4)} results  ${timing.padStart(6)}s  ${String(requests).padStart(3)} requests`,
+    );
   }
   console.log('');
 }
@@ -500,7 +513,11 @@ function loadBaseline(): BaselineSnapshot {
  * Compares current results against baseline.
  * Returns true if differences found.
  */
-function compareResults(baseline: BaselineResult[], current: BaselineResult[], shopFilter?: string): boolean {
+function compareResults(
+  baseline: BaselineResult[],
+  current: BaselineResult[],
+  shopFilter?: string,
+): boolean {
   // Build maps keyed by "shopId:productId"
   const baselineMap = new Map<string, BaselineResult>();
   const currentMap = new Map<string, BaselineResult>();
@@ -518,8 +535,13 @@ function compareResults(baseline: BaselineResult[], current: BaselineResult[], s
   }
 
   // Categorize differences
-  const priceChanged: Array<{ key: string; baseline: BaselineResult; current: BaselineResult }> = [];
-  const availabilityChanged: Array<{ key: string; baseline: BaselineResult; current: BaselineResult }> = [];
+  const priceChanged: Array<{ key: string; baseline: BaselineResult; current: BaselineResult }> =
+    [];
+  const availabilityChanged: Array<{
+    key: string;
+    baseline: BaselineResult;
+    current: BaselineResult;
+  }> = [];
   const urlChanged: Array<{ key: string; baseline: BaselineResult; current: BaselineResult }> = [];
   const lost: Array<{ key: string; result: BaselineResult }> = [];
   const gained: Array<{ key: string; result: BaselineResult }> = [];
@@ -555,10 +577,18 @@ function compareResults(baseline: BaselineResult[], current: BaselineResult[], s
   console.log(colors.bold + '  BASELINE COMPARISON' + colors.reset);
   console.log(colors.bold + '━'.repeat(60) + colors.reset + '\n');
 
-  const hasDifferences = priceChanged.length + availabilityChanged.length + urlChanged.length + lost.length + gained.length > 0;
+  const hasDifferences =
+    priceChanged.length +
+      availabilityChanged.length +
+      urlChanged.length +
+      lost.length +
+      gained.length >
+    0;
 
   if (!hasDifferences) {
-    console.log(colors.green + '✅ No differences found - baseline is stable!' + colors.reset + '\n');
+    console.log(
+      colors.green + '✅ No differences found - baseline is stable!' + colors.reset + '\n',
+    );
     return false;
   }
 
@@ -576,7 +606,9 @@ function compareResults(baseline: BaselineResult[], current: BaselineResult[], s
   }
 
   if (availabilityChanged.length > 0) {
-    console.log(colors.yellow + `⚠️  AVAILABILITY CHANGED (${availabilityChanged.length}):` + colors.reset);
+    console.log(
+      colors.yellow + `⚠️  AVAILABILITY CHANGED (${availabilityChanged.length}):` + colors.reset,
+    );
     for (const { key, baseline, current } of availabilityChanged.slice(0, 10)) {
       const [shopId, productId] = key.split(':');
       console.log(`  ${shopId} / ${productId}: ${baseline.isAvailable} → ${current.isAvailable}`);
@@ -643,9 +675,9 @@ function compareResults(baseline: BaselineResult[], current: BaselineResult[], s
 function printProductDetails(
   results: BaselineResult[],
   _allProducts: WatchlistProductInternal[],
-  shopFilter?: string
+  shopFilter?: string,
 ): void {
-  const filtered = shopFilter ? results.filter(r => r.shopId === shopFilter) : results;
+  const filtered = shopFilter ? results.filter((r) => r.shopId === shopFilter) : results;
 
   if (filtered.length === 0) return;
 
@@ -653,20 +685,28 @@ function printProductDetails(
   console.log(colors.bold + '  PRODUCT DETAILS' + colors.reset);
   console.log(colors.bold + '━'.repeat(60) + colors.reset + '\n');
 
-  const shopIds = [...new Set(filtered.map(r => r.shopId))].sort();
+  const shopIds = [...new Set(filtered.map((r) => r.shopId))].sort();
 
   for (const shopId of shopIds) {
-    const shopResults = filtered.filter(r => r.shopId === shopId);
+    const shopResults = filtered.filter((r) => r.shopId === shopId);
 
-    console.log(colors.bold + `  ${shopId}` + colors.reset +
-      colors.gray + ` (${shopResults.length} found)` + colors.reset);
+    console.log(
+      colors.bold +
+        `  ${shopId}` +
+        colors.reset +
+        colors.gray +
+        ` (${shopResults.length} found)` +
+        colors.reset,
+    );
 
     for (const r of shopResults) {
       const status = r.isAvailable
         ? colors.green + 'AVAILABLE' + colors.reset
         : colors.red + 'UNAVAILABLE' + colors.reset;
       const price = r.price !== null ? `${r.price} PLN` : 'no price';
-      console.log(`    ${status}  ${colors.yellow}${price.padEnd(12)}${colors.reset}  ${r.productId}`);
+      console.log(
+        `    ${status}  ${colors.yellow}${price.padEnd(12)}${colors.reset}  ${r.productId}`,
+      );
       console.log(`${colors.gray}${''.padEnd(36)}${r.productUrl}${colors.reset}`);
     }
 
@@ -707,15 +747,13 @@ async function main() {
 
   try {
     // Load shops from files
-    const shopRepository = new FileShopRepository(
-      getShopConfigDir()
-    );
+    const shopRepository = new FileShopRepository(getShopConfigDir());
     const allShops = await shopRepository.getAll();
-    let shops = allShops.filter(shop => !shop.disabled);
+    let shops = allShops.filter((shop) => !shop.disabled);
 
     // Apply shop filter if provided
     if (shopFilter) {
-      shops = shops.filter(shop => shop.id === shopFilter);
+      shops = shops.filter((shop) => shop.id === shopFilter);
       if (shops.length === 0) {
         console.error(`❌ Shop not found: ${shopFilter}\n`);
         process.exit(1);
@@ -723,7 +761,7 @@ async function main() {
       console.log(`🔍 Filtering to shop: ${shopFilter}\n`);
     }
 
-    console.log(`🏪 Loaded ${shops.length} shops: ${shops.map(s => s.id).join(', ')}\n`);
+    console.log(`🏪 Loaded ${shops.length} shops: ${shops.map((s) => s.id).join(', ')}\n`);
 
     // Load watchlist from MongoDB
     const watchlistRepository = new MongoWatchlistRepository();

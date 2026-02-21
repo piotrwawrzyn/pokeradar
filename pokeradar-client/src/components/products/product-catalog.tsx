@@ -25,10 +25,7 @@ interface GroupedProducts {
   products: Product[];
 }
 
-function groupAndSort(
-  products: Product[],
-  sets: ProductSet[],
-): GroupedProducts[] {
+function groupAndSort(products: Product[], sets: ProductSet[]): GroupedProducts[] {
   const setMap = new Map(sets.map((s) => [s.id, s]));
   const groups = new Map<string, Product[]>();
 
@@ -85,8 +82,18 @@ function groupAndSort(
 }
 
 export function ProductCatalog() {
-  const { data: products, isLoading: productsLoading, isError: productsError, refetch: refetchProducts } = useProducts();
-  const { data: sets, isLoading: setsLoading, isError: setsError, refetch: refetchSets } = useProductSets();
+  const {
+    data: products,
+    isLoading: productsLoading,
+    isError: productsError,
+    refetch: refetchProducts,
+  } = useProducts();
+  const {
+    data: sets,
+    isLoading: setsLoading,
+    isError: setsError,
+    refetch: refetchSets,
+  } = useProductSets();
   const { data: watchlist } = useWatchlist();
   const watchlistState = useWatchlistState();
   const { isAuthenticated } = useAuth();
@@ -113,22 +120,20 @@ export function ProductCatalog() {
     if (searchText.trim()) {
       const searchLower = searchText.toLowerCase().trim();
       filteredProducts = filteredProducts.filter((product) =>
-        product.name.toLowerCase().includes(searchLower)
+        product.name.toLowerCase().includes(searchLower),
       );
     }
 
     // Set filter
     if (selectedSetFilter !== 'all') {
-      filteredProducts = filteredProducts.filter((product) =>
-        product.productSetId === selectedSetFilter
+      filteredProducts = filteredProducts.filter(
+        (product) => product.productSetId === selectedSetFilter,
       );
     }
 
     // Only watched filter
     if (showOnlyWatched) {
-      filteredProducts = filteredProducts.filter((product) =>
-        watchlistMap.has(product.id)
-      );
+      filteredProducts = filteredProducts.filter((product) => watchlistMap.has(product.id));
     }
 
     return groupAndSort(filteredProducts, sets ?? []);
@@ -144,7 +149,8 @@ export function ProductCatalog() {
     return count;
   }, [groups]);
 
-  const hasActiveFilters = searchText.trim() !== '' || selectedSetFilter !== 'all' || showOnlyWatched;
+  const hasActiveFilters =
+    searchText.trim() !== '' || selectedSetFilter !== 'all' || showOnlyWatched;
 
   const handleClearFilters = () => {
     setSearchText('');
@@ -173,10 +179,18 @@ export function ProductCatalog() {
                   <Skeleton className="inline-block h-3.5 w-24 align-middle" />
                 ) : hasActiveFilters ? (
                   <>
-                    <span className="font-medium text-foreground">{filteredProductsCount}</span> z {totalProductsCount} produktów
+                    <span className="font-medium text-foreground">{filteredProductsCount}</span> z{' '}
+                    {totalProductsCount} produktów
                   </>
                 ) : (
-                  <>{totalProductsCount} {totalProductsCount === 1 ? 'produkt' : totalProductsCount < 5 ? 'produkty' : 'produktów'}</>
+                  <>
+                    {totalProductsCount}{' '}
+                    {totalProductsCount === 1
+                      ? 'produkt'
+                      : totalProductsCount < 5
+                        ? 'produkty'
+                        : 'produktów'}
+                  </>
                 )}
               </span>
               {/* Clear filters button - inline with product count */}
@@ -211,10 +225,17 @@ export function ProductCatalog() {
                         ? 'text-muted-foreground/40 cursor-not-allowed'
                         : (opt === 'watched') === showOnlyWatched
                           ? 'bg-muted text-foreground'
-                          : 'text-muted-foreground hover:text-foreground'
+                          : 'text-muted-foreground hover:text-foreground',
                     )}
                   >
-                    {opt === 'all' ? <><span className="sm:hidden">Wszystkie</span><span className="hidden sm:inline">Wszystkie produkty</span></> : 'Obserwowane'}
+                    {opt === 'all' ? (
+                      <>
+                        <span className="sm:hidden">Wszystkie</span>
+                        <span className="hidden sm:inline">Wszystkie produkty</span>
+                      </>
+                    ) : (
+                      'Obserwowane'
+                    )}
                   </button>
                 );
               })}
@@ -273,7 +294,10 @@ export function ProductCatalog() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {Array.from({ length: 5 }).map((_, j) => (
                   /* Mirrors Card className="overflow-hidden border-0 bg-card rounded-lg flex flex-col sm:py-2.5" */
-                  <div key={j} className="rounded-lg bg-card overflow-hidden flex flex-col py-6 sm:py-2.5">
+                  <div
+                    key={j}
+                    className="rounded-lg bg-card overflow-hidden flex flex-col py-6 sm:py-2.5"
+                  >
                     {/* Mirrors inner <div className="flex sm:flex-col"> */}
                     <div className="flex sm:flex-col">
                       {/* Mirrors image wrapper: w-20 h-20 sm:w-full sm:h-auto sm:aspect-[4/3] */}
@@ -310,8 +334,8 @@ export function ProductCatalog() {
           <AlertTitle>Błąd ładowania</AlertTitle>
           <AlertDescription className="mt-2">
             <p className="mb-3">
-              Nie udało się załadować listy produktów. Sprawdź połączenie z
-              internetem i spróbuj ponownie.
+              Nie udało się załadować listy produktów. Sprawdź połączenie z internetem i spróbuj
+              ponownie.
             </p>
             <Button
               variant="outline"
@@ -342,11 +366,7 @@ export function ProductCatalog() {
               {hasActiveFilters ? (
                 <div>
                   <p className="mb-3">Brak produktów spełniających kryteria wyszukiwania.</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleClearFilters}
-                  >
+                  <Button variant="outline" size="sm" onClick={handleClearFilters}>
                     <X className="h-4 w-4 mr-2" />
                     Wyczyść filtry
                   </Button>

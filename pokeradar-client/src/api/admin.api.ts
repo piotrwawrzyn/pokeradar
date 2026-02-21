@@ -149,16 +149,13 @@ export interface PaginatedResponse<T> {
 
 export const adminApi = {
   // Shops
-  getShops: () =>
-    apiClient.get<AdminShopSummary[]>('/admin/shops').then((r) => r.data),
+  getShops: () => apiClient.get<AdminShopSummary[]>('/admin/shops').then((r) => r.data),
   getShop: (shopId: string) =>
     apiClient.get<AdminShopDetail>(`/admin/shops/${shopId}`).then((r) => r.data),
 
   // Products
-  getProducts: () =>
-    apiClient.get<AdminProduct[]>('/admin/products').then((r) => r.data),
-  createProduct: (data: unknown) =>
-    apiClient.post('/admin/products', data).then((r) => r.data),
+  getProducts: () => apiClient.get<AdminProduct[]>('/admin/products').then((r) => r.data),
+  createProduct: (data: unknown) => apiClient.post('/admin/products', data).then((r) => r.data),
   updateProduct: (id: string, data: unknown) =>
     apiClient.patch(`/admin/products/${id}`, data).then((r) => r.data),
   deleteProduct: (id: string) => apiClient.delete(`/admin/products/${id}`),
@@ -182,8 +179,7 @@ export const adminApi = {
   },
 
   // Product Sets
-  getProductSets: () =>
-    apiClient.get<ProductSet[]>('/admin/product-sets').then((r) => r.data),
+  getProductSets: () => apiClient.get<ProductSet[]>('/admin/product-sets').then((r) => r.data),
   uploadSetImageOnly: (file: File) => {
     const fd = new FormData();
     fd.append('image', file);
@@ -209,8 +205,7 @@ export const adminApi = {
   },
 
   // Product Types
-  getProductTypes: () =>
-    apiClient.get<ProductType[]>('/admin/product-types').then((r) => r.data),
+  getProductTypes: () => apiClient.get<ProductType[]>('/admin/product-types').then((r) => r.data),
   createProductType: (data: unknown) =>
     apiClient.post('/admin/product-types', data).then((r) => r.data),
   updateProductType: (id: string, data: unknown) =>

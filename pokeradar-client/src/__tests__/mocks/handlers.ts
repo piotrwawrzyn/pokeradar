@@ -1,11 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import {
-  mockProducts,
-  mockProductSets,
-  mockWatchlist,
-  mockUser,
-  mockTelegramToken,
-} from './data';
+import { mockProducts, mockProductSets, mockWatchlist, mockUser, mockTelegramToken } from './data';
 
 const API = 'http://localhost:3000';
 

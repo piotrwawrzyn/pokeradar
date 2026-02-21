@@ -1,5 +1,10 @@
 export { NotificationModel } from './notification.model';
-export type { INotificationDoc, INotificationPayload, IDelivery, NotificationChannel } from './notification.model';
+export type {
+  INotificationDoc,
+  INotificationPayload,
+  IDelivery,
+  NotificationChannel,
+} from './notification.model';
 
 export { NotificationStateModel } from './notification-state.model';
 export type { INotificationStateDoc } from './notification-state.model';

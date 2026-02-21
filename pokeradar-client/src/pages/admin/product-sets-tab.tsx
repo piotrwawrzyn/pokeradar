@@ -115,7 +115,11 @@ export function ProductSetsTab() {
     }
   };
 
-  const isPending = createSet.isPending || updateSet.isPending || uploadImage.isPending || uploadSetImageOnly.isPending;
+  const isPending =
+    createSet.isPending ||
+    updateSet.isPending ||
+    uploadImage.isPending ||
+    uploadSetImageOnly.isPending;
   const affectedProducts = products?.filter((p) => p.productSetId === dialog.selected?.id) ?? [];
 
   return (
@@ -126,7 +130,14 @@ export function ProductSetsTab() {
         addLabel="Dodaj set"
         isEmpty={!sets || sets.length === 0}
         emptyLabel="Brak setów"
-        headers={[{ label: 'Obrazek', className: 'w-32' }, 'Nazwa', 'Seria', 'Produkty', 'Data wydania', { label: '', className: 'w-16' }]}
+        headers={[
+          { label: 'Obrazek', className: 'w-32' },
+          'Nazwa',
+          'Seria',
+          'Produkty',
+          'Data wydania',
+          { label: '', className: 'w-16' },
+        ]}
       >
         {sets?.map((set) => (
           <TableRow
@@ -149,7 +160,13 @@ export function ProductSetsTab() {
               {products?.filter((p) => p.productSetId === set.id).length ?? 0}
             </TableCell>
             <TableCell className="text-muted-foreground">
-              {set.releaseDate ? new Date(set.releaseDate).toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-'}
+              {set.releaseDate
+                ? new Date(set.releaseDate).toLocaleDateString('pl-PL', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                  })
+                : '-'}
             </TableCell>
             <TableCell>
               <Button
@@ -176,7 +193,9 @@ export function ProductSetsTab() {
         onSave={handleSave}
       >
         <div>
-          <Label htmlFor="set-name" className="mb-2 block">Nazwa</Label>
+          <Label htmlFor="set-name" className="mb-2 block">
+            Nazwa
+          </Label>
           <Input
             id="set-name"
             value={formData.name}
@@ -185,7 +204,9 @@ export function ProductSetsTab() {
         </div>
 
         <div>
-          <Label htmlFor="series" className="mb-2 block">Seria</Label>
+          <Label htmlFor="series" className="mb-2 block">
+            Seria
+          </Label>
           <Input
             id="series"
             value={formData.series}
@@ -194,7 +215,9 @@ export function ProductSetsTab() {
         </div>
 
         <div>
-          <Label htmlFor="releaseDate" className="mb-2 block">Data wydania</Label>
+          <Label htmlFor="releaseDate" className="mb-2 block">
+            Data wydania
+          </Label>
           <Input
             id="releaseDate"
             type="date"

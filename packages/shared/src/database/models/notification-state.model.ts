@@ -33,7 +33,7 @@ const NotificationStateSchema = new Schema<INotificationStateDoc>(
   },
   {
     timestamps: { createdAt: false, updatedAt: true },
-  }
+  },
 );
 
 // Index for efficient lookups
@@ -42,5 +42,5 @@ NotificationStateSchema.index({ productId: 1 });
 
 export const NotificationStateModel = mongoose.model<INotificationStateDoc>(
   'NotificationState',
-  NotificationStateSchema
+  NotificationStateSchema,
 );

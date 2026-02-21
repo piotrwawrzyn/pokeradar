@@ -8,7 +8,9 @@ const controller = new WatchlistController();
 
 router.get('/', (req, res, next) => controller.list(req, res, next));
 router.post('/', validate(addWatchEntrySchema), (req, res, next) => controller.add(req, res, next));
-router.patch('/:id', validate(updateWatchEntrySchema), (req, res, next) => controller.update(req, res, next));
+router.patch('/:id', validate(updateWatchEntrySchema), (req, res, next) =>
+  controller.update(req, res, next),
+);
 router.delete('/:id', (req, res, next) => controller.remove(req, res, next));
 
 export default router;

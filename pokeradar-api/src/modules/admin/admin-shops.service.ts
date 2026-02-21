@@ -141,12 +141,15 @@ export class AdminShopsService {
     const productMap = new Map(products.map((p) => [p.id, p]));
 
     // Get unique set IDs and fetch set data
-    const setIds = [...new Set(products.map((p) => p.productSetId).filter((id): id is string => Boolean(id)))];
-    const sets = setIds.length > 0
-      ? await ProductSetModel.find({ id: { $in: setIds } })
-          .select('id releaseDate')
-          .lean()
-      : [];
+    const setIds = [
+      ...new Set(products.map((p) => p.productSetId).filter((id): id is string => Boolean(id))),
+    ];
+    const sets =
+      setIds.length > 0
+        ? await ProductSetModel.find({ id: { $in: setIds } })
+            .select('id releaseDate')
+            .lean()
+        : [];
     const setMap = new Map(sets.map((s) => [s.id, s]));
 
     const availableCount = latestResults.filter((r: any) => r.isAvailable).length;

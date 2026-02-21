@@ -1,8 +1,5 @@
 import { clerkClient } from '@clerk/express';
-import {
-  NotificationModel,
-  UserModel,
-} from '../../infrastructure/database/models';
+import { NotificationModel, UserModel } from '../../infrastructure/database/models';
 
 export interface AdminNotificationItem {
   id: string;
@@ -70,10 +67,10 @@ export class AdminNotificationsService {
         ? await clerkClient.users.getUserList({ userId: clerkIds, limit: clerkIds.length })
         : { data: [] };
     const clerkEmailMap = new Map(
-      clerkUsers.map((u) => [u.id, u.emailAddresses[0]?.emailAddress ?? 'unknown'])
+      clerkUsers.map((u) => [u.id, u.emailAddresses[0]?.emailAddress ?? 'unknown']),
     );
     const emailMap = new Map(
-      dbUsers.map((u) => [u._id.toString(), clerkEmailMap.get(u.clerkId) ?? 'unknown'])
+      dbUsers.map((u) => [u._id.toString(), clerkEmailMap.get(u.clerkId) ?? 'unknown']),
     );
 
     return {

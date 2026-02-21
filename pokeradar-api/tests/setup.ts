@@ -17,8 +17,7 @@ jest.mock('@clerk/express', () => ({
   clerkMiddleware: () => (_req: any, _res: any, next: any) => next(),
   requireAuth: () => (req: any, _res: any, next: any) => {
     const authHeader = req.headers['authorization'] as string | undefined;
-    const clerkId =
-      authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : 'clerk_anonymous';
+    const clerkId = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : 'clerk_anonymous';
     req.auth = { userId: clerkId, sessionClaims: { metadata: {} } };
     next();
   },

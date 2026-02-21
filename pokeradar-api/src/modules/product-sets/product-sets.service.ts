@@ -3,9 +3,7 @@ import { ProductSet } from '../../shared/types';
 
 export class ProductSetsService {
   async listAll(): Promise<ProductSet[]> {
-    const docs = await ProductSetModel.find()
-      .select('id name series imageUrl releaseDate')
-      .lean();
+    const docs = await ProductSetModel.find().select('id name series imageUrl releaseDate').lean();
     return docs.map((doc) => ({
       id: doc.id,
       name: doc.name,

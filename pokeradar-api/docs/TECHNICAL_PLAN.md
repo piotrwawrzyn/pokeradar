@@ -19,10 +19,10 @@ Mongoose model name: `'WatchlistProduct'` (Mongoose auto-pluralizes to `watchlis
 ```typescript
 // Exact schema from scraper: src/infrastructure/database/models/watchlist-product.model.ts
 interface IWatchlistProductDoc extends Document {
-  id: string;        // Kebab-case string, e.g. "pokemon-151-booster-box" — NOT MongoDB _id
+  id: string; // Kebab-case string, e.g. "pokemon-151-booster-box" — NOT MongoDB _id
   name: string;
-  imageUrl: string;            // Product image URL (required)
-  productSetId?: string;       // Optional reference to ProductSet.id
+  imageUrl: string; // Product image URL (required)
+  productSetId?: string; // Optional reference to ProductSet.id
   search: {
     phrases: string[];
     exclude?: string[];
@@ -63,7 +63,7 @@ Mongoose model name: `'ProductResult'`.
 interface IProductResultDoc extends Document {
   productId: string;
   shopId: string;
-  hourBucket: string;   // Format: "YYYY-MM-DDTHH" for hourly aggregation
+  hourBucket: string; // Format: "YYYY-MM-DDTHH" for hourly aggregation
   productUrl: string;
   price: number | null;
   isAvailable: boolean;
@@ -81,7 +81,7 @@ const ProductResultSchema = new Schema<IProductResultDoc>(
     isAvailable: { type: Boolean, required: true },
     timestamp: { type: Date, required: true },
   },
-  { timestamps: { createdAt: true, updatedAt: false } }
+  { timestamps: { createdAt: true, updatedAt: false } },
 );
 
 // Indexes (already exist, created by scraper):
@@ -107,7 +107,14 @@ function getFreshnessCutoff(): Date {
 
 // Aggregation: latest result per shop, then pick cheapest
 const pipeline = [
-  { $match: { productId: { $in: productIds }, isAvailable: true, price: { $ne: null }, timestamp: { $gte: cutoff } } },
+  {
+    $match: {
+      productId: { $in: productIds },
+      isAvailable: true,
+      price: { $ne: null },
+      timestamp: { $gte: cutoff },
+    },
+  },
   { $sort: { productId: 1, shopId: 1, timestamp: -1 } },
   { $group: { _id: { productId: '$productId', shopId: '$shopId' }, doc: { $first: '$$ROOT' } } },
   { $replaceRoot: { newRoot: '$doc' } },
@@ -123,10 +130,10 @@ Mongoose model name: `'ProductSet'`.
 
 ```typescript
 interface IProductSetDoc extends Document {
-  id: string;        // Unique identifier, e.g. "sv-surging-sparks"
-  name: string;      // Display name, e.g. "Scarlet & Violet - Surging Sparks"
-  series: string;    // Series grouping, e.g. "Scarlet & Violet"
-  imageUrl: string;  // Set logo/artwork image URL
+  id: string; // Unique identifier, e.g. "sv-surging-sparks"
+  name: string; // Display name, e.g. "Scarlet & Violet - Surging Sparks"
+  series: string; // Series grouping, e.g. "Scarlet & Violet"
+  imageUrl: string; // Set logo/artwork image URL
   releaseDate?: Date; // Optional release date
 }
 
@@ -278,12 +285,12 @@ pokeradar-api/
 
 ```typescript
 export interface User {
-  id: string;                          // MongoDB _id as string
+  id: string; // MongoDB _id as string
   googleId: string;
   email: string;
   displayName: string;
-  telegramChatId: string | null;       // Set by scraper bot via /link command
-  telegramLinkToken: string | null;    // UUID v4, single-use, cleared after linking
+  telegramChatId: string | null; // Set by scraper bot via /link command
+  telegramLinkToken: string | null; // UUID v4, single-use, cleared after linking
   createdAt: Date;
   updatedAt: Date;
 }
@@ -293,9 +300,9 @@ export interface User {
 
 ```typescript
 export interface UserWatchEntry {
-  id: string;              // MongoDB _id as string
+  id: string; // MongoDB _id as string
   userId: string;
-  productId: string;       // References WatchlistProduct.id (kebab-case string, NOT ObjectId)
+  productId: string; // References WatchlistProduct.id (kebab-case string, NOT ObjectId)
   maxPrice: number;
   isActive: boolean;
   createdAt: Date;
@@ -308,17 +315,17 @@ export interface UserWatchEntry {
 ```typescript
 // Maps to existing watchlistproducts collection
 export interface Product {
-  id: string;              // Kebab-case string, e.g. "pokemon-151-booster-box"
+  id: string; // Kebab-case string, e.g. "pokemon-151-booster-box"
   name: string;
-  imageUrl: string;        // Product image URL
-  productSetId?: string;   // Optional reference to ProductSet.id
+  imageUrl: string; // Product image URL
+  productSetId?: string; // Optional reference to ProductSet.id
 }
 
 export interface ProductSet {
-  id: string;              // e.g. "sv-surging-sparks"
-  name: string;            // e.g. "Scarlet & Violet - Surging Sparks"
-  series: string;          // e.g. "Scarlet & Violet"
-  imageUrl: string;        // Set logo/artwork URL
+  id: string; // e.g. "sv-surging-sparks"
+  name: string; // e.g. "Scarlet & Violet - Surging Sparks"
+  series: string; // e.g. "Scarlet & Violet"
+  imageUrl: string; // Set logo/artwork URL
   releaseDate?: Date;
 }
 ```
@@ -366,12 +373,12 @@ export interface UserProfileResponse {
   id: string;
   email: string;
   displayName: string;
-  telegramLinked: boolean;         // Derived: telegramChatId !== null
+  telegramLinked: boolean; // Derived: telegramChatId !== null
 }
 
 // POST /users/me/telegram/link-token
 export interface TelegramLinkTokenResponse {
-  telegramLinkToken: string;       // UUID v4 to send to bot via /link command
+  telegramLinkToken: string; // UUID v4 to send to bot via /link command
 }
 
 // JWT payload (stored inside the token)
@@ -396,13 +403,14 @@ export const addWatchEntrySchema = z.object({
 
 // PATCH /watchlist/:id
 export const updateWatchEntrySchema = z.object({
-  body: z.object({
-    maxPrice: z.number().positive().optional(),
-    isActive: z.boolean().optional(),
-  }).refine(
-    data => data.maxPrice !== undefined || data.isActive !== undefined,
-    { message: 'At least one field (maxPrice or isActive) must be provided' }
-  ),
+  body: z
+    .object({
+      maxPrice: z.number().positive().optional(),
+      isActive: z.boolean().optional(),
+    })
+    .refine((data) => data.maxPrice !== undefined || data.isActive !== undefined, {
+      message: 'At least one field (maxPrice or isActive) must be provided',
+    }),
 });
 ```
 
@@ -435,7 +443,7 @@ const UserSchema = new Schema<IUserDoc>(
     telegramChatId: { type: String, default: null },
     telegramLinkToken: { type: String, default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 UserSchema.index({ googleId: 1 });
@@ -453,7 +461,7 @@ import mongoose, { Schema, Document, Types } from 'mongoose';
 
 export interface IUserWatchEntryDoc extends Document {
   userId: Types.ObjectId;
-  productId: string;       // String, NOT ObjectId — matches WatchlistProduct.id
+  productId: string; // String, NOT ObjectId — matches WatchlistProduct.id
   maxPrice: number;
   isActive: boolean;
   createdAt: Date;
@@ -467,7 +475,7 @@ const UserWatchEntrySchema = new Schema<IUserWatchEntryDoc>(
     maxPrice: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // One watch entry per user per product
@@ -479,23 +487,26 @@ UserWatchEntrySchema.index({ userId: 1, isActive: 1 });
 
 export const UserWatchEntryModel = mongoose.model<IUserWatchEntryDoc>(
   'UserWatchEntry',
-  UserWatchEntrySchema
+  UserWatchEntrySchema,
 );
 ```
 
 ### Read-Only Mirrors
 
 **Product model** (`src/infrastructure/database/models/product.model.ts`):
+
 - Must register as `mongoose.model('WatchlistProduct', schema)` to map to existing `watchlistproducts` collection
 - Schema includes `imageUrl` (required) and `productSetId` (optional) in addition to scraper fields
 - The API reads `id`, `name`, `imageUrl`, and `productSetId`
 
 **ProductSet model** (`src/infrastructure/database/models/product-set.model.ts`):
+
 - Owned by the API — collection `productsets`
 - Groups products by TCG set (e.g. "Scarlet & Violet - Surging Sparks")
 - Fields: `id`, `name`, `series`, `imageUrl`, `releaseDate`
 
 **ProductResult model** (`src/infrastructure/database/models/product-result.model.ts`):
+
 - Must register as `mongoose.model('ProductResult', schema)`
 - Schema and indexes must be identical to the scraper's (see above)
 - The API only reads, never writes
@@ -506,13 +517,14 @@ export const UserWatchEntryModel = mongoose.model<IUserWatchEntryDoc>(
 
 ### Auth (no JWT required, separate rate limit)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/auth/google` | Redirect to Google consent screen via Passport |
-| GET | `/auth/google/callback` | Handle OAuth callback, find-or-create user, generate JWT, redirect to `${CORS_ORIGIN}/auth/callback?token=<jwt>` |
-| GET | `/auth/me` | **(JWT required)** Return current user profile |
+| Method | Path                    | Description                                                                                                      |
+| ------ | ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| GET    | `/auth/google`          | Redirect to Google consent screen via Passport                                                                   |
+| GET    | `/auth/google/callback` | Handle OAuth callback, find-or-create user, generate JWT, redirect to `${CORS_ORIGIN}/auth/callback?token=<jwt>` |
+| GET    | `/auth/me`              | **(JWT required)** Return current user profile                                                                   |
 
 **Auth flow detail:**
+
 1. Frontend redirects browser to `GET /auth/google`
 2. Passport redirects to Google consent screen (scope: `profile`, `email`)
 3. Google redirects back to `GET /auth/google/callback`
@@ -523,13 +535,14 @@ export const UserWatchEntryModel = mongoose.model<IUserWatchEntryDoc>(
 
 ### Products (public, no auth required, read-only)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/products` | List all products from catalog (id + name only) |
-| GET | `/products/:id` | Single product by its string id |
-| GET | `/products/:id/prices` | Latest price per shop — aggregation on ProductResult (latest result per shop, sorted by price) |
+| Method | Path                   | Description                                                                                    |
+| ------ | ---------------------- | ---------------------------------------------------------------------------------------------- |
+| GET    | `/products`            | List all products from catalog (id + name only)                                                |
+| GET    | `/products/:id`        | Single product by its string id                                                                |
+| GET    | `/products/:id/prices` | Latest price per shop — aggregation on ProductResult (latest result per shop, sorted by price) |
 
 **`GET /products/:id/prices` aggregation:**
+
 ```typescript
 const cutoff = new Date();
 cutoff.setHours(cutoff.getHours() - 1, 0, 0, 0);
@@ -537,64 +550,69 @@ cutoff.setHours(cutoff.getHours() - 1, 0, 0, 0);
 const results = await ProductResultModel.aggregate([
   { $match: { productId: id, timestamp: { $gte: cutoff } } },
   { $sort: { shopId: 1, timestamp: -1 } },
-  { $group: {
-    _id: '$shopId',
-    shopId: { $first: '$shopId' },
-    price: { $first: '$price' },
-    isAvailable: { $first: '$isAvailable' },
-    productUrl: { $first: '$productUrl' },
-    timestamp: { $first: '$timestamp' },
-  }},
+  {
+    $group: {
+      _id: '$shopId',
+      shopId: { $first: '$shopId' },
+      price: { $first: '$price' },
+      isAvailable: { $first: '$isAvailable' },
+      productUrl: { $first: '$productUrl' },
+      timestamp: { $first: '$timestamp' },
+    },
+  },
   { $sort: { price: 1 } },
 ]);
 ```
 
 ### Product Sets (public, no auth required, read-only)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/product-sets` | List all product sets |
-| GET | `/product-sets/:id` | Single product set by its string id |
+| Method | Path                | Description                         |
+| ------ | ------------------- | ----------------------------------- |
+| GET    | `/product-sets`     | List all product sets               |
+| GET    | `/product-sets/:id` | Single product set by its string id |
 
 ### Watchlist (JWT required)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/watchlist` | User's watch entries enriched with current best price |
-| POST | `/watchlist` | Add product `{ productId, maxPrice }` — validate product exists in catalog |
-| PATCH | `/watchlist/:id` | Update `{ maxPrice?, isActive? }` |
-| DELETE | `/watchlist/:id` | Remove from watchlist |
+| Method | Path             | Description                                                                |
+| ------ | ---------------- | -------------------------------------------------------------------------- |
+| GET    | `/watchlist`     | User's watch entries enriched with current best price                      |
+| POST   | `/watchlist`     | Add product `{ productId, maxPrice }` — validate product exists in catalog |
+| PATCH  | `/watchlist/:id` | Update `{ maxPrice?, isActive? }`                                          |
+| DELETE | `/watchlist/:id` | Remove from watchlist                                                      |
 
 **All queries filter by `req.user.userId`** — users can only see/modify their own entries.
 
 **`GET /watchlist` implementation:**
+
 1. Load user's `UserWatchEntry` docs
 2. Batch-fetch product names: `WatchlistProductModel.find({ id: { $in: productIds } })`
 3. Batch-fetch best prices using the aggregation pipeline from the scraper (see above)
 4. Join and return `WatchlistEntryResponse[]`
 
 **`POST /watchlist` implementation:**
+
 1. Validate `productId` exists in catalog: `WatchlistProductModel.findOne({ id: productId })`
 2. Create `UserWatchEntry` — unique index on `(userId, productId)` prevents duplicates
 3. Catch Mongoose duplicate key error (E11000) → return 409 Conflict
 
 **`PATCH /watchlist/:id` and `DELETE /watchlist/:id`:**
 Always include `userId` in the query filter for authorization:
+
 ```typescript
 UserWatchEntryModel.findOneAndUpdate(
   { _id: entryId, userId: req.user.userId },
   { $set: updates },
-  { new: true }
+  { new: true },
 );
 ```
 
 ### Users (JWT required)
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/users/me` | Get profile (includes `telegramLinked: boolean`) |
-| POST | `/users/me/telegram/link-token` | Generate UUID v4 link token, store on User doc, return it |
-| DELETE | `/users/me/telegram` | Unlink Telegram — clear `telegramChatId` and `telegramLinkToken` |
+| Method | Path                            | Description                                                      |
+| ------ | ------------------------------- | ---------------------------------------------------------------- |
+| GET    | `/users/me`                     | Get profile (includes `telegramLinked: boolean`)                 |
+| POST   | `/users/me/telegram/link-token` | Generate UUID v4 link token, store on User doc, return it        |
+| DELETE | `/users/me/telegram`            | Unlink Telegram — clear `telegramChatId` and `telegramLinkToken` |
 
 ### Telegram Linking Flow
 
@@ -649,18 +667,25 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction):
 
 ```typescript
 export class AppError extends Error {
-  constructor(public statusCode: number, message: string) {
+  constructor(
+    public statusCode: number,
+    message: string,
+  ) {
     super(message);
     this.name = 'AppError';
   }
 }
 
 export class NotFoundError extends AppError {
-  constructor(message = 'Resource not found') { super(404, message); }
+  constructor(message = 'Resource not found') {
+    super(404, message);
+  }
 }
 
 export class ConflictError extends AppError {
-  constructor(message = 'Resource already exists') { super(409, message); }
+  constructor(message = 'Resource already exists') {
+    super(409, message);
+  }
 }
 
 // Global error handler — must be last middleware
@@ -704,6 +729,7 @@ export function validate(schema: AnyZodObject) {
 ### Rate Limiting (`src/shared/middleware/rate-limit.middleware.ts`)
 
 Two rate limiters:
+
 - **Global:** 100 requests per 15 minutes per IP
 - **Auth:** 10 requests per 15 minutes per IP (on `/auth` routes only)
 
@@ -761,7 +787,7 @@ Validate all env vars at startup with Zod in `src/config/env.ts`. Fail fast with
 ### `src/server.ts`
 
 ```typescript
-import { env } from './config/env';  // Validates env vars immediately on import
+import { env } from './config/env'; // Validates env vars immediately on import
 import { connectDB } from './infrastructure/database/db-connect';
 import app from './app';
 
@@ -785,7 +811,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import passport from 'passport';
-import './config/passport';  // Side-effect: registers Google strategy
+import './config/passport'; // Side-effect: registers Google strategy
 
 import { env } from './config/env';
 import { authMiddleware } from './shared/middleware/auth.middleware';
@@ -809,8 +835,8 @@ app.use(globalRateLimiter);
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
 app.use('/auth', authRateLimiter, authRouter);
-app.use('/products', productsRouter);              // Public — no auth
-app.use('/product-sets', productSetsRouter);        // Public — no auth
+app.use('/products', productsRouter); // Public — no auth
+app.use('/product-sets', productSetsRouter); // Public — no auth
 app.use('/watchlist', authMiddleware, watchlistRouter);
 app.use('/users', authMiddleware, usersRouter);
 
@@ -886,19 +912,19 @@ export default app;
 
 ## Implementation Order
 
-| Step | Task | Verification |
-|------|------|-------------|
-| 1 | Project scaffolding: `package.json`, `tsconfig.json`, `.env.example`, `.gitignore` | `npm install && npx tsc --noEmit` compiles with no errors |
-| 2 | `src/config/env.ts` — Zod env validation | Server crashes with clear error on missing vars |
-| 3 | `src/infrastructure/database/db-connect.ts` | Connects to MongoDB, logs success |
-| 4 | All 4 Mongoose models (User, UserWatchEntry, Product mirror, ProductResult mirror) | Import in REPL, verify collection names match |
-| 5 | Shared types (`src/shared/types/`) | Compile check — `npx tsc --noEmit` |
-| 6 | Shared middleware (error, validate, rate-limit, auth) | Compile check |
-| 7 | Auth module (passport config + routes + controller + service) | Google OAuth flow in browser → JWT returned → `/auth/me` returns user |
-| 8 | Products module (read-only routes) | `curl -H "Authorization: Bearer <jwt>" localhost:3000/products` returns catalog |
-| 9 | Watchlist module (CRUD routes) | POST/GET/PATCH/DELETE work, unique constraint returns 409, auth enforced |
-| 10 | Users module (profile + Telegram link/unlink) | `POST /users/me/telegram/link-token` returns token; `DELETE /users/me/telegram` clears link |
-| 11 | App assembly (`app.ts` + `server.ts`) | `npm run dev` starts server, all endpoints work end-to-end |
+| Step | Task                                                                               | Verification                                                                                |
+| ---- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 1    | Project scaffolding: `package.json`, `tsconfig.json`, `.env.example`, `.gitignore` | `npm install && npx tsc --noEmit` compiles with no errors                                   |
+| 2    | `src/config/env.ts` — Zod env validation                                           | Server crashes with clear error on missing vars                                             |
+| 3    | `src/infrastructure/database/db-connect.ts`                                        | Connects to MongoDB, logs success                                                           |
+| 4    | All 4 Mongoose models (User, UserWatchEntry, Product mirror, ProductResult mirror) | Import in REPL, verify collection names match                                               |
+| 5    | Shared types (`src/shared/types/`)                                                 | Compile check — `npx tsc --noEmit`                                                          |
+| 6    | Shared middleware (error, validate, rate-limit, auth)                              | Compile check                                                                               |
+| 7    | Auth module (passport config + routes + controller + service)                      | Google OAuth flow in browser → JWT returned → `/auth/me` returns user                       |
+| 8    | Products module (read-only routes)                                                 | `curl -H "Authorization: Bearer <jwt>" localhost:3000/products` returns catalog             |
+| 9    | Watchlist module (CRUD routes)                                                     | POST/GET/PATCH/DELETE work, unique constraint returns 409, auth enforced                    |
+| 10   | Users module (profile + Telegram link/unlink)                                      | `POST /users/me/telegram/link-token` returns token; `DELETE /users/me/telegram` clears link |
+| 11   | App assembly (`app.ts` + `server.ts`)                                              | `npm run dev` starts server, all endpoints work end-to-end                                  |
 
 ---
 
@@ -970,6 +996,7 @@ tests/
 ### Test Helpers
 
 **`tests/helpers/auth.helper.ts`:**
+
 ```typescript
 import jwt from 'jsonwebtoken';
 import { UserModel } from '../../src/infrastructure/database/models';
@@ -985,13 +1012,14 @@ export async function createTestUser(overrides = {}) {
   const token = jwt.sign(
     { userId: user._id.toString(), email: user.email },
     process.env.JWT_SECRET || 'test-secret-that-is-at-least-32-chars!',
-    { expiresIn: '1h' }
+    { expiresIn: '1h' },
   );
   return { user, token };
 }
 ```
 
 **`tests/helpers/db.helper.ts`:**
+
 ```typescript
 import { UserModel, UserWatchEntryModel } from '../../src/infrastructure/database/models';
 // Also import WatchlistProductModel and ProductResultModel for seeding
@@ -1048,6 +1076,7 @@ export default {
 ### Key Test Scenarios
 
 **Products:**
+
 - `GET /products` returns all seeded products with `id`, `name`, `imageUrl`, and `productSetId`
 - `GET /products/:id` returns 404 for nonexistent product
 - `GET /products/:id/prices` returns empty array when no recent results
@@ -1057,6 +1086,7 @@ export default {
 - `GET /product-sets/:id` returns 404 for nonexistent set
 
 **Watchlist:**
+
 - `POST /watchlist` creates entry, returns 201
 - `POST /watchlist` with nonexistent productId returns 404
 - `POST /watchlist` duplicate returns 409
@@ -1068,12 +1098,14 @@ export default {
 - `DELETE /watchlist/:id` of another user's entry returns 404
 
 **Users:**
+
 - `GET /users/me` returns profile with `telegramLinked: false` initially
 - `POST /users/me/telegram/link-token` returns UUID, subsequent call returns new UUID (overwrites old)
 - `DELETE /users/me/telegram` clears both `telegramChatId` and `telegramLinkToken`
 - After simulating bot link (manually setting `telegramChatId`), `GET /users/me` returns `telegramLinked: true`
 
 **Auth middleware:**
+
 - Request without `Authorization` header → 401
 - Request with malformed token → 401
 - Request with expired token → 401
@@ -1083,6 +1115,6 @@ export default {
 
 Add tests after step 11 (app assembly) as step 12:
 
-| Step | Task | Verification |
-|------|------|-------------|
-| 12 | Test setup + helpers + all test suites | `npm test` — all green |
+| Step | Task                                   | Verification           |
+| ---- | -------------------------------------- | ---------------------- |
+| 12   | Test setup + helpers + all test suites | `npm test` — all green |

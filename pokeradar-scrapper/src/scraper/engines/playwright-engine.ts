@@ -47,13 +47,13 @@ export class PlaywrightEngine implements IEngine {
   private browser: Browser | null = null;
   private proxyConfig: ProxyConfig | null = null;
 
-  private readonly NAVIGATION_TIMEOUT = 10000;  // Reduced from 15s to 10s
-  private readonly ACTION_TIMEOUT = 500;  // Reduced from 1000ms to 500ms
+  private readonly NAVIGATION_TIMEOUT = 10000; // Reduced from 15s to 10s
+  private readonly ACTION_TIMEOUT = 500; // Reduced from 1000ms to 500ms
 
   constructor(
     private shop: ShopConfig,
     private existingBrowser?: Browser,
-    private logger?: ILogger
+    private logger?: ILogger,
   ) {
     this.proxyConfig = getProxyConfig(shop);
   }
@@ -69,7 +69,7 @@ export class PlaywrightEngine implements IEngine {
     // Retry with exponential backoff (up to 3 attempts)
     await this.retryWithBackoff(async () => {
       await this.page!.goto(url, {
-        waitUntil: 'networkidle',  // Even faster than domcontentloaded - just wait for navigation to commit
+        waitUntil: 'networkidle', // Even faster than domcontentloaded - just wait for navigation to commit
         timeout: this.NAVIGATION_TIMEOUT,
       });
     });
@@ -86,7 +86,7 @@ export class PlaywrightEngine implements IEngine {
     if (baseDelay > 0) {
       const jitter = baseDelay * 0.3; // ±30% jitter
       const delay = baseDelay + (Math.random() * 2 - 1) * jitter;
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
@@ -96,9 +96,7 @@ export class PlaywrightEngine implements IEngine {
    * Attempt 2: wait 2s
    * Attempt 3: wait 5s
    */
-  private async retryWithBackoff<T>(
-    fn: () => Promise<T>
-  ): Promise<T> {
+  private async retryWithBackoff<T>(fn: () => Promise<T>): Promise<T> {
     // Read from env var, default to 1 retry (2 total attempts)
     const maxRetries = parseInt(process.env.MAX_RETRY_ATTEMPTS || '1', 10);
     const maxAttempts = 1 + maxRetries;
@@ -128,7 +126,7 @@ export class PlaywrightEngine implements IEngine {
           });
         }
 
-        await new Promise(resolve => setTimeout(resolve, waitMs));
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
       }
     }
 
@@ -179,9 +177,7 @@ export class PlaywrightEngine implements IEngine {
       throw new Error('No page loaded. Call goto() first.');
     }
 
-    const selectors = Array.isArray(selector.value)
-      ? selector.value
-      : [selector.value];
+    const selectors = Array.isArray(selector.value) ? selector.value : [selector.value];
 
     for (const selectorValue of selectors) {
       try {
@@ -197,7 +193,7 @@ export class PlaywrightEngine implements IEngine {
 
         const elements: IElement[] = Array.from(
           { length: rawElements.length },
-          (_, i) => new PlaywrightElement(locator.nth(i), this.logger)
+          (_, i) => new PlaywrightElement(locator.nth(i), this.logger),
         );
 
         return elements;
@@ -246,12 +242,12 @@ export class PlaywrightEngine implements IEngine {
       await safeClose(this.page);
       this.page = null;
     }
-  
+
     if (this.context) {
       await safeClose(this.context);
       this.context = null;
     }
-  
+
     if (this.ownsBrowser && this.browser) {
       await safeClose(this.browser);
       this.browser = null;
@@ -259,13 +255,15 @@ export class PlaywrightEngine implements IEngine {
   }
 
   private async initializePage(): Promise<void> {
-    const proxyOption = this.proxyConfig ? {
-      proxy: {
-        server: `http://${this.proxyConfig.host}:${this.proxyConfig.port}`,
-        username: this.proxyConfig.username,
-        password: this.proxyConfig.password,
-      },
-    } : {};
+    const proxyOption = this.proxyConfig
+      ? {
+          proxy: {
+            server: `http://${this.proxyConfig.host}:${this.proxyConfig.port}`,
+            username: this.proxyConfig.username,
+            password: this.proxyConfig.password,
+          },
+        }
+      : {};
 
     // When proxy is needed, always launch a dedicated browser instance.
     // Chromium doesn't support per-context proxy unless the browser was launched with proxy.
@@ -288,7 +286,10 @@ export class PlaywrightEngine implements IEngine {
         ...proxyOption,
       });
       const contextOptions = this.proxyConfig
-        ? { userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+        ? {
+            userAgent:
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          }
         : {};
       this.context = await this.browser.newContext(contextOptions);
       this.page = await this.context.newPage();

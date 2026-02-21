@@ -5,12 +5,12 @@ This guide walks you through adding support for a new e-commerce shop to the Pok
 ## Overview
 
 Adding a new shop involves:
+
 1. Creating a shop configuration file with CSS selectors
 2. Creating a test fixture for integration tests
 3. Creating integration tests
 4. Running tests to validate selectors
 5. (Optional) Creating a custom scraper if needed
-
 
 ## Prerequisites
 
@@ -51,11 +51,12 @@ Before writing any code, you need to understand the shop's HTML structure.
 8. Note the CSS selectors
 
 **Pro tip**: Use DevTools Console to test selectors:
+
 ```javascript
 // Test if selector works
-document.querySelector('span.price')
+document.querySelector('span.price');
 // Test if it returns multiple elements
-document.querySelectorAll('div.product')
+document.querySelectorAll('div.product');
 ```
 
 ## Step 2: Create Shop Configuration
@@ -156,6 +157,7 @@ Create a new JSON file in `src/config/shops/` named after the shop (e.g., `examp
 ### Selector Types
 
 **CSS Selector** (most common):
+
 ```json
 {
   "type": "css",
@@ -164,6 +166,7 @@ Create a new JSON file in `src/config/shops/` named after the shop (e.g., `examp
 ```
 
 **Text Selector** (searches for text content):
+
 ```json
 {
   "type": "text",
@@ -172,6 +175,7 @@ Create a new JSON file in `src/config/shops/` named after the shop (e.g., `examp
 ```
 
 **XPath Selector** (advanced):
+
 ```json
 {
   "type": "xpath",
@@ -223,6 +227,7 @@ Create `tests/fixtures/shopname.json` with test data:
 **stableProductUrl**: A popular product unlikely to be removed
 
 **Tips for choosing test data**:
+
 - Pick evergreen products (Pokemon base sets, popular items)
 - Choose products regularly in stock
 - The URL should be for a product that's likely to remain available
@@ -279,7 +284,6 @@ test('example-shop.com integration tests', async (t) => {
     assert.strictEqual(result.passed, true, result.error || 'Title extraction failed');
     assert.ok(result.value?.title, 'Title should be extracted');
   });
-
 });
 ```
 
@@ -298,6 +302,7 @@ node --import tsx --test tests/shops/example-shop.test.ts
 ### Understanding Test Output
 
 **Success**:
+
 ```
 ✓ Product Page - Price Extraction
 ✓ Product Page - Availability Extraction
@@ -305,6 +310,7 @@ node --import tsx --test tests/shops/example-shop.test.ts
 ```
 
 **Failure**:
+
 ```
 ✗ Product Page - Price Extraction
   Error: Price element not found
@@ -321,6 +327,7 @@ If tests fail:
 5. **Check network tab** - Ensure the page loads correctly
 
 **Common issues**:
+
 - Selector too specific (add fallbacks)
 - Selector not specific enough (returns wrong element)
 - JavaScript-rendered content (wait longer or use different selector)
@@ -340,7 +347,7 @@ Once tests pass, add products to `src/config/watchlist.json`:
         "exclude": ["case", "half", "kiosk"]
       },
       "price": {
-        "max": 50.00
+        "max": 50.0
       }
     }
   ]
@@ -348,6 +355,7 @@ Once tests pass, add products to `src/config/watchlist.json`:
 ```
 
 **Search configuration**:
+
 - **phrases**: Array of search terms to try (tries in order until product found)
 - **exclude**: Optional array of keywords to filter out unwanted results
   - Example: `["case", "kiosk"]` excludes bulk cases and kiosk products
@@ -356,6 +364,7 @@ Once tests pass, add products to `src/config/watchlist.json`:
 
 **Fuzzy Matching**:
 The bot uses fuzzy string matching to find the best product from search results:
+
 - Compares search phrases against product titles from search results
 - Calculates similarity score (0-1) for each product
 - Selects the product with the highest score above threshold (0.5)
@@ -363,6 +372,7 @@ The bot uses fuzzy string matching to find the best product from search results:
 - If multiple search phrases provided, tries each until a match is found
 
 **Search phrase tips**:
+
 - Be specific enough to find the right product
 - Provide multiple variations if the product name varies across shops
 - Use `exclude` to filter out bulk items, reprints, or other variants
@@ -382,12 +392,14 @@ npm run check basanti
 ```
 
 The check command will:
+
 - Load all watchlist products
 - Search for each product on specified shops
 - Display availability, price, and match status
 - Show product URLs for items that match criteria
 
 **Output format**:
+
 ```
 📦 Pokemon Prismatic Evolutions Booster
    Max Price: 120 zł
@@ -397,6 +409,7 @@ The check command will:
 ```
 
 **Status indicators**:
+
 - ✅ Available - Product found and in stock
 - ⛔ Unavailable - Product found but out of stock
 - ❌ Not found - Product not found on this shop
@@ -411,6 +424,7 @@ npm run dev
 ```
 
 Watch the logs to ensure:
+
 - Product is found via search
 - Product page loads correctly
 - Price is extracted
@@ -444,10 +458,7 @@ export class ExampleShopScraper extends BaseScraper {
   /**
    * Override to implement custom search logic
    */
-  protected async findProductUrl(
-    page: Page,
-    product: WatchlistProduct
-  ): Promise<string | null> {
+  protected async findProductUrl(page: Page, product: WatchlistProduct): Promise<string | null> {
     // Custom search implementation
     // Example: Click buttons, handle popups, etc.
 
@@ -508,6 +519,7 @@ From `BaseScraper.ts`:
 **Problem**: Selector returns no elements
 
 **Solutions**:
+
 1. Verify selector in DevTools Console
 2. Check if content is dynamically loaded (increase wait time)
 3. Use more general selector
@@ -518,6 +530,7 @@ From `BaseScraper.ts`:
 **Problem**: Selector returns wrong element
 
 **Solutions**:
+
 1. Make selector more specific
 2. Use child/descendant combinators
 3. Add attribute selectors
@@ -528,6 +541,7 @@ From `BaseScraper.ts`:
 **Problem**: Price extracted but parsing fails
 
 **Solutions**:
+
 1. Check price format in config (`european` vs `us`)
 2. Verify price text format (commas, dots, currency symbols)
 3. Add custom price parser in custom scraper
@@ -537,6 +551,7 @@ From `BaseScraper.ts`:
 **Problem**: Available products show as unavailable
 
 **Solutions**:
+
 1. Check availability text exactly matches
 2. Use text selector instead of CSS
 3. Add multiple availability indicators
@@ -574,6 +589,7 @@ Let's add support for a hypothetical shop "PokeCards.pl":
 ### 1. Research
 
 Visit PokeCards.pl and find:
+
 - Search URL: `https://pokecards.pl/search?query=`
 - Product card: `<div class="card">`
 - Product link: `<a class="card__link">`
@@ -661,7 +677,7 @@ Edit `src/config/watchlist.json`:
         "phrases": ["Charizard VMAX", "Charizard V-MAX"]
       },
       "price": {
-        "max": 100.00
+        "max": 100.0
       }
     }
   ]

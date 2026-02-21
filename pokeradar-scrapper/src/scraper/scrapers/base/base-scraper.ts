@@ -25,11 +25,14 @@ export interface IScraperLogger {
  */
 export interface IScraper {
   scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult | null>;
-  scrapeProductWithUrl(product: WatchlistProductInternal, productUrl: string): Promise<ProductResult | null>;
+  scrapeProductWithUrl(
+    product: WatchlistProductInternal,
+    productUrl: string,
+  ): Promise<ProductResult | null>;
   createResultFromSearchData(
     product: WatchlistProductInternal,
     productUrl: string,
-    searchPageData: { price: number | null; isAvailable: boolean }
+    searchPageData: { price: number | null; isAvailable: boolean },
   ): ProductResult;
   getNavigator(): SearchNavigator;
   close(): Promise<void>;
@@ -46,7 +49,7 @@ export abstract class BaseScraper implements IScraper {
   constructor(
     protected config: ShopConfig,
     protected engine: IEngine,
-    protected logger?: IScraperLogger
+    protected logger?: IScraperLogger,
   ) {
     this.priceParser = new PriceParser();
     this.matcher = new ProductMatcher(logger);
@@ -107,9 +110,7 @@ export abstract class BaseScraper implements IScraper {
    * Searches for the product and returns its URL.
    * Can be overridden by custom scrapers.
    */
-  protected async findProductUrl(
-    product: WatchlistProductInternal
-  ): Promise<SearchResult | null> {
+  protected async findProductUrl(product: WatchlistProductInternal): Promise<SearchResult | null> {
     return this.navigator.findProductUrl(product);
   }
 
@@ -126,9 +127,7 @@ export abstract class BaseScraper implements IScraper {
    * Can be overridden for custom price extraction logic.
    */
   protected async extractPrice(): Promise<number | null> {
-    const priceText = await this.engine.extract(
-      this.config.selectors.productPage.price
-    );
+    const priceText = await this.engine.extract(this.config.selectors.productPage.price);
 
     if (!priceText) {
       return null;
@@ -181,7 +180,7 @@ export abstract class BaseScraper implements IScraper {
    */
   async scrapeProductWithUrl(
     product: WatchlistProductInternal,
-    productUrl: string
+    productUrl: string,
   ): Promise<ProductResult | null> {
     try {
       await this.navigateToProductPage(productUrl);
@@ -214,7 +213,7 @@ export abstract class BaseScraper implements IScraper {
   createResultFromSearchData(
     product: WatchlistProductInternal,
     productUrl: string,
-    searchPageData: { price: number | null; isAvailable: boolean }
+    searchPageData: { price: number | null; isAvailable: boolean },
   ): ProductResult {
     this.logger?.debug('Using search page data (skipping product page visit)', {
       shop: this.config.id,

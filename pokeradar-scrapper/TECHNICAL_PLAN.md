@@ -1,11 +1,13 @@
 # Pokemon Product Price Monitor - Technical Plan
 
 ## Project Overview
+
 A TypeScript-based web scraper that monitors Pokemon product prices across multiple Polish e-commerce shops and sends Telegram notifications when products meet specified criteria (available + price ≤ max price).
 
 ## Technology Stack
 
 ### Core Technologies
+
 - **Runtime**: Node.js (v18+)
 - **Language**: TypeScript
 - **Web Scraping**: Playwright (handles JS-rendered content, reliable for modern e-commerce sites)
@@ -13,6 +15,7 @@ A TypeScript-based web scraper that monitors Pokemon product prices across multi
 - **Process Management**: Long-running Node.js process with setInterval
 
 ### Dependencies
+
 ```json
 {
   "playwright": "^1.40.0",
@@ -27,6 +30,7 @@ A TypeScript-based web scraper that monitors Pokemon product prices across multi
 ## Architecture
 
 ### Project Structure
+
 ```
 pokeradar_2.0/
 ├── src/
@@ -64,6 +68,7 @@ pokeradar_2.0/
 #### 1. Configuration Schema
 
 **Shop Configuration** (`src/config/shops/rebel.pl.json`)
+
 ```typescript
 {
   "id": "rebel",
@@ -103,6 +108,7 @@ pokeradar_2.0/
 ```
 
 **Watchlist Configuration** (`src/config/watchlist.json`)
+
 ```typescript
 {
   "products": [
@@ -117,6 +123,7 @@ pokeradar_2.0/
 ```
 
 **Environment Variables** (`.env`)
+
 ```bash
 TELEGRAM_BOT_TOKEN=8567378980:AAHszCIZJbuSvL7LsQozsRwzJtgUK3rClFE
 TELEGRAM_CHAT_ID=439458898
@@ -133,7 +140,7 @@ type PriceFormat = 'european' | 'us';
 
 interface Selector {
   type: SelectorType;
-  value: string | string[];  // Array for fallback selectors
+  value: string | string[]; // Array for fallback selectors
   extract?: 'href' | 'text' | 'innerHTML';
   format?: PriceFormat;
   matchText?: string;
@@ -156,7 +163,7 @@ interface ShopConfig {
       available: Selector;
     };
   };
-  customScraper?: string;  // Optional: path to custom scraper class
+  customScraper?: string; // Optional: path to custom scraper class
 }
 
 // Product to monitor
@@ -192,9 +199,7 @@ interface NotificationState {
 ```typescript
 class SelectorEngine {
   async extract(page: Page, selector: Selector): Promise<string | null> {
-    const selectors = Array.isArray(selector.value)
-      ? selector.value
-      : [selector.value];
+    const selectors = Array.isArray(selector.value) ? selector.value : [selector.value];
 
     for (const sel of selectors) {
       try {
@@ -208,7 +213,7 @@ class SelectorEngine {
       }
     }
 
-    return null;  // All selectors failed
+    return null; // All selectors failed
   }
 }
 ```
@@ -225,9 +230,7 @@ class PriceParser {
     if (!match) return null;
 
     // Convert: 1.299,95 → 1299.95
-    return parseFloat(
-      match[1].replace(/\./g, '').replace(',', '.')
-    );
+    return parseFloat(match[1].replace(/\./g, '').replace(',', '.'));
   }
 }
 ```
@@ -243,7 +246,7 @@ class StateManager {
     const prevState = this.state.get(key);
 
     if (!prevState?.lastNotified) {
-      return true;  // First time seeing this product
+      return true; // First time seeing this product
     }
 
     // Reset conditions:
@@ -259,7 +262,7 @@ class StateManager {
       return false;
     }
 
-    return false;  // Already notified, no reset conditions met
+    return false; // Already notified, no reset conditions met
   }
 
   markNotified(productId: string, shopId: string, result: ProductResult): void {
@@ -269,7 +272,7 @@ class StateManager {
       shopId,
       lastNotified: new Date(),
       lastPrice: result.price,
-      wasAvailable: result.isAvailable
+      wasAvailable: result.isAvailable,
     });
   }
 }
@@ -282,7 +285,7 @@ abstract class BaseScraper {
   constructor(
     protected config: ShopConfig,
     protected selectorEngine: SelectorEngine,
-    protected priceParser: PriceParser
+    protected priceParser: PriceParser,
   ) {}
 
   async scrapeProduct(product: WatchlistProduct): Promise<ProductResult> {
@@ -309,7 +312,7 @@ abstract class BaseScraper {
         productUrl,
         price,
         isAvailable,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } finally {
       await browser.close();
@@ -327,13 +330,13 @@ abstract class BaseScraper {
       for (const article of articles) {
         const titleText = await this.selectorEngine.extract(
           article,
-          this.config.selectors.searchPage.title
+          this.config.selectors.searchPage.title,
         );
 
         if (this.titleMatches(titleText, product.name)) {
           return await this.selectorEngine.extract(
             article,
-            this.config.selectors.searchPage.productUrl
+            this.config.selectors.searchPage.productUrl,
           );
         }
       }
@@ -345,7 +348,7 @@ abstract class BaseScraper {
   protected async extractPrice(page: Page): Promise<number | null> {
     const priceText = await this.selectorEngine.extract(
       page,
-      this.config.selectors.productPage.price
+      this.config.selectors.productPage.price,
     );
 
     if (!priceText) return null;
@@ -357,7 +360,7 @@ abstract class BaseScraper {
   protected async checkAvailability(page: Page): Promise<boolean> {
     const availText = await this.selectorEngine.extract(
       page,
-      this.config.selectors.productPage.available
+      this.config.selectors.productPage.available,
     );
 
     const expectedText = this.config.selectors.productPage.available.matchText;
@@ -377,16 +380,27 @@ abstract class BaseScraper {
 class NotificationService {
   private bot: TelegramBot;
 
-  constructor(token: string, private chatId: string) {
+  constructor(
+    token: string,
+    private chatId: string,
+  ) {
     this.bot = new TelegramBot(token, { polling: false });
   }
 
-  async sendAlert(product: WatchlistProduct, result: ProductResult, shop: ShopConfig): Promise<void> {
+  async sendAlert(
+    product: WatchlistProduct,
+    result: ProductResult,
+    shop: ShopConfig,
+  ): Promise<void> {
     const message = this.formatMessage(product, result, shop);
     await this.bot.sendMessage(this.chatId, message, { parse_mode: 'Markdown' });
   }
 
-  private formatMessage(product: WatchlistProduct, result: ProductResult, shop: ShopConfig): string {
+  private formatMessage(
+    product: WatchlistProduct,
+    result: ProductResult,
+    shop: ShopConfig,
+  ): string {
     return `
 🎯 *Product Available!*
 
@@ -439,7 +453,7 @@ class PriceMonitor {
   async runScanCycle(): Promise<void> {
     this.logger.info('Starting scan cycle', {
       shops: this.shops.length,
-      products: this.products.length
+      products: this.products.length,
     });
 
     for (const shop of this.shops) {
@@ -452,29 +466,30 @@ class PriceMonitor {
             product: product.id,
             shop: shop.id,
             price: result.price,
-            available: result.isAvailable
+            available: result.isAvailable,
           });
 
           // Check if we should notify
-          if (result.isAvailable &&
-              result.price &&
-              result.price <= product.maxPrice &&
-              this.stateManager.shouldNotify(product.id, shop.id, result)) {
-
+          if (
+            result.isAvailable &&
+            result.price &&
+            result.price <= product.maxPrice &&
+            this.stateManager.shouldNotify(product.id, shop.id, result)
+          ) {
             await this.notificationService.sendAlert(product, result, shop);
             this.stateManager.markNotified(product.id, shop.id, result);
 
             this.logger.info('Notification sent', {
               product: product.id,
               shop: shop.id,
-              price: result.price
+              price: result.price,
             });
           }
         } catch (error) {
           this.logger.error('Error scanning product', {
             product: product.id,
             shop: shop.id,
-            error: error.message
+            error: error.message,
           });
         }
       }
@@ -485,17 +500,14 @@ class PriceMonitor {
 
   start(): void {
     this.logger.info('Price monitor started', {
-      interval: process.env.SCRAPE_INTERVAL_MS
+      interval: process.env.SCRAPE_INTERVAL_MS,
     });
 
     // Run immediately on start
     this.runScanCycle();
 
     // Then run every interval
-    setInterval(
-      () => this.runScanCycle(),
-      parseInt(process.env.SCRAPE_INTERVAL_MS || '60000')
-    );
+    setInterval(() => this.runScanCycle(), parseInt(process.env.SCRAPE_INTERVAL_MS || '60000'));
   }
 }
 ```
@@ -503,6 +515,7 @@ class PriceMonitor {
 ## Implementation Phases
 
 ### Phase 1: Core Infrastructure (Foundation)
+
 **Goal**: Set up project skeleton and basic scraping capability
 
 - [ ] Initialize TypeScript project with dependencies
@@ -514,6 +527,7 @@ class PriceMonitor {
 - [ ] Set up Logger service
 
 ### Phase 2: Rebel.pl Integration (First Shop)
+
 **Goal**: Get end-to-end working with rebel.pl
 
 - [ ] Create rebel.pl shop configuration
@@ -526,6 +540,7 @@ class PriceMonitor {
 - [ ] Manual testing: verify Telegram notifications
 
 ### Phase 3: Orchestration (Make it Run)
+
 **Goal**: Connect all pieces and run continuously
 
 - [ ] Implement ScraperFactory
@@ -536,6 +551,7 @@ class PriceMonitor {
 - [ ] Test reset conditions (price increase, availability change)
 
 ### Phase 4: Extensibility (Custom Scrapers)
+
 **Goal**: Support shops that need custom logic
 
 - [ ] Document how to create custom scraper class
@@ -543,6 +559,7 @@ class PriceMonitor {
 - [ ] Test custom scraper override mechanism
 
 ### Phase 5: Future Enhancements (Post-MVP)
+
 **Goal**: Improve reliability and features
 
 - [ ] Replace in-memory state with JSON file persistence
@@ -556,17 +573,20 @@ class PriceMonitor {
 ## Testing Strategy
 
 ### Manual Testing (Primary)
+
 - Test rebel.pl selectors on real pages
 - Verify price parsing with various formats
 - Test Telegram notifications
 - Verify state management behavior
 
 ### Basic Integration Tests (Optional)
+
 - Test price parser with known inputs
 - Test selector extraction on sample HTML
 - Test notification formatting
 
 ### Ongoing Validation
+
 - Monitor logs for errors
 - Verify notifications arrive as expected
 - Check state resets work correctly
@@ -574,12 +594,14 @@ class PriceMonitor {
 ## Configuration Examples
 
 ### Adding a New Shop
+
 1. Create `src/config/shops/newshop.json`
 2. Define selectors using the schema
 3. (Optional) Create custom scraper if needed in `src/scrapers/custom/NewShopScraper.ts`
 4. Shop will be automatically loaded on next restart
 
 ### Adding a New Product
+
 1. Edit `src/config/watchlist.json`
 2. Add product with id, name, searchPhrases, maxPrice
 3. Product will be monitored on next scan cycle
@@ -587,15 +609,18 @@ class PriceMonitor {
 ## Error Handling Strategy
 
 ### Scraping Errors
+
 - Log error with shop, product, and error details
 - Continue to next product/shop
 - Retry on next scan cycle (1 minute later)
 
 ### Notification Errors
+
 - Log error
 - Don't mark as notified (will retry next cycle)
 
 ### Critical Errors
+
 - Log error
 - Process continues running
 - Manual intervention required for fixes
@@ -603,6 +628,7 @@ class PriceMonitor {
 ## Deployment
 
 ### Development
+
 ```bash
 npm install
 cp .env.example .env
@@ -611,6 +637,7 @@ npm run dev
 ```
 
 ### Production
+
 ```bash
 npm install
 npm run build
@@ -618,6 +645,7 @@ npm start
 ```
 
 ### Future: Docker
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app

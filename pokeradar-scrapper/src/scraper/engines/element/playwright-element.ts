@@ -6,7 +6,6 @@ import { Locator } from 'playwright';
 import { Selector } from '../../../shared/types';
 import { IElement } from '../engine.interface';
 
-
 /**
  * Logger interface for element operations.
  */
@@ -18,7 +17,10 @@ interface ILogger {
  * Element wrapper for Playwright Locators.
  */
 export class PlaywrightElement implements IElement {
-  constructor(private locator: Locator, private logger?: ILogger) {}
+  constructor(
+    private locator: Locator,
+    private logger?: ILogger,
+  ) {}
 
   async getText(): Promise<string | null> {
     try {

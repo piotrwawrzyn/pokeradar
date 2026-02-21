@@ -18,7 +18,7 @@ const ChannelSchema = new Schema<IChannelData>(
     channelId: { type: String, default: null },
     linkToken: { type: String, default: null },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const UserSchema = new Schema<IUserDoc>(
@@ -27,7 +27,7 @@ const UserSchema = new Schema<IUserDoc>(
     telegram: { type: ChannelSchema, default: () => ({ channelId: null, linkToken: null }) },
     discord: { type: ChannelSchema, default: () => ({ channelId: null, linkToken: null }) },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 UserSchema.index({ 'telegram.linkToken': 1 }, { sparse: true });

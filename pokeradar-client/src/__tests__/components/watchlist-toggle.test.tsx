@@ -85,12 +85,15 @@ describe('WatchlistToggle', () => {
     server.use(
       http.post('http://localhost:3000/watchlist', async () => {
         postCalled = true;
-        return HttpResponse.json({
-          id: 'watch-new',
-          productId: 'prod-1',
-          maxPrice: 179.99,
-          createdAt: new Date().toISOString(),
-        }, { status: 201 });
+        return HttpResponse.json(
+          {
+            id: 'watch-new',
+            productId: 'prod-1',
+            maxPrice: 179.99,
+            createdAt: new Date().toISOString(),
+          },
+          { status: 201 },
+        );
       }),
     );
 

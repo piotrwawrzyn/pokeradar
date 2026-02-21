@@ -16,9 +16,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           <ShieldAlert className="h-5 w-5" />
           <AlertTitle>Wymagane logowanie</AlertTitle>
           <AlertDescription className="mt-2">
-            <p className="mb-4">
-              Musisz się zalogować, aby uzyskać dostęp do tej strony.
-            </p>
+            <p className="mb-4">Musisz się zalogować, aby uzyskać dostęp do tej strony.</p>
             <ClerkSignInButton />
           </AlertDescription>
         </Alert>

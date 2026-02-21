@@ -1,47 +1,47 @@
 {
-    "id": "strefatcg",
-    "name": "strefa-tcg",
-    "baseUrl": "https://strefa-tcg.pl",
-    "searchUrl": "/pl/searchquery/{query}/1/phot/4",
-    "selectors": {
-      "searchPage": {
-        "article": {
-          "type": "css",
-          "value": "div.product"
-        },
-        "productUrl": {
-          "type": "css",
-          "value": "a.prodname",
-          "extract": "href"
-        },
-        "title": {
-          "type": "css",
-          "value": "span.productname"
-        },
-        "price": {
-            "type": "css",
-            "value": "div.price em"
-          },
-        "available": {
-            "type": "css",
-            "value": "button.addtobasket"
-          },
-        "unavailable": {
-            "type": "css",
-            "value": ".product_inactive",
-            "matchSelf": true
-        }
+  "id": "strefatcg",
+  "name": "strefa-tcg",
+  "baseUrl": "https://strefa-tcg.pl",
+  "searchUrl": "/pl/searchquery/{query}/1/phot/4",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.product"
       },
-      "productPage": {
-        "price": {
-          "type": "css",
-          "value": "div.maininfo em.main-price",
-          "format": "european"
-        },
-        "available": {
-          "type": "css",
-          "value": "fieldset.addtobasket-container:not(.none)"
-        }
+      "productUrl": {
+        "type": "css",
+        "value": "a.prodname",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "span.productname"
+      },
+      "price": {
+        "type": "css",
+        "value": "div.price em"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.addtobasket"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": ".product_inactive",
+        "matchSelf": true
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div.maininfo em.main-price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "fieldset.addtobasket-container:not(.none)"
       }
     }
   }
+}

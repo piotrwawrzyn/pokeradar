@@ -40,18 +40,14 @@ export class WatchlistService {
     };
   }
 
-  async updateEntry(
-    userId: string,
-    entryId: string,
-    updates: { maxPrice?: number }
-  ) {
+  async updateEntry(userId: string, entryId: string, updates: { maxPrice?: number }) {
     const entry = await UserWatchEntryModel.findOneAndUpdate(
       {
         _id: new Types.ObjectId(entryId),
         userId: new Types.ObjectId(userId),
       },
       { $set: updates },
-      { new: true }
+      { new: true },
     );
 
     if (!entry) throw new NotFoundError('Watch entry not found');
@@ -77,7 +73,11 @@ export class WatchlistService {
     // Cascade delete: remove all notifications and notification states for this user+product
     await Promise.all([
       NotificationStateModel.deleteMany({ userId, productId: entry.productId }),
-      NotificationModel.deleteMany({ userId, 'payload.productId': entry.productId, status: 'pending' }),
+      NotificationModel.deleteMany({
+        userId,
+        'payload.productId': entry.productId,
+        status: 'pending',
+      }),
     ]);
   }
 }

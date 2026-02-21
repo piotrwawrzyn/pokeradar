@@ -1,0 +1,17 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+build
+.next
+out
+
+# Lock files
+package-lock.json
+
+# Scrapper baselines
+pokeradar-scrapper/scripts/baseline/fixtures
+
+# Generated / env
+.env*

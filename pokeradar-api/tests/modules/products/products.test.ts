@@ -14,9 +14,7 @@ describe('Products API', () => {
 
   describe('GET /products', () => {
     it('should return all products with price fields', async () => {
-      const res = await request(app)
-        .get('/products')
-        .set('Authorization', `Bearer ${token}`);
+      const res = await request(app).get('/products').set('Authorization', `Bearer ${token}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(3);

@@ -56,11 +56,7 @@ export function extractTitleFromUrl(url: string): string | null {
  * @param query - The search query to insert
  * @returns Complete search URL
  */
-export function buildSearchUrl(
-  baseUrl: string,
-  searchUrl: string,
-  query: string
-): string {
+export function buildSearchUrl(baseUrl: string, searchUrl: string, query: string): string {
   const encodedQuery = encodeURIComponent(query);
   const searchPath = searchUrl.includes('{query}')
     ? searchUrl.replace('{query}', encodedQuery)

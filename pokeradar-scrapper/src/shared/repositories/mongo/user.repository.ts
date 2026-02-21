@@ -22,10 +22,7 @@ export class MongoUserRepository {
 
     const docs = await UserModel.find({
       _id: { $in: userIds },
-      $or: [
-        { 'telegram.channelId': { $ne: null } },
-        { 'discord.channelId': { $ne: null } },
-      ],
+      $or: [{ 'telegram.channelId': { $ne: null } }, { 'discord.channelId': { $ne: null } }],
     })
       .select('_id')
       .lean();

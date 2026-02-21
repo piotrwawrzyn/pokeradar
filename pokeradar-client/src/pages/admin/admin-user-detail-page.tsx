@@ -80,16 +80,12 @@ export function AdminUserDetailPage() {
             <div>
               <p className="text-sm text-muted-foreground">Ostatnie logowanie</p>
               <p className="text-sm">
-                {user.lastLogin
-                  ? new Date(user.lastLogin).toLocaleString('pl-PL')
-                  : 'Nigdy'}
+                {user.lastLogin ? new Date(user.lastLogin).toLocaleString('pl-PL') : 'Nigdy'}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Data rejestracji</p>
-              <p className="text-sm">
-                {new Date(user.createdAt).toLocaleString('pl-PL')}
-              </p>
+              <p className="text-sm">{new Date(user.createdAt).toLocaleString('pl-PL')}</p>
             </div>
             {user.telegramChannelId && (
               <div>
@@ -139,9 +135,7 @@ export function AdminUserDetailPage() {
                         <StatusBadge status="inactive" />
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      {entry.maxPrice.toFixed(2)} zł
-                    </TableCell>
+                    <TableCell className="text-right">{entry.maxPrice.toFixed(2)} zł</TableCell>
                   </TableRow>
                 ))
               )}
@@ -176,9 +170,7 @@ export function AdminUserDetailPage() {
               ) : (
                 user.notifications.map((notif) => (
                   <TableRow key={notif.id}>
-                    <TableCell className="font-medium">
-                      {notif.payload.productName}
-                    </TableCell>
+                    <TableCell className="font-medium">{notif.payload.productName}</TableCell>
                     <TableCell>{notif.payload.shopName}</TableCell>
                     <TableCell>
                       {notif.status === 'sent' && <StatusBadge status="sent" />}

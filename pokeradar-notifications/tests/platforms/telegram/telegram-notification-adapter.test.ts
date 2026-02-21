@@ -37,11 +37,10 @@ describe('TelegramNotificationAdapter', () => {
     await adapter.send('chat-123', mockPayload);
 
     expect(mockBot.sendMessage).toHaveBeenCalledTimes(1);
-    expect(mockBot.sendMessage).toHaveBeenCalledWith(
-      'chat-123',
-      expect.any(String),
-      { parse_mode: 'Markdown', disable_web_page_preview: false }
-    );
+    expect(mockBot.sendMessage).toHaveBeenCalledWith('chat-123', expect.any(String), {
+      parse_mode: 'Markdown',
+      disable_web_page_preview: false,
+    });
   });
 
   it('formats the message in Polish', async () => {

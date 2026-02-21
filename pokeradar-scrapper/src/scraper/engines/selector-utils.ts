@@ -33,7 +33,7 @@ export function getFirstSelector(selector: Selector): string {
 export async function trySelectors<T>(
   selectors: string[],
   tryFn: (selector: string) => Promise<T | null>,
-  onError?: (selector: string, error: unknown) => void
+  onError?: (selector: string, error: unknown) => void,
 ): Promise<T | null> {
   for (const selector of selectors) {
     try {
@@ -54,11 +54,8 @@ export async function trySelectors<T>(
 export function findByTextInsensitive(
   $: cheerio.CheerioAPI,
   root: cheerio.Cheerio<AnyNode>,
-  value: string
+  value: string,
 ): cheerio.Cheerio<AnyNode> {
   const valueLower = value.toLowerCase();
-  return root.find('*').filter((_, el) =>
-    $(el).text().toLowerCase().includes(valueLower)
-  );
+  return root.find('*').filter((_, el) => $(el).text().toLowerCase().includes(valueLower));
 }
-

@@ -60,7 +60,10 @@ export class CheerioEngine implements IEngine {
   private headers: Record<string, string>;
   private proxyAgent: HttpsProxyAgent<string> | null = null;
 
-  constructor(private shop: ShopConfig, private logger?: ILogger) {
+  constructor(
+    private shop: ShopConfig,
+    private logger?: ILogger,
+  ) {
     // Pick a random User-Agent per engine instance
     this.userAgent = getRandomUserAgent();
     this.headers = {
@@ -74,7 +77,9 @@ export class CheerioEngine implements IEngine {
       this.proxyAgent = new HttpsProxyAgent(proxyConfig.url);
       this.logger?.debug('Proxy enabled', { shop: shop.id });
     } else if (shop.antiBot?.useProxy) {
-      this.logger?.debug('Shop has useProxy=true but proxy is disabled globally', { shop: shop.id });
+      this.logger?.debug('Shop has useProxy=true but proxy is disabled globally', {
+        shop: shop.id,
+      });
     }
   }
 
@@ -111,7 +116,7 @@ export class CheerioEngine implements IEngine {
     if (baseDelay > 0) {
       const jitter = baseDelay * 0.3; // ±30% jitter
       const delay = baseDelay + (Math.random() * 2 - 1) * jitter;
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
 
@@ -121,9 +126,7 @@ export class CheerioEngine implements IEngine {
    * Attempt 2: wait 2s
    * Attempt 3: wait 5s
    */
-  private async retryWithBackoff<T>(
-    fn: () => Promise<T>
-  ): Promise<T> {
+  private async retryWithBackoff<T>(fn: () => Promise<T>): Promise<T> {
     // Read from env var, default to 1 retry (2 total attempts)
     const maxRetries = parseInt(process.env.MAX_RETRY_ATTEMPTS || '1', 10);
     const maxAttempts = 1 + maxRetries;
@@ -155,7 +158,7 @@ export class CheerioEngine implements IEngine {
           });
         }
 
-        await new Promise(resolve => setTimeout(resolve, waitMs));
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
       }
     }
 
@@ -195,9 +198,10 @@ export class CheerioEngine implements IEngine {
     for (const selectorValue of selectors) {
       try {
         // Text selectors use case-insensitive matching; CSS/XPath use direct selector
-        const element = selector.type === 'text'
-          ? findByTextInsensitive($, $.root(), selectorValue).first()
-          : $(selectorValue).first();
+        const element =
+          selector.type === 'text'
+            ? findByTextInsensitive($, $.root(), selectorValue).first()
+            : $(selectorValue).first();
 
         if (element.length === 0) {
           continue;
@@ -230,9 +234,10 @@ export class CheerioEngine implements IEngine {
     for (const selectorValue of selectors) {
       try {
         // Text selectors use case-insensitive matching; CSS/XPath use direct selector
-        const elements = selector.type === 'text'
-          ? findByTextInsensitive($, $.root(), selectorValue)
-          : $(selectorValue);
+        const elements =
+          selector.type === 'text'
+            ? findByTextInsensitive($, $.root(), selectorValue)
+            : $(selectorValue);
 
         if (elements.length === 0) {
           continue;
@@ -267,9 +272,10 @@ export class CheerioEngine implements IEngine {
     for (const selectorValue of selectors) {
       try {
         // Text selectors use case-insensitive matching; CSS/XPath use direct selector
-        const element = selector.type === 'text'
-          ? findByTextInsensitive($, $.root(), selectorValue)
-          : $(selectorValue);
+        const element =
+          selector.type === 'text'
+            ? findByTextInsensitive($, $.root(), selectorValue)
+            : $(selectorValue);
 
         if (element.length > 0) {
           return true;
@@ -300,7 +306,13 @@ export class CheerioEngine implements IEngine {
       case 'innerHTML':
         return element.html() || null;
       case 'ownText':
-        return element.contents().filter((_, n) => n.type === 'text').text().trim() || null;
+        return (
+          element
+            .contents()
+            .filter((_, n) => n.type === 'text')
+            .text()
+            .trim() || null
+        );
       default:
         return element.text().trim() || null;
     }

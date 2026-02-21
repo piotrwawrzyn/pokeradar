@@ -73,13 +73,10 @@ export class ImageService {
     }
 
     return new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        uploadOptions,
-        (error, result) => {
-          if (error) reject(new AppError(500, 'Image upload failed'));
-          else resolve(result!.secure_url);
-        },
-      );
+      const stream = cloudinary.uploader.upload_stream(uploadOptions, (error, result) => {
+        if (error) reject(new AppError(500, 'Image upload failed'));
+        else resolve(result!.secure_url);
+      });
       stream.end(processedBuffer);
     });
   }

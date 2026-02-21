@@ -10,7 +10,7 @@ export class DiscordLinkCommand implements IDiscordCommand {
 
   constructor(
     private appUrl: string,
-    private logger: ILogger
+    private logger: ILogger,
   ) {}
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -21,7 +21,10 @@ export class DiscordLinkCommand implements IDiscordCommand {
       try {
         await interaction.reply({ content: messages.linkUsage, ephemeral: true });
       } catch (error) {
-        this.logger.error('Failed to send /link usage response', { userId: interaction.user.id, error });
+        this.logger.error('Failed to send /link usage response', {
+          userId: interaction.user.id,
+          error,
+        });
       }
       return;
     }
@@ -33,7 +36,7 @@ export class DiscordLinkCommand implements IDiscordCommand {
           $set: { 'discord.channelId': interaction.user.id },
           $unset: { 'discord.linkToken': '' },
         },
-        { new: true }
+        { new: true },
       );
 
       if (!user) {
@@ -48,10 +51,17 @@ export class DiscordLinkCommand implements IDiscordCommand {
 
       await interaction.reply({ content: messages.linkSuccess, ephemeral: true });
     } catch (error) {
-      this.logger.error('Failed to process /link command', { userId: interaction.user.id, token, error });
+      this.logger.error('Failed to process /link command', {
+        userId: interaction.user.id,
+        token,
+        error,
+      });
 
       try {
-        await interaction.reply({ content: 'Coś poszło nie tak. Spróbuj ponownie później.', ephemeral: true });
+        await interaction.reply({
+          content: 'Coś poszło nie tak. Spróbuj ponownie później.',
+          ephemeral: true,
+        });
       } catch {
         // Nothing we can do if sending the error message also fails
       }

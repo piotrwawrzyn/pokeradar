@@ -48,5 +48,5 @@ const WatchlistProductSchema = new Schema<IWatchlistProductDoc>({
 
 export const WatchlistProductModel = mongoose.model<IWatchlistProductDoc>(
   'WatchlistProduct',
-  WatchlistProductSchema
+  WatchlistProductSchema,
 );

@@ -35,7 +35,9 @@ export function toWatchlistProductArray(docs: IWatchlistProductDoc[]): Watchlist
 /**
  * Maps a WatchlistProductInternal domain model to MongoDB document fields.
  */
-export function toWatchlistProductDoc(product: WatchlistProductInternal): Partial<IWatchlistProductDoc> {
+export function toWatchlistProductDoc(
+  product: WatchlistProductInternal,
+): Partial<IWatchlistProductDoc> {
   return {
     id: product.id,
     name: product.name,
