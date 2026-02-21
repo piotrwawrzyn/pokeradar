@@ -3,6 +3,7 @@
   "name": "Wilczen Poznań",
   "baseUrl": "https://wilczek.poznan.pl",
   "searchUrl": "/product/search/1/long/price/desc/0?query=",
+  "titleFromUrl": true,
   "selectors": {
     "searchPage": {
       "article": {
