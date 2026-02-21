@@ -1,5 +1,6 @@
 {
     "id": "hejmistrzu",
+    "disabled": true,
     "name": "Hej Mistrzu",
     "baseUrl": "https://hejmistrzu.pl/",
     "searchUrl": "?s={query}&post_type=product",
