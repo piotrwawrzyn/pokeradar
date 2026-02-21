@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGenerateDiscordToken } from '@/hooks/use-discord';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { Copy, Check, Loader2 } from 'lucide-react';
+import { Copy, Check, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DiscordInstructions() {
@@ -42,23 +42,31 @@ export function DiscordInstructions() {
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
             1
           </span>
-          <span>
-            {serverUrl ? (
-              <>
-                Dołącz do{' '}
-                <a
-                  href={serverUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-primary hover:underline"
-                >
-                  serwera Discord pokeradar
-                </a>
-              </>
-            ) : (
-              <>Dołącz do serwera Discord <span className="font-bold">pokeradar</span></>
-            )}
-          </span>
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span>
+                {serverUrl ? (
+                  <>
+                    Dołącz do{' '}
+                    <a
+                      href={serverUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-primary hover:underline"
+                    >
+                      serwera Discord pokeradar
+                    </a>
+                  </>
+                ) : (
+                  <>Dołącz do serwera Discord <span className="font-bold">pokeradar</span></>
+                )}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground flex items-start gap-1">
+              <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              Bot może wysyłać wiadomości tylko do członków serwera.
+            </p>
+          </div>
         </li>
         <li className="flex gap-3">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
