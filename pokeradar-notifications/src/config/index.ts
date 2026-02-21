@@ -56,7 +56,7 @@ export function loadConfig(): AppConfig {
     rateLimiting: {
       telegramBatchSize: 25,
       telegramBatchIntervalMs: 1100,
-      discordBatchSize: 4,
+      discordBatchSize: 10,
       discordBatchIntervalMs: 1000,
     },
   };
