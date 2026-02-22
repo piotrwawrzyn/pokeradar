@@ -75,7 +75,7 @@ export class ProductMatcher {
     const phraseTokens = phrase.toLowerCase().split(/\W+/).filter(Boolean);
     const titleTokenArr = title.toLowerCase().split(/\W+/).filter(Boolean);
 
-    const TOKEN_THRESHOLD = 85;
+    const TOKEN_THRESHOLD = 90;
     const tokenScores = phraseTokens.map((pt) => {
       const bestMatch = Math.max(...titleTokenArr.map((tt) => fuzz.ratio(pt, tt)));
       return bestMatch;
