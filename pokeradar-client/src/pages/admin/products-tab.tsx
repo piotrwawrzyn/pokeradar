@@ -458,7 +458,9 @@ export function ProductsTab() {
                                                 ) : (
                                                   <>
                                                     <span className="text-muted-foreground min-w-[80px] text-right">
-                                                      Niedostępny
+                                                      {find.price
+                                                        ? `${find.price.toFixed(2)} zł`
+                                                        : 'Niedostępny'}
                                                     </span>
                                                     <a
                                                       href={find.productUrl}
