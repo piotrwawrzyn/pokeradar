@@ -3,7 +3,7 @@ import { Outlet, NavLink, Link } from 'react-router-dom';
 import { AdminGuard } from '@/components/auth/admin-guard';
 import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
-import { Store, Package, Users, Bell, ArrowLeft, Menu, X } from 'lucide-react';
+import { Store, Package, Users, Bell, ArrowLeft, Menu } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/admin/shops', label: 'Sklepy', icon: Store },

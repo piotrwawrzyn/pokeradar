@@ -61,18 +61,8 @@ export function AdminShopDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <StatCard
-          label="Wszystkie produkty"
-          value={shop.totalCount}
-          icon={Package}
-          variant="default"
-        />
-        <StatCard
-          label="Dostępne produkty"
-          value={shop.availableCount}
-          icon={CheckCircle}
-          variant="default"
-        />
+        <StatCard label="Wszystkie produkty" value={shop.totalCount} icon={Package} />
+        <StatCard label="Dostępne produkty" value={shop.availableCount} icon={CheckCircle} />
       </div>
 
       {shop.hasWarning && (

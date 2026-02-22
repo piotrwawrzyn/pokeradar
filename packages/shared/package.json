@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc && npm run copy-configs",
-    "copy-configs": "node -e \"require('fs').cpSync('src/config', 'dist/config', {recursive: true})\""
+    "copy-configs": "node scripts/copy-configs.js"
   },
   "dependencies": {
     "mongoose": "^9.1.5"
