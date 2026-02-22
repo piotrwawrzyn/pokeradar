@@ -60,7 +60,7 @@ export class DiscordBotPlatform implements IBotPlatform {
   async start(): Promise<void> {
     await this.registerSlashCommands();
 
-    this.client.once('ready', (readyClient) => {
+    this.client.once('clientReady', (readyClient) => {
       this.logger.info('Discord bot ready', { tag: readyClient.user.tag });
     });
 
