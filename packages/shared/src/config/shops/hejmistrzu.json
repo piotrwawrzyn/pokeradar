@@ -1,7 +1,6 @@
 {
   "id": "hejmistrzu",
   "name": "Hej Mistrzu",
-  "disabled": true,
   "baseUrl": "https://hejmistrzu.pl/",
   "searchUrl": "?s={query}&post_type=product",
   "selectors": {
@@ -36,10 +35,19 @@
         "value": "span.woocommerce-Price-amount bdi",
         "format": "european"
       },
-      "available": {
-        "type": "css",
-        "value": "div.summary button.single_add_to_cart_button"
-      }
+      "available": [
+        {
+          "type": "css",
+          "value": "div.summary form.cart:not(.variations_form) button.single_add_to_cart_button"
+        },
+        {
+          "type": "json-attribute",
+          "value": "form[data-product_variations]",
+          "attribute": "data-product_variations",
+          "jsonFilter": "is_in_stock",
+          "condition": "some"
+        }
+      ]
     }
   }
 }

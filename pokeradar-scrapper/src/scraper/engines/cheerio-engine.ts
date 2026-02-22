@@ -266,6 +266,10 @@ export class CheerioEngine implements IEngine {
       throw new Error('No page loaded. Call goto() first.');
     }
 
+    if (selector.type === 'json-attribute') {
+      return this.existsJsonAttribute(selector);
+    }
+
     const $ = this.$;
     const selectors = Array.isArray(selector.value) ? selector.value : [selector.value];
 
@@ -290,6 +294,48 @@ export class CheerioEngine implements IEngine {
     }
 
     return false;
+  }
+
+  /**
+   * Evaluates a json-attribute selector against the loaded page.
+   * Finds the element, reads the JSON attribute, and checks whether the
+   * aggregated condition holds across all items in the parsed array.
+   */
+  private existsJsonAttribute(selector: Selector): boolean {
+    const $ = this.$!;
+
+    if (!selector.attribute || !selector.jsonFilter) {
+      this.logger?.debug('CheerioEngine.existsJsonAttribute: missing attribute or jsonFilter');
+      return false;
+    }
+
+    const cssValue = Array.isArray(selector.value) ? selector.value[0] : selector.value;
+    const raw = $(cssValue).first().attr(selector.attribute);
+    if (!raw) return false;
+
+    try {
+      const data: unknown = JSON.parse(raw);
+      const items = Array.isArray(data) ? data : [data];
+      const path = selector.jsonFilter.split('.');
+
+      const resolveValue = (item: unknown) =>
+        path.reduce((obj: unknown, key) => (obj as Record<string, unknown>)?.[key], item);
+
+      const itemMatches = (item: unknown) => {
+        const value = resolveValue(item);
+        return selector.jsonExpect !== undefined ? value === selector.jsonExpect : Boolean(value);
+      };
+
+      const condition = selector.condition ?? 'some';
+      if (condition === 'every') return items.every(itemMatches);
+      if (condition === 'none') return items.every((item) => !itemMatches(item));
+      return items.some(itemMatches);
+    } catch (error) {
+      this.logger?.debug('CheerioEngine.existsJsonAttribute: JSON parse failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
   }
 
   async close(): Promise<void> {
