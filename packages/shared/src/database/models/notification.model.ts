@@ -23,7 +23,7 @@ export interface IDelivery {
 
 export interface INotificationDoc extends Document {
   userId: string;
-  status: 'pending' | 'sending' | 'sent' | 'failed';
+  status: 'pending' | 'sending' | 'sent' | 'failed' | 'expired';
   payload: INotificationPayload;
   deliveries: IDelivery[];
   createdAt: Date;
@@ -65,7 +65,7 @@ const NotificationSchema = new Schema<INotificationDoc>(
     status: {
       type: String,
       required: true,
-      enum: ['pending', 'sending', 'sent', 'failed'],
+      enum: ['pending', 'sending', 'sent', 'failed', 'expired'],
       default: 'pending',
     },
     payload: { type: NotificationPayloadSchema, required: true },

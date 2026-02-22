@@ -150,6 +150,7 @@ export function AdminNotificationsPage() {
                           {notif.status === 'pending' && <StatusBadge status="pending" />}
                           {notif.status === 'sending' && <StatusBadge status="pending" />}
                           {notif.status === 'failed' && <StatusBadge status="failed" />}
+                          {notif.status === 'expired' && <StatusBadge status="expired" />}
                         </TableCell>
                         <TableCell className="text-right">
                           {notif.payload.price.toFixed(2)} zł

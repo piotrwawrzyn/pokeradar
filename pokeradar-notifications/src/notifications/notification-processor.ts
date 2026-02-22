@@ -95,12 +95,42 @@ export class NotificationProcessor {
       .sort({ createdAt: 1 })
       .lean();
 
-    if (pendingDocs.length > 0) {
-      this.logger.info('Recovering pending notifications', { count: pendingDocs.length });
-      this.enqueueBatch(pendingDocs as INotificationDoc[]);
+    const { fresh } = await this.expireStale(pendingDocs as INotificationDoc[]);
+
+    if (fresh.length > 0) {
+      this.logger.info('Recovering pending notifications', { count: fresh.length });
+      this.enqueueBatch(fresh);
     }
 
-    return pendingDocs.length;
+    return fresh.length;
+  }
+
+  private async expireStale(docs: INotificationDoc[]): Promise<{ fresh: INotificationDoc[] }> {
+    const EXPIRY_MS = 15 * 60 * 1000;
+    const now = Date.now();
+    const fresh: INotificationDoc[] = [];
+    const stale: INotificationDoc[] = [];
+
+    for (const doc of docs) {
+      const age = now - new Date(doc.createdAt).getTime();
+      if (age > EXPIRY_MS) {
+        stale.push(doc);
+      } else {
+        fresh.push(doc);
+      }
+    }
+
+    if (stale.length > 0) {
+      await NotificationModel.updateMany(
+        { _id: { $in: stale.map((d) => d._id) } },
+        { $set: { status: 'expired' } },
+      );
+      this.logger.info('Expired stale pending notifications (>15 min old)', {
+        count: stale.length,
+      });
+    }
+
+    return { fresh };
   }
 
   private async processQueue(): Promise<void> {

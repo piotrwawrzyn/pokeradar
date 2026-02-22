@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 
-type Status = 'sent' | 'pending' | 'failed' | 'warning' | 'ok' | 'active' | 'inactive';
+type Status = 'sent' | 'pending' | 'failed' | 'warning' | 'ok' | 'active' | 'inactive' | 'expired';
 
 interface StatusBadgeProps {
   status: Status;
@@ -24,6 +24,10 @@ export function StatusBadge({ status, label }: StatusBadgeProps) {
     inactive: {
       className: 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20',
       text: 'Nieaktywne',
+    },
+    expired: {
+      className: 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20',
+      text: 'Wygasłe',
     },
   };
 
