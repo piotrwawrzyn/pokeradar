@@ -8,6 +8,7 @@ export interface AdminShopSummary {
   baseUrl: string;
   disabled: boolean;
   findsLastHour: number;
+  availableLastHour: number;
   findsLastWeek: number;
   hasWarning: boolean;
 }

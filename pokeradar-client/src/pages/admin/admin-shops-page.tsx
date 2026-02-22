@@ -9,8 +9,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/admin/status-badge';
+import { StatCard } from '@/components/admin/stat-card';
 import { useAdminShops } from '@/hooks/use-admin';
-import { AlertTriangle, Loader2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Loader2, Package, Store } from 'lucide-react';
 
 export function AdminShopsPage() {
   const { data: shops, isLoading } = useAdminShops();
@@ -23,6 +24,10 @@ export function AdminShopsPage() {
       </div>
     );
   }
+
+  const activeShops = (shops || []).filter((s) => !s.disabled && s.findsLastHour > 0).length;
+  const totalLastHour = (shops || []).reduce((sum, s) => sum + s.findsLastHour, 0);
+  const availableLastHour = (shops || []).reduce((sum, s) => sum + s.availableLastHour, 0);
 
   // Sort shops: warning first, then OK, then inactive
   const sortedShops = [...(shops || [])].sort((a, b) => {
@@ -38,6 +43,16 @@ export function AdminShopsPage() {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Sklepy</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <StatCard label="Aktywne sklepy (1h)" value={activeShops} icon={Store} variant="success" />
+        <StatCard label="Produkty znalezione (1h)" value={totalLastHour} icon={Package} />
+        <StatCard
+          label="Produkty znalezione dostępne (1h)"
+          value={availableLastHour}
+          icon={CheckCircle}
+          variant="success"
+        />
+      </div>
       <Card>
         <Table>
           <TableHeader>

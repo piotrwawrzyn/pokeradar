@@ -11,6 +11,7 @@ export interface AdminShopSummary {
   baseUrl: string;
   disabled: boolean;
   findsLastHour: number;
+  availableLastHour: number;
   findsLastWeek: number;
   hasWarning: boolean;
 }
@@ -69,22 +70,29 @@ export class AdminShopsService {
         $group: {
           _id: '$_id.shopId',
           count: { $sum: 1 },
+          availableCount: { $sum: { $cond: [{ $eq: ['$isAvailable', true] }, 1, 0] } },
         },
       },
     ]);
 
-    const hourlyMap = new Map<string, number>(
-      hourlyCounts.map((r: { _id: string; count: number }) => [r._id, r.count]),
+    const hourlyMap = new Map<string, { count: number; availableCount: number }>(
+      hourlyCounts.map((r: { _id: string; count: number; availableCount: number }) => [
+        r._id,
+        { count: r.count, availableCount: r.availableCount },
+      ]),
     );
 
     return shops.map((shop: ShopInfo) => {
-      const findsLastHour = hourlyMap.get(shop.id) ?? 0;
+      const entry = hourlyMap.get(shop.id);
+      const findsLastHour = entry?.count ?? 0;
+      const availableLastHour = entry?.availableCount ?? 0;
       return {
         shopId: shop.id,
         shopName: shop.name,
         baseUrl: shop.baseUrl,
         disabled: shop.disabled ?? false,
         findsLastHour,
+        availableLastHour,
         findsLastWeek: 0, // Deprecated but kept for backwards compatibility
         hasWarning: !shop.disabled && findsLastHour === 0,
       };

@@ -19,7 +19,7 @@ export function StatCard({ label, value, icon: Icon, variant = 'default' }: Stat
     <Card className="p-4">
       <div className="flex items-center gap-3">
         <div className={`p-2 rounded-lg bg-accent ${variantClasses[variant]}`}>
-          <Icon className="h-5 w-5" />
+          <Icon className="h-5 w-5 text-white" />
         </div>
         <div>
           <p className="text-sm text-muted-foreground">{label}</p>
