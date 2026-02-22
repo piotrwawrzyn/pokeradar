@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,11 +36,15 @@ import {
 import { useCrudDialog } from '@/hooks/use-crud-dialog';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import { toast } from 'sonner';
-import { Plus, ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
 import type { AdminProduct } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 
-export function ProductsTab() {
+export interface ProductsTabHandle {
+  openCreate: () => void;
+}
+
+export const ProductsTab = forwardRef<ProductsTabHandle, object>(function ProductsTab(_, ref) {
   const { data: products, isLoading } = useAdminProducts();
   const { data: sets } = useAdminProductSets();
   const { data: types } = useAdminProductTypes();
@@ -104,6 +108,10 @@ export function ProductsTab() {
       searchOverride: false,
     });
   };
+
+  useImperativeHandle(ref, () => ({
+    openCreate: () => dialog.openCreate(resetForm),
+  }));
 
   const populateForm = (product: AdminProduct) => {
     image.reset();
@@ -265,13 +273,6 @@ export function ProductsTab() {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <Button className="w-full sm:w-auto" onClick={() => dialog.openCreate(resetForm)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Dodaj produkt
-        </Button>
-      </div>
-
       <Card>
         <Table>
           <TableHeader>
@@ -643,4 +644,4 @@ export function ProductsTab() {
       />
     </>
   );
-}
+});
