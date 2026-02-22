@@ -10,7 +10,6 @@ import { INotificationChannel } from '../../notifications/channels/channel.inter
 import { TelegramNotificationAdapter } from './telegram-notification-adapter';
 import { ILogger } from '../../shared/logger';
 import { ITelegramCommand } from './commands/command.interface';
-import { StartCommand } from './commands/start.command';
 import { LinkCommand } from './commands/link.command';
 import { HelpCommand } from './commands/help.command';
 
@@ -28,10 +27,9 @@ export class TelegramBotPlatform implements IBotPlatform {
     this.bot = new TelegramBot(token, { polling: false });
     this.channelAdapter = new TelegramNotificationAdapter(this.bot);
 
-    const startCommand = new StartCommand(this.bot, appUrl, this.logger);
     const linkCommand = new LinkCommand(this.bot, appUrl, this.logger);
 
-    const baseCommands: ITelegramCommand[] = [startCommand, linkCommand];
+    const baseCommands: ITelegramCommand[] = [linkCommand];
 
     const helpCommand = new HelpCommand(
       this.bot,

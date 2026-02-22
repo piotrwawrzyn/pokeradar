@@ -43,80 +43,79 @@ export function formatDiscordNotification(payload: INotificationPayload): string
 
 // ─── Bot command messages ─────────────────────────────────────────────────────
 
+export function botError(text: string): string {
+  return `❌ ${text}`;
+}
+
+function appLink(appUrl: string, label = 'pokeradar'): string {
+  return `[${label}](${appUrl})`;
+}
+
 export interface BotMessages {
   start: string;
   linkSuccess: string;
+  linkAlreadyLinked: string;
   linkInvalidToken: string;
   linkUsage: string;
   help: (commandList: string) => string;
 }
 
-export function getTelegramMessages(appUrl: string): BotMessages {
+interface BotPlatformConfig {
+  bold: (s: string) => string;
+  platformName: string;
+}
+
+function buildBotMessages(appUrl: string, config: BotPlatformConfig): BotMessages {
+  const { bold } = config;
+  const link = appLink(appUrl);
   return {
     start: [
-      '*Witaj w pokeradar!*',
+      `🎯 ${bold('Witaj w pokeradar!')}`,
       '',
       'Monitoruję ceny produktów Pokemon TCG i wysyłam powiadomienia, gdy cena spadnie poniżej ustawionego progu.',
       '',
       'Aby zacząć, połącz swoje konto za pomocą tokenu ze strony:',
-      `1. Wejdź na [pokeradar](${appUrl}) i otwórz Ustawienia`,
+      `1. Wejdź na ${link} i otwórz Ustawienia`,
       '2. Wygeneruj token połączenia',
-      '3. Wyślij go tutaj: `/link <token>`',
+      `3. Użyj komendy ${bold('/link')} i podaj token`,
       '',
-      'Użyj /help, aby zobaczyć dostępne komendy.',
+      `Użyj ${bold('/help')}, aby zobaczyć dostępne komendy.`,
     ].join('\n'),
 
-    linkSuccess: `Konto połączone! Od teraz będziesz otrzymywać powiadomienia o cenach.\n\nWróć na [pokeradar](${appUrl}), aby dostosować swoją listę obserwowanych.`,
+    linkSuccess: `✅ Konto połączone! Od teraz będziesz otrzymywać powiadomienia o cenach.\n\nWróć na ${link}, aby dostosować swoją listę obserwowanych.`,
 
-    linkInvalidToken: `Nieprawidłowy lub wygasły token. Wygeneruj nowy na [pokeradar](${appUrl}).`,
+    linkAlreadyLinked: botError(
+      `Twoje konto ${config.platformName} jest już połączone z pokeradar.`,
+    ),
 
-    linkUsage: `Podaj token. Użycie: \`/link <token>\`\n\nWygeneruj go na [pokeradar](${appUrl}).`,
+    linkInvalidToken: botError(`Nieprawidłowy lub wygasły token. Wygeneruj nowy na ${link}.`),
+
+    linkUsage: `Podaj token. Użycie: ${bold('/link')} <token>\n\nWygeneruj go na ${link}.`,
 
     help: (commandList: string) =>
       [
-        '*pokeradar Bot*',
+        bold('pokeradar Bot'),
         '',
         'Monitoruję ceny produktów Pokemon TCG i powiadamiam, gdy spadną poniżej ustawionego progu.',
         '',
-        '*Dostępne komendy:*',
+        bold('Dostępne komendy:'),
         commandList,
         '',
-        `Zarządzaj swoją listą obserwowanych na [pokeradar](${appUrl}).`,
+        `Zarządzaj swoją listą obserwowanych na ${link}.`,
       ].join('\n'),
   };
 }
 
+export function getTelegramMessages(appUrl: string): BotMessages {
+  return buildBotMessages(appUrl, {
+    bold: (s) => `*${s}*`,
+    platformName: 'Telegram',
+  });
+}
+
 export function getDiscordMessages(appUrl: string): BotMessages {
-  return {
-    start: [
-      '🎯 **Witaj w pokeradar!**',
-      '',
-      'Monitoruję ceny produktów Pokemon TCG i wysyłam powiadomienia, gdy cena spadnie poniżej ustawionego progu.',
-      '',
-      'Aby zacząć, połącz swoje konto za pomocą tokenu ze strony:',
-      `1. Wejdź na [pokeradar](${appUrl}) i otwórz Ustawienia`,
-      '2. Wygeneruj token połączenia',
-      '3. Użyj komendy **/link** i podaj token',
-      '',
-      'Użyj **/help**, aby zobaczyć dostępne komendy.',
-    ].join('\n'),
-
-    linkSuccess: `✅ Konto połączone! Od teraz będziesz otrzymywać powiadomienia o cenach.\n\nWróć na [pokeradar](${appUrl}), aby dostosować swoją listę obserwowanych.`,
-
-    linkInvalidToken: `❌ Nieprawidłowy lub wygasły token. Wygeneruj nowy na [pokeradar](${appUrl}).`,
-
-    linkUsage: `Podaj token jako argument komendy **/link**.\n\nWygeneruj go na [pokeradar](${appUrl}).`,
-
-    help: (commandList: string) =>
-      [
-        '**pokeradar Bot**',
-        '',
-        'Monitoruję ceny produktów Pokemon TCG i powiadamiam, gdy spadną poniżej ustawionego progu.',
-        '',
-        '**Dostępne komendy:**',
-        commandList,
-        '',
-        `Zarządzaj swoją listą obserwowanych na [pokeradar](${appUrl}).`,
-      ].join('\n'),
-  };
+  return buildBotMessages(appUrl, {
+    bold: (s) => `**${s}**`,
+    platformName: 'Discord',
+  });
 }

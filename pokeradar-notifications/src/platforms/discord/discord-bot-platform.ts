@@ -18,7 +18,6 @@ import { INotificationChannel } from '../../notifications/channels/channel.inter
 import { DiscordNotificationAdapter } from './discord-notification-adapter';
 import { ILogger } from '../../shared/logger';
 import { IDiscordCommand } from './commands/command.interface';
-import { DiscordStartCommand } from './commands/start.command';
 import { DiscordLinkCommand } from './commands/link.command';
 import { DiscordHelpCommand } from './commands/help.command';
 
@@ -41,9 +40,8 @@ export class DiscordBotPlatform implements IBotPlatform {
     });
     this.channelAdapter = new DiscordNotificationAdapter(this.client);
 
-    const startCommand = new DiscordStartCommand(appUrl, this.logger);
     const linkCommand = new DiscordLinkCommand(appUrl, this.logger);
-    const baseCommands: IDiscordCommand[] = [startCommand, linkCommand];
+    const baseCommands: IDiscordCommand[] = [linkCommand];
     const helpCommand = new DiscordHelpCommand(
       appUrl,
       [

@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction } from 'discord.js';
 import { UserModel } from '@pokeradar/shared';
 import { IDiscordCommand } from './command.interface';
 import { ILogger } from '../../../shared/logger';
-import { getDiscordMessages } from '../../../messages/notification.messages';
+import { getDiscordMessages, botError } from '../../../messages/notification.messages';
 
 export class DiscordLinkCommand implements IDiscordCommand {
   readonly command = 'link';
@@ -30,6 +30,12 @@ export class DiscordLinkCommand implements IDiscordCommand {
     }
 
     try {
+      const alreadyLinked = await UserModel.exists({ 'discord.channelId': interaction.user.id });
+      if (alreadyLinked) {
+        await interaction.reply({ content: messages.linkAlreadyLinked, ephemeral: true });
+        return;
+      }
+
       const user = await UserModel.findOneAndUpdate(
         { 'discord.linkToken': token },
         {
@@ -59,7 +65,7 @@ export class DiscordLinkCommand implements IDiscordCommand {
 
       try {
         await interaction.reply({
-          content: 'Coś poszło nie tak. Spróbuj ponownie później.',
+          content: botError('Coś poszło nie tak. Spróbuj ponownie później.'),
           ephemeral: true,
         });
       } catch {

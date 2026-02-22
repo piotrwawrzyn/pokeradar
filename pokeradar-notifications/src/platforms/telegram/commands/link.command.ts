@@ -2,7 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { UserModel } from '@pokeradar/shared';
 import { ITelegramCommand } from './command.interface';
 import { ILogger } from '../../../shared/logger';
-import { getTelegramMessages } from '../../../messages/notification.messages';
+import { getTelegramMessages, botError } from '../../../messages/notification.messages';
 
 export class LinkCommand implements ITelegramCommand {
   readonly command = 'link';
@@ -32,6 +32,15 @@ export class LinkCommand implements ITelegramCommand {
     }
 
     try {
+      const alreadyLinked = await UserModel.exists({ 'telegram.channelId': chatId.toString() });
+      if (alreadyLinked) {
+        await this.bot.sendMessage(chatId, messages.linkAlreadyLinked, {
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true,
+        });
+        return;
+      }
+
       const user = await UserModel.findOneAndUpdate(
         { 'telegram.linkToken': token },
         {
@@ -62,7 +71,10 @@ export class LinkCommand implements ITelegramCommand {
       this.logger.error('Failed to process /link command', { chatId, token, error });
 
       try {
-        await this.bot.sendMessage(chatId, 'Coś poszło nie tak. Spróbuj ponownie później.');
+        await this.bot.sendMessage(
+          chatId,
+          botError('Coś poszło nie tak. Spróbuj ponownie później.'),
+        );
       } catch {
         // Nothing we can do if sending the error message also fails
       }
