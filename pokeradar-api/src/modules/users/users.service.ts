@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { Types } from 'mongoose';
 import { clerkClient } from '@clerk/express';
 import { UserModel } from '../../infrastructure/database/models';
 import { UserProfileResponse, LinkTokenResponse } from '../../shared/types';
@@ -72,5 +73,33 @@ export class UsersService {
     );
 
     if (result.matchedCount === 0) throw new NotFoundError('User not found');
+  }
+
+  watchForLinkConfirmation(userId: string, onLinked: () => void): () => void {
+    // Only filter by operationType and userId in the pipeline.
+    // We cannot filter on "discord.channelId" / "telegram.channelId" inside
+    // updatedFields via the pipeline because MongoDB stores those as literal
+    // dot-notation keys (e.g. the key IS "discord.channelId"), not nested
+    // objects — so dot-path traversal in $match never matches them.
+    const pipeline = [
+      {
+        $match: {
+          operationType: 'update',
+          'documentKey._id': new Types.ObjectId(userId),
+        },
+      },
+    ];
+
+    const stream = UserModel.watch(pipeline);
+
+    stream.on('change', (change: any) => {
+      const fields: Record<string, unknown> = change.updateDescription?.updatedFields ?? {};
+      if ('discord.channelId' in fields || 'telegram.channelId' in fields) {
+        onLinked();
+        stream.close();
+      }
+    });
+
+    return () => stream.close();
   }
 }

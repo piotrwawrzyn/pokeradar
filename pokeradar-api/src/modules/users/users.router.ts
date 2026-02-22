@@ -5,6 +5,9 @@ const router = Router();
 const controller = new UsersController();
 
 router.get('/me', (req, res, next) => controller.getMe(req, res, next));
+router.get('/me/link-status/stream', (req, res, next) =>
+  controller.streamLinkStatus(req, res, next),
+);
 router.post('/me/telegram/link-token', (req, res, next) =>
   controller.generateTelegramLinkToken(req, res, next),
 );

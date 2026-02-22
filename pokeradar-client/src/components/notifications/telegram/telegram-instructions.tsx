@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGenerateTelegramToken } from '@/hooks/use-telegram';
 import { useUserProfile } from '@/hooks/use-user-profile';
+import { useLinkStatusStream } from '@/hooks/use-link-status-stream';
 import { Copy, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -13,6 +14,8 @@ export function TelegramInstructions() {
 
   const token = generatedToken ?? profile?.telegram.linkToken ?? null;
   const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME;
+
+  useLinkStatusStream(token, 'Telegram połączony! Twoje konto zostało pomyślnie połączone.');
 
   const handleGenerate = () => {
     generateToken.mutate(undefined, {

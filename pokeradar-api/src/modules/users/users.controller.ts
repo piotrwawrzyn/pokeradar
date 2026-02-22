@@ -48,4 +48,18 @@ export class UsersController {
       next(error);
     }
   }
+
+  async streamLinkStatus(req: Request, res: Response, _next: NextFunction): Promise<void> {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    const cleanup = usersService.watchForLinkConfirmation(req.user!.userId, () => {
+      res.write('data: linked\n\n');
+      res.end();
+    });
+
+    req.on('close', cleanup);
+  }
 }

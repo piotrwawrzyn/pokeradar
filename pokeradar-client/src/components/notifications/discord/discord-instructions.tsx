@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useGenerateDiscordToken } from '@/hooks/use-discord';
 import { useUserProfile } from '@/hooks/use-user-profile';
+import { useLinkStatusStream } from '@/hooks/use-link-status-stream';
 import { Copy, Check, Loader2, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -14,6 +15,8 @@ export function DiscordInstructions() {
   const token = generatedToken ?? profile?.discord.linkToken ?? null;
   const serverUrl = import.meta.env.VITE_DISCORD_SERVER_URL as string | undefined;
   const botDmUrl = import.meta.env.VITE_DISCORD_BOT_DM_URL as string | undefined;
+
+  useLinkStatusStream(token, 'Discord połączony! Twoje konto zostało pomyślnie połączone.');
 
   const handleGenerate = () => {
     generateToken.mutate(undefined, {

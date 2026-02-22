@@ -174,7 +174,7 @@ export function ProductCatalog() {
           {/* Header - hidden on mobile, title already visible above fold */}
           <div className="hidden sm:block">
             <h2 className="text-xl font-bold">Watchlista</h2>
-            <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+            <div className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
               <span>
                 {isLoading ? (
                   <Skeleton className="inline-block h-3.5 w-24 align-middle" />
@@ -206,7 +206,7 @@ export function ProductCatalog() {
                   Wyczyść filtry
                 </Button>
               )}
-            </p>
+            </div>
           </div>
 
           {/* Filters */}
