@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ProductCatalog } from '@/components/products/product-catalog';
 import { ListPlus, Target, BellRing } from 'lucide-react';
+import { IconBox } from '@/components/ui/icon-box';
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   signups_disabled: 'Rejestracja nowych kont jest tymczasowo wstrzymana',
@@ -40,9 +41,7 @@ export function WatchlistPage() {
 
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             <div className="flex gap-3 items-start">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <ListPlus className="h-5 w-5 text-primary" />
-              </div>
+              <IconBox icon={ListPlus} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">Wybierz produkty</p>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -52,9 +51,7 @@ export function WatchlistPage() {
             </div>
 
             <div className="flex gap-3 items-start">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Target className="h-5 w-5 text-primary" />
-              </div>
+              <IconBox icon={Target} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">Ustaw alert cenowy</p>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -64,9 +61,7 @@ export function WatchlistPage() {
             </div>
 
             <div className="flex gap-3 items-start">
-              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <BellRing className="h-5 w-5 text-primary" />
-              </div>
+              <IconBox icon={BellRing} size="md" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground">Otrzymuj powiadomienia</p>
                 <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">

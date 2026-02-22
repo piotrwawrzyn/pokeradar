@@ -44,13 +44,12 @@ export function AdminShopsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Sklepy</h1>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <StatCard label="Aktywne sklepy (1h)" value={activeShops} icon={Store} variant="success" />
+        <StatCard label="Aktywne sklepy (1h)" value={activeShops} icon={Store} />
         <StatCard label="Produkty znalezione (1h)" value={totalLastHour} icon={Package} />
         <StatCard
           label="Produkty znalezione dostępne (1h)"
           value={availableLastHour}
           icon={CheckCircle}
-          variant="success"
         />
       </div>
       <Card>
