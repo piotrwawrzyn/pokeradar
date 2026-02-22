@@ -1,6 +1,6 @@
 {
   "id": "piwniczaki",
-  "name": "piwniczaki",
+  "name": "Piwniczaki",
   "baseUrl": "https://www.sklep-piwniczaki.pl",
   "searchUrl": "/szukaj/price_desc/1?word=",
   "selectors": {
