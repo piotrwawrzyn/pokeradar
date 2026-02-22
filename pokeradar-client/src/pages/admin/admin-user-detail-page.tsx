@@ -56,14 +56,14 @@ export function AdminUserDetailPage() {
         {/* Profile Info */}
         <Card className="p-6">
           <h2 className="text-lg font-semibold mb-4">Informacje o profilu</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Clerk ID</p>
-              <p className="font-mono text-sm">{user.clerkId}</p>
+              <p className="font-mono text-sm break-all">{user.clerkId}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Status</p>
-              <div className="flex gap-2 mt-1">
+              <div className="flex flex-wrap gap-2 mt-1">
                 {user.isAdmin && <StatusBadge status="ok" label="Admin" />}
                 {user.telegramLinked ? (
                   <StatusBadge status="ok" label="Telegram" />
@@ -90,13 +90,13 @@ export function AdminUserDetailPage() {
             {user.telegramChannelId && (
               <div>
                 <p className="text-sm text-muted-foreground">Telegram Channel ID</p>
-                <p className="font-mono text-sm">{user.telegramChannelId}</p>
+                <p className="font-mono text-sm break-all">{user.telegramChannelId}</p>
               </div>
             )}
             {user.discordChannelId && (
               <div>
                 <p className="text-sm text-muted-foreground">Discord User ID</p>
-                <p className="font-mono text-sm">{user.discordChannelId}</p>
+                <p className="font-mono text-sm break-all">{user.discordChannelId}</p>
               </div>
             )}
           </div>
@@ -109,38 +109,40 @@ export function AdminUserDetailPage() {
               Watchlista ({user.watchlistEntries.length})
             </h2>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produkt</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Maksymalna cena</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {user.watchlistEntries.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                    Brak produktów na watchliście
-                  </TableCell>
+                  <TableHead>Produkt</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Maksymalna cena</TableHead>
                 </TableRow>
-              ) : (
-                user.watchlistEntries.map((entry, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell className="font-medium">{entry.productName}</TableCell>
-                    <TableCell>
-                      {entry.isActive ? (
-                        <StatusBadge status="active" />
-                      ) : (
-                        <StatusBadge status="inactive" />
-                      )}
+              </TableHeader>
+              <TableBody>
+                {user.watchlistEntries.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
+                      Brak produktów na watchliście
                     </TableCell>
-                    <TableCell className="text-right">{entry.maxPrice.toFixed(2)} zł</TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  user.watchlistEntries.map((entry, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell className="font-medium">{entry.productName}</TableCell>
+                      <TableCell>
+                        {entry.isActive ? (
+                          <StatusBadge status="active" />
+                        ) : (
+                          <StatusBadge status="inactive" />
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">{entry.maxPrice.toFixed(2)} zł</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
 
         {/* Notifications */}
@@ -150,44 +152,46 @@ export function AdminUserDetailPage() {
               Powiadomienia ({user.notifications.length})
             </h2>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Produkt</TableHead>
-                <TableHead>Sklep</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Cena</TableHead>
-                <TableHead>Data</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {user.notifications.length === 0 ? (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                    Brak powiadomień
-                  </TableCell>
+                  <TableHead>Produkt</TableHead>
+                  <TableHead>Sklep</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Cena</TableHead>
+                  <TableHead>Data</TableHead>
                 </TableRow>
-              ) : (
-                user.notifications.map((notif) => (
-                  <TableRow key={notif.id}>
-                    <TableCell className="font-medium">{notif.payload.productName}</TableCell>
-                    <TableCell>{notif.payload.shopName}</TableCell>
-                    <TableCell>
-                      {notif.status === 'sent' && <StatusBadge status="sent" />}
-                      {notif.status === 'pending' && <StatusBadge status="pending" />}
-                      {notif.status === 'failed' && <StatusBadge status="failed" />}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {notif.payload.price.toFixed(2)} zł
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date(notif.createdAt).toLocaleString('pl-PL')}
+              </TableHeader>
+              <TableBody>
+                {user.notifications.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      Brak powiadomień
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  user.notifications.map((notif) => (
+                    <TableRow key={notif.id}>
+                      <TableCell className="font-medium">{notif.payload.productName}</TableCell>
+                      <TableCell>{notif.payload.shopName}</TableCell>
+                      <TableCell>
+                        {notif.status === 'sent' && <StatusBadge status="sent" />}
+                        {notif.status === 'pending' && <StatusBadge status="pending" />}
+                        {notif.status === 'failed' && <StatusBadge status="failed" />}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {notif.payload.price.toFixed(2)} zł
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {new Date(notif.createdAt).toLocaleString('pl-PL')}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       </div>
     </div>

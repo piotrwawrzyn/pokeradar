@@ -45,7 +45,7 @@ export function EntityTable({
   return (
     <>
       <div className="flex justify-end mb-4">
-        <Button onClick={onAdd}>
+        <Button className="w-full sm:w-auto" onClick={onAdd}>
           <Plus className="h-4 w-4 mr-2" />
           {addLabel}
         </Button>

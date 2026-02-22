@@ -266,7 +266,7 @@ export function ProductsTab() {
   return (
     <>
       <div className="flex justify-end mb-4">
-        <Button onClick={() => dialog.openCreate(resetForm)}>
+        <Button className="w-full sm:w-auto" onClick={() => dialog.openCreate(resetForm)}>
           <Plus className="h-4 w-4 mr-2" />
           Dodaj produkt
         </Button>

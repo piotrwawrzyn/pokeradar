@@ -69,171 +69,171 @@ export function AdminNotificationsPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Powiadomienia</h1>
 
-      <Card className="p-6 mb-6">
-        <form onSubmit={handleUserSearchSubmit} className="flex gap-4">
-          <Select value={status || 'all'} onValueChange={handleStatusChange}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Wszystkie</SelectItem>
-              <SelectItem value="pending">Oczekujące</SelectItem>
-              <SelectItem value="sent">Wysłane</SelectItem>
-              <SelectItem value="failed">Błąd</SelectItem>
-            </SelectContent>
-          </Select>
+      <form onSubmit={handleUserSearchSubmit} className="flex flex-col sm:flex-row gap-3 mb-6">
+        <Select value={status || 'all'} onValueChange={handleStatusChange}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Wszystkie</SelectItem>
+            <SelectItem value="pending">Oczekujące</SelectItem>
+            <SelectItem value="sent">Wysłane</SelectItem>
+            <SelectItem value="failed">Błąd</SelectItem>
+          </SelectContent>
+        </Select>
 
-          <div className="flex-1 flex gap-2">
-            <Input
-              placeholder="Szukaj po ID użytkownika..."
-              value={userSearch}
-              onChange={(e) => setUserSearch(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit">Filtruj</Button>
-            {(status || userSearch) && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setStatus('');
-                  setUserSearch('');
-                  setPage(1);
-                }}
-              >
-                Wyczyść
-              </Button>
-            )}
-          </div>
-        </form>
-      </Card>
+        <div className="flex-1 flex gap-2">
+          <Input
+            placeholder="Szukaj po ID użytkownika..."
+            value={userSearch}
+            onChange={(e) => setUserSearch(e.target.value)}
+            className="flex-1"
+          />
+          <Button type="submit">Filtruj</Button>
+          {(status || userSearch) && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setStatus('');
+                setUserSearch('');
+                setPage(1);
+              }}
+            >
+              Wyczyść
+            </Button>
+          )}
+        </div>
+      </form>
 
       <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10"></TableHead>
-              <TableHead>Email użytkownika</TableHead>
-              <TableHead>Produkt</TableHead>
-              <TableHead>Sklep</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Cena</TableHead>
-              <TableHead>Utworzono</TableHead>
-              <TableHead>Wysłano</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {!data || data.data.length === 0 ? (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
-                  Brak powiadomień
-                </TableCell>
+                <TableHead className="w-10"></TableHead>
+                <TableHead>Email użytkownika</TableHead>
+                <TableHead>Produkt</TableHead>
+                <TableHead>Sklep</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Cena</TableHead>
+                <TableHead>Utworzono</TableHead>
+                <TableHead>Wysłano</TableHead>
               </TableRow>
-            ) : (
-              data.data.map((notif) => {
-                const isExpanded = expandedRows.has(notif.id);
-                const firstSentAt = notif.deliveries.find((d) => d.sentAt)?.sentAt ?? null;
-                return (
-                  <>
-                    <TableRow key={notif.id} className="cursor-pointer hover:bg-muted/50">
-                      <TableCell onClick={() => toggleRow(notif.id)}>
-                        {isExpanded ? (
-                          <ChevronUp className="h-4 w-4" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4" />
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{notif.userEmail}</TableCell>
-                      <TableCell>{notif.payload.productName}</TableCell>
-                      <TableCell>{notif.payload.shopName}</TableCell>
-                      <TableCell>
-                        {notif.status === 'sent' && <StatusBadge status="sent" />}
-                        {notif.status === 'pending' && <StatusBadge status="pending" />}
-                        {notif.status === 'sending' && <StatusBadge status="pending" />}
-                        {notif.status === 'failed' && <StatusBadge status="failed" />}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {notif.payload.price.toFixed(2)} zł
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(notif.createdAt).toLocaleString('pl-PL')}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {firstSentAt ? new Date(firstSentAt).toLocaleString('pl-PL') : '-'}
-                      </TableCell>
-                    </TableRow>
-                    {isExpanded && (
-                      <TableRow>
-                        <TableCell colSpan={9} className="bg-muted/30">
-                          <div className="p-4 space-y-3">
-                            <div>
-                              <p className="text-sm font-semibold mb-2">Szczegóły payload:</p>
-                              <div className="grid grid-cols-2 gap-2 text-sm">
-                                <div>
-                                  <span className="text-muted-foreground">Produkt ID:</span>{' '}
-                                  <span className="font-mono">{notif.payload.productId}</span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">Sklep ID:</span>{' '}
-                                  <span className="font-mono">{notif.payload.shopId}</span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">Maksymalna cena:</span>{' '}
-                                  {notif.payload.maxPrice.toFixed(2)} zł
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">URL produktu:</span>{' '}
-                                  <a
-                                    href={notif.payload.productUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-500 hover:underline"
-                                  >
-                                    Link
-                                  </a>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">Użytkownik ID:</span>{' '}
-                                  <span className="font-mono">{notif.userId}</span>
-                                </div>
-                              </div>
-                            </div>
-                            {notif.deliveries.length > 0 && (
-                              <div>
-                                <p className="text-sm font-semibold mb-2">Dostarczenia:</p>
-                                <div className="space-y-1">
-                                  {notif.deliveries.map((d, i) => (
-                                    <div key={i} className="text-sm flex gap-4 items-start">
-                                      <span className="font-mono text-muted-foreground w-20">
-                                        {d.channel}
-                                      </span>
-                                      <span>{d.status}</span>
-                                      <span className="text-muted-foreground">
-                                        próby: {d.attempts}
-                                      </span>
-                                      {d.error && (
-                                        <span className="text-red-400 font-mono truncate">
-                                          {d.error}
-                                        </span>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
+            </TableHeader>
+            <TableBody>
+              {!data || data.data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                    Brak powiadomień
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.data.map((notif) => {
+                  const isExpanded = expandedRows.has(notif.id);
+                  const firstSentAt = notif.deliveries.find((d) => d.sentAt)?.sentAt ?? null;
+                  return (
+                    <>
+                      <TableRow key={notif.id} className="cursor-pointer hover:bg-muted/50">
+                        <TableCell onClick={() => toggleRow(notif.id)}>
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">{notif.userEmail}</TableCell>
+                        <TableCell>{notif.payload.productName}</TableCell>
+                        <TableCell>{notif.payload.shopName}</TableCell>
+                        <TableCell>
+                          {notif.status === 'sent' && <StatusBadge status="sent" />}
+                          {notif.status === 'pending' && <StatusBadge status="pending" />}
+                          {notif.status === 'sending' && <StatusBadge status="pending" />}
+                          {notif.status === 'failed' && <StatusBadge status="failed" />}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {notif.payload.price.toFixed(2)} zł
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {new Date(notif.createdAt).toLocaleString('pl-PL')}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {firstSentAt ? new Date(firstSentAt).toLocaleString('pl-PL') : '-'}
                         </TableCell>
                       </TableRow>
-                    )}
-                  </>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                      {isExpanded && (
+                        <TableRow>
+                          <TableCell colSpan={9} className="bg-muted/30">
+                            <div className="p-4 space-y-3">
+                              <div>
+                                <p className="text-sm font-semibold mb-2">Szczegóły payload:</p>
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  <div>
+                                    <span className="text-muted-foreground">Produkt ID:</span>{' '}
+                                    <span className="font-mono">{notif.payload.productId}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Sklep ID:</span>{' '}
+                                    <span className="font-mono">{notif.payload.shopId}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Maksymalna cena:</span>{' '}
+                                    {notif.payload.maxPrice.toFixed(2)} zł
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">URL produktu:</span>{' '}
+                                    <a
+                                      href={notif.payload.productUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue-500 hover:underline"
+                                    >
+                                      Link
+                                    </a>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Użytkownik ID:</span>{' '}
+                                    <span className="font-mono">{notif.userId}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              {notif.deliveries.length > 0 && (
+                                <div>
+                                  <p className="text-sm font-semibold mb-2">Dostarczenia:</p>
+                                  <div className="space-y-1">
+                                    {notif.deliveries.map((d, i) => (
+                                      <div key={i} className="text-sm flex gap-4 items-start">
+                                        <span className="font-mono text-muted-foreground w-20">
+                                          {d.channel}
+                                        </span>
+                                        <span>{d.status}</span>
+                                        <span className="text-muted-foreground">
+                                          próby: {d.attempts}
+                                        </span>
+                                        {d.error && (
+                                          <span className="text-red-400 font-mono truncate">
+                                            {d.error}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
 
         {data && data.totalPages > 1 && (
-          <div className="flex items-center justify-between p-4 border-t">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 p-4 border-t">
             <p className="text-sm text-muted-foreground">
               Strona {data.page} z {data.totalPages} (łącznie: {data.total} powiadomień)
             </p>
