@@ -91,14 +91,19 @@ export class UsersService {
     ];
 
     const stream = UserModel.watch(pipeline);
+    let fired = false;
 
     stream.on('change', (change: any) => {
+      if (fired) return;
       const fields: Record<string, unknown> = change.updateDescription?.updatedFields ?? {};
       if ('discord.channelId' in fields || 'telegram.channelId' in fields) {
+        fired = true;
         onLinked();
         stream.close();
       }
     });
+
+    stream.on('error', () => stream.close());
 
     return () => stream.close();
   }
