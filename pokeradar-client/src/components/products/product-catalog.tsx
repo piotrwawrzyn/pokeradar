@@ -39,16 +39,17 @@ function groupAndSort(products: Product[], sets: ProductSet[]): GroupedProducts[
     }
   }
 
-  // Sort products within each group: available currently first (alphabetically), then unavailable (alphabetically)
+  // Sort products within each group: available first (by price descending), then unavailable (alphabetically)
   const sortProducts = (products: Product[]) => {
     return products.sort((a, b) => {
-      // First, sort by current availability (products with price/shop first)
       const aAvailable = a.currentBestPrice !== null;
       const bAvailable = b.currentBestPrice !== null;
       if (aAvailable !== bAvailable) {
         return bAvailable ? 1 : -1;
       }
-      // Then sort alphabetically by name
+      if (aAvailable && bAvailable) {
+        return (b.currentBestPrice ?? 0) - (a.currentBestPrice ?? 0);
+      }
       return a.name.localeCompare(b.name, 'pl');
     });
   };
