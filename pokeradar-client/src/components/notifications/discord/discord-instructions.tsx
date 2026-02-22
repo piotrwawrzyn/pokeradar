@@ -64,8 +64,8 @@ export function DiscordInstructions() {
                 )}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground flex items-start gap-1">
-              <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Info className="h-3.5 w-3.5 shrink-0" />
               Bot może wysyłać wiadomości tylko do członków serwera.
             </p>
           </div>
