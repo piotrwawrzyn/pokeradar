@@ -37,40 +37,38 @@ export function DiscordInstructions() {
   return (
     <div className="space-y-4">
       <h4 className="font-medium text-sm">Jak połączyć Discord:</h4>
-      <ol className="space-y-3 text-sm">
-        <li className="flex gap-3">
+      <ol className="space-y-5 text-sm">
+        <li className="flex gap-3 items-start">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
             1
           </span>
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span>
-                {serverUrl ? (
-                  <>
-                    Dołącz do{' '}
-                    <a
-                      href={serverUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-bold text-primary hover:underline"
-                    >
-                      serwera Discord pokeradar
-                    </a>
-                  </>
-                ) : (
-                  <>
-                    Dołącz do serwera Discord <span className="font-bold">pokeradar</span>
-                  </>
-                )}
-              </span>
-            </div>
+            <span className="leading-6">
+              {serverUrl ? (
+                <>
+                  Dołącz do{' '}
+                  <a
+                    href={serverUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-primary hover:underline"
+                  >
+                    serwera Discord pokeradar
+                  </a>
+                </>
+              ) : (
+                <>
+                  Dołącz do serwera Discord <span className="font-bold">pokeradar</span>
+                </>
+              )}
+            </span>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Info className="h-3.5 w-3.5 shrink-0" />
               Bot może wysyłać wiadomości tylko do członków serwera.
             </p>
           </div>
         </li>
-        <li className="flex gap-3">
+        <li className="flex gap-3 items-center">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
             2
           </span>
@@ -95,7 +93,7 @@ export function DiscordInstructions() {
           </span>
         </li>
         {!token ? (
-          <li className="flex gap-3">
+          <li className="flex gap-3 items-start">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
               3
             </span>
@@ -110,7 +108,7 @@ export function DiscordInstructions() {
             </div>
           </li>
         ) : (
-          <li className="flex gap-3">
+          <li className="flex gap-3 items-start">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
               3
             </span>

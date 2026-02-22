@@ -21,8 +21,8 @@ export function NotificationChannelCard({
   children,
 }: NotificationChannelCardProps) {
   return (
-    <Card className={!isAvailable ? 'opacity-60' : undefined}>
-      <CardHeader className="pb-3">
+    <Card className={!isAvailable ? 'opacity-60 py-0' : 'py-0'}>
+      <CardHeader className="px-6 pt-6 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -41,7 +41,7 @@ export function NotificationChannelCard({
           {!isAvailable && <Badge variant="secondary">Wkrótce</Badge>}
         </div>
       </CardHeader>
-      {isAvailable && <CardContent className="pt-0">{children}</CardContent>}
+      {isAvailable && <CardContent className="px-6 pt-0 pb-6">{children}</CardContent>}
     </Card>
   );
 }

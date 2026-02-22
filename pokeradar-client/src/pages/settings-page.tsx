@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { NotificationChannelList } from '@/components/notifications/notification-channel-list';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { User } from 'lucide-react';
+import { User, Bell } from 'lucide-react';
 
 function SettingsContent() {
   const { user } = useAuth();
@@ -12,7 +12,7 @@ function SettingsContent() {
     <div className="max-w-2xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-bold sm:text-3xl">Ustawienia</h1>
-        <p className="text-muted-foreground mt-1">Zarządzaj swoim profilem i powiadomieniami.</p>
+        <p className="text-muted-foreground mt-1">Zarządzaj powiadomieniami.</p>
       </div>
 
       {/* Profile Section */}
@@ -21,8 +21,8 @@ function SettingsContent() {
           <User className="h-5 w-5" />
           Profil
         </h2>
-        <Card>
-          <CardContent className="p-6 space-y-3">
+        <Card className="py-0">
+          <CardContent className="p-6 space-y-2">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wide">Nazwa</p>
               <p className="font-medium">{user?.displayName}</p>
@@ -39,7 +39,10 @@ function SettingsContent() {
 
       {/* Notifications Section */}
       <section>
-        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">Powiadomienia</h2>
+        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Bell className="h-5 w-5" />
+          Powiadomienia
+        </h2>
         <NotificationChannelList />
       </section>
     </div>

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useUnlinkDiscord } from '@/hooks/use-discord';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Link2Off } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function DiscordStatus() {
@@ -20,8 +20,17 @@ export function DiscordStatus() {
   return (
     <div className="flex items-center justify-between">
       <p className="text-xs text-muted-foreground">Konto Discord jest połączone z pokeradar</p>
-      <Button variant="outline" size="sm" onClick={handleUnlink} disabled={unlinkDiscord.isPending}>
-        {unlinkDiscord.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={handleUnlink}
+        disabled={unlinkDiscord.isPending}
+      >
+        {unlinkDiscord.isPending ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Link2Off className="mr-2 h-4 w-4" />
+        )}
         Odłącz
       </Button>
     </div>

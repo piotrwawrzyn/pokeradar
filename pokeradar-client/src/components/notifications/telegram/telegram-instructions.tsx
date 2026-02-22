@@ -36,8 +36,8 @@ export function TelegramInstructions() {
   return (
     <div className="space-y-4">
       <h4 className="font-medium text-sm">Jak połączyć Telegram:</h4>
-      <ol className="space-y-3 text-sm">
-        <li className="flex gap-3">
+      <ol className="space-y-5 text-sm">
+        <li className="flex gap-3 items-center">
           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
             1
           </span>
@@ -54,7 +54,7 @@ export function TelegramInstructions() {
           </span>
         </li>
         {!token ? (
-          <li className="flex gap-3">
+          <li className="flex gap-3 items-start">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
               2
             </span>
@@ -69,7 +69,7 @@ export function TelegramInstructions() {
             </div>
           </li>
         ) : (
-          <li className="flex gap-3">
+          <li className="flex gap-3 items-start">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
               2
             </span>
