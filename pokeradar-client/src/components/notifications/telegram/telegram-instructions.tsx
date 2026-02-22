@@ -12,7 +12,7 @@ export function TelegramInstructions() {
   const [copied, setCopied] = useState(false);
 
   const token = generatedToken ?? profile?.telegram.linkToken ?? null;
-  const botUsername = import.meta.env.DEV ? 'poke_radar_dev_bot' : 'poke_radar_bot';
+  const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME;
 
   const handleGenerate = () => {
     generateToken.mutate(undefined, {
