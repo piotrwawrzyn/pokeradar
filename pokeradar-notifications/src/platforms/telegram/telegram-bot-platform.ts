@@ -12,6 +12,7 @@ import { ILogger } from '../../shared/logger';
 import { ITelegramCommand } from './commands/command.interface';
 import { LinkCommand } from './commands/link.command';
 import { HelpCommand } from './commands/help.command';
+import { StartCommand } from './commands/start.command';
 
 export class TelegramBotPlatform implements IBotPlatform {
   readonly name = 'telegram';
@@ -44,7 +45,11 @@ export class TelegramBotPlatform implements IBotPlatform {
       this.logger,
     );
 
+    const startCommand = new StartCommand(this.bot, appUrl, this.logger);
+    startCommand.execute = helpCommand.execute.bind(helpCommand);
+
     this.commands = [...baseCommands, helpCommand];
+    this.commands.push(startCommand);
   }
 
   async start(): Promise<void> {
@@ -82,7 +87,9 @@ export class TelegramBotPlatform implements IBotPlatform {
   private async setMenuCommands(): Promise<void> {
     try {
       await this.bot.setMyCommands(
-        this.commands.map((cmd) => ({ command: cmd.command, description: cmd.description })),
+        this.commands
+          .filter((cmd) => cmd.command !== 'start')
+          .map((cmd) => ({ command: cmd.command, description: cmd.description })),
       );
       this.logger.info('Telegram bot commands registered', { count: this.commands.length });
     } catch (error) {
