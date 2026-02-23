@@ -149,6 +149,16 @@ const clerkAppearance = {
   },
 };
 
+// Show scrollbar thumb only when the page is actually scrollable
+const updateScrollable = () => {
+  document.body.classList.toggle(
+    'scrollable',
+    document.documentElement.scrollHeight > document.documentElement.clientHeight,
+  );
+};
+new ResizeObserver(updateScrollable).observe(document.documentElement);
+updateScrollable();
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ClerkProvider

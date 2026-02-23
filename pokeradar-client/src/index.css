@@ -103,6 +103,26 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "cv11", "ss01";
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+  /* Reserve scrollbar gutter; show a subtle thumb only when scrollable */
+  body::-webkit-scrollbar {
+    width: 8px;
+  }
+  body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  body::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+  body.scrollable::-webkit-scrollbar-thumb {
+    background: oklch(0.4 0.01 260);
+  }
+  body.scrollable::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.5 0.01 260);
   }
   button,
   [role="button"],
