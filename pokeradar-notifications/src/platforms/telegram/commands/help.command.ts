@@ -5,7 +5,7 @@ import { getTelegramMessages } from '../../../messages/notification.messages';
 
 export class HelpCommand implements ITelegramCommand {
   readonly command = 'help';
-  readonly description = 'Wyświetl dostępne komendy i informacje o bocie';
+  readonly description = 'Wyświetl informacje o bocie';
 
   constructor(
     private bot: TelegramBot,
@@ -18,6 +18,7 @@ export class HelpCommand implements ITelegramCommand {
     const chatId = msg.chat.id;
     const botMessages = getTelegramMessages(this.appUrl);
     const commandList = this.commands
+      .filter((cmd) => cmd.command !== 'help')
       .map((cmd) => `/${cmd.command} - ${cmd.description}`)
       .join('\n');
 

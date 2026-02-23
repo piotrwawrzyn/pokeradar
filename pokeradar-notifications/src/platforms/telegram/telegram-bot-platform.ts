@@ -38,7 +38,7 @@ export class TelegramBotPlatform implements IBotPlatform {
         ...baseCommands,
         {
           command: 'help',
-          description: 'Wyświetl dostępne komendy i informacje o bocie',
+          description: 'Wyświetl informacje o bocie',
         } as ITelegramCommand,
       ],
       this.logger,

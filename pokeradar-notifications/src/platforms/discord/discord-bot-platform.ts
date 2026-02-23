@@ -48,7 +48,7 @@ export class DiscordBotPlatform implements IBotPlatform {
         ...baseCommands,
         {
           command: 'help',
-          description: 'Wyświetl dostępne komendy i informacje o bocie',
+          description: 'Wyświetl informacje o bocie',
         } as IDiscordCommand,
       ],
       this.logger,

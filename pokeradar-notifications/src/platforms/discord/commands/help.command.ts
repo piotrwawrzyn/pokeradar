@@ -5,7 +5,7 @@ import { getDiscordMessages } from '../../../messages/notification.messages';
 
 export class DiscordHelpCommand implements IDiscordCommand {
   readonly command = 'help';
-  readonly description = 'Wyświetl dostępne komendy i informacje o bocie';
+  readonly description = 'Wyświetl informacje o bocie';
 
   constructor(
     private appUrl: string,
@@ -16,6 +16,7 @@ export class DiscordHelpCommand implements IDiscordCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const messages = getDiscordMessages(this.appUrl);
     const commandList = this.commands
+      .filter((cmd) => cmd.command !== 'help')
       .map((cmd) => `**/${cmd.command}** — ${cmd.description}`)
       .join('\n');
 

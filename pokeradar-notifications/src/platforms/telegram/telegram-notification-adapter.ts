@@ -16,7 +16,8 @@ export class TelegramNotificationAdapter implements INotificationChannel {
   async send(target: string, payload: INotificationPayload): Promise<void> {
     await this.bot.sendMessage(target, formatTelegramNotification(payload), {
       parse_mode: 'Markdown',
-      disable_web_page_preview: false,
-    });
+      // Show a compact (small) link preview instead of a large one
+      link_preview_options: { prefer_small_media: true },
+    } as Parameters<TelegramBot['sendMessage']>[2]);
   }
 }

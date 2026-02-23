@@ -57,6 +57,8 @@ export interface BotMessages {
   linkAlreadyLinked: string;
   linkInvalidToken: string;
   linkUsage: string;
+  /** Short prompt shown with force_reply when /link is sent without a token (Telegram). */
+  linkPrompt: string;
   help: (commandList: string) => string;
 }
 
@@ -92,9 +94,11 @@ function buildBotMessages(appUrl: string, config: BotPlatformConfig): BotMessage
 
     linkUsage: `Podaj token. Użycie: ${bold('/link')} <token>\n\nWygeneruj go na ${link}.`,
 
+    linkPrompt: `Podaj token połączenia ze strony ${link}:`,
+
     help: (commandList: string) =>
       [
-        bold('pokeradar Bot'),
+        bold('pokeradar bot'),
         '',
         'Monitoruję ceny produktów Pokemon TCG i powiadamiam, gdy spadną poniżej ustawionego progu.',
         '',

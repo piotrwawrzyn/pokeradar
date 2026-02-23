@@ -6,7 +6,7 @@ import { getDiscordMessages, botError } from '../../../messages/notification.mes
 
 export class DiscordLinkCommand implements IDiscordCommand {
   readonly command = 'link';
-  readonly description = 'Połącz konto Discord za pomocą tokenu ze strony';
+  readonly description = 'Połącz Discord z pokeradar';
 
   constructor(
     private appUrl: string,
