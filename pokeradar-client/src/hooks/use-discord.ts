@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersApi } from '@/api/users.api';
+import type { UserProfile } from '@/types';
 
 export function useGenerateDiscordToken() {
   const queryClient = useQueryClient();
@@ -16,7 +17,9 @@ export function useUnlinkDiscord() {
   return useMutation({
     mutationFn: usersApi.unlinkDiscord,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+      queryClient.setQueryData(['user-profile'], (prev: UserProfile | undefined) =>
+        prev ? { ...prev, discord: { ...prev.discord, linked: false } } : prev,
+      );
     },
   });
 }
