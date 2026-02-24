@@ -42,7 +42,7 @@ export function extractTitleFromUrl(url: string): string | null {
     const path = new URL(url, 'https://placeholder.com').pathname;
     const slug = path.split('/').pop();
     if (!slug) return null;
-    return slug.replace(/-/g, ' ');
+    return slug.replace(/\.(html|php|htm|aspx)$/i, '').replace(/-/g, ' ');
   } catch {
     return null;
   }
