@@ -3,7 +3,7 @@
  * Designed for single-run cron execution with multi-user notification support.
  */
 
-import { ShopConfig, WatchlistProductInternal } from '../../shared/types';
+import { ShopConfig, WatchlistProductInternal, ResolvedWatchlistProduct } from '../../shared/types';
 import { MultiUserNotificationDispatcher } from '../../shared/notification';
 import { NotificationStateService } from '../../shared/notification';
 import { ResultBuffer, IProductResultRepository } from './result-buffer';
@@ -11,6 +11,7 @@ import { ScanCycleRunner, IScraperFactory, IScanLogger } from './scan-cycle-runn
 import { groupProductsBySet, SetGroup } from '../../shared/utils/product-utils';
 import { loadAndResolveProducts } from '../../shared/utils/search-resolver';
 import { ProductSetModel } from '../../infrastructure/database/models';
+import { ScraperFactory } from '../scrapers/scraper-factory';
 
 /**
  * Repository interfaces.
@@ -45,9 +46,9 @@ export interface PriceMonitorConfig {
  */
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
-  private products: WatchlistProductInternal[] = [];
+  private resolvedProducts: ResolvedWatchlistProduct[] = [];
   private setGroups: SetGroup[] = [];
-  private ungroupedProducts: WatchlistProductInternal[] = [];
+  private ungroupedProducts: ResolvedWatchlistProduct[] = [];
   private resultBuffer: ResultBuffer;
   private cycleRunner: ScanCycleRunner;
 
@@ -84,12 +85,8 @@ export class PriceMonitor {
     const allProductIds = allProducts.map((p) => p.id);
     await this.config.dispatcher.preloadForCycle(allProductIds);
 
-    // Scrape all products, regardless of subscriber count
-    this.products = allProducts;
-
     // Load notification states for subscribed products only (1 DB query)
-    const subscribedIds = this.products.map((p) => p.id);
-    await this.config.stateManager.loadFromRepository(subscribedIds);
+    await this.config.stateManager.loadFromRepository(allProductIds);
 
     // Load product sets for set-based search grouping
     const productSetDocs = await ProductSetModel.find().select('id name series').lean();
@@ -100,31 +97,31 @@ export class PriceMonitor {
 
     // Resolve search config for each product (merge with ProductType + set name)
     const { resolved: resolvedProducts, productTypeCount } = await loadAndResolveProducts(
-      this.products,
+      allProducts,
       setMap,
       this.config.logger,
     );
 
-    const unresolvedCount = this.products.length - resolvedProducts.length;
+    const unresolvedCount = allProducts.length - resolvedProducts.length;
     if (unresolvedCount > 0) {
       this.config.logger.info('Products with no resolvable search config skipped', {
         skipped: unresolvedCount,
       });
     }
 
-    this.products = resolvedProducts;
+    this.resolvedProducts = resolvedProducts;
 
     // Group products by set for optimized searching
-    const { setGroups, ungrouped } = groupProductsBySet(this.products, setMap);
+    const { setGroups, ungrouped } = groupProductsBySet(this.resolvedProducts, setMap);
     this.setGroups = setGroups;
     this.ungroupedProducts = ungrouped;
 
     this.config.logger.info('Price Monitor initialized', {
       shops: this.shops.length,
-      products: this.products.length,
+      products: this.resolvedProducts.length,
       productTypes: productTypeCount,
       setGroups: setGroups.length,
-      productsInSets: this.products.length - ungrouped.length,
+      productsInSets: this.resolvedProducts.length - ungrouped.length,
       ungrouped: ungrouped.length,
     });
   }
@@ -134,18 +131,19 @@ export class PriceMonitor {
    * Buffers all results and performs a single batch upsert at the end.
    */
   async runFullScanCycle(): Promise<void> {
-    if (this.products.length === 0) {
+    if (this.resolvedProducts.length === 0) {
       this.config.logger.info('No products to scan, skipping cycle');
       return;
     }
 
     this.config.logger.info('Starting full scan cycle', {
       shops: this.shops.length,
-      products: this.products.length,
+      products: this.resolvedProducts.length,
     });
 
-    // Reset buffer at start of cycle
+    // Reset buffer and ML circuit breaker at start of cycle
     this.resultBuffer.clear();
+    ScraperFactory.mlClient?.reset();
 
     // Run Cheerio cycle
     await this.cycleRunner.runCheerioScanCycle(this.shops, this.setGroups, this.ungroupedProducts);

@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+const searchOverrideSchema = z.object({
+  additionalRequired: z.array(z.string().trim()).optional(),
+  additionalForbidden: z.array(z.string().trim()).optional(),
+  customPhrase: z.string().trim().optional(),
+});
+
 export const createProductSchema = z.object({
   body: z.object({
     id: z
@@ -11,13 +17,7 @@ export const createProductSchema = z.object({
     imageUrl: z.string().trim().url().optional(),
     productSetId: z.string().trim().optional(),
     productTypeId: z.string().trim().optional(),
-    search: z
-      .object({
-        phrases: z.array(z.string().trim()).optional(),
-        exclude: z.array(z.string().trim()).optional(),
-        override: z.boolean().optional(),
-      })
-      .optional(),
+    searchOverride: searchOverrideSchema.optional(),
     price: z
       .object({
         max: z.number().positive(),
@@ -34,14 +34,7 @@ export const updateProductSchema = z.object({
     imageUrl: z.string().trim().url().optional(),
     productSetId: z.string().trim().nullable().optional(),
     productTypeId: z.string().trim().nullable().optional(),
-    search: z
-      .object({
-        phrases: z.array(z.string().trim()).optional(),
-        exclude: z.array(z.string().trim()).optional(),
-        override: z.boolean().optional(),
-      })
-      .nullable()
-      .optional(),
+    searchOverride: searchOverrideSchema.nullable().optional(),
     price: z
       .object({
         max: z.number().positive(),
@@ -76,6 +69,12 @@ export const updateProductSetSchema = z.object({
   }),
 });
 
+const matchingProfileSchema = z.object({
+  required: z.array(z.string().trim()).default([]),
+  forbidden: z.array(z.string().trim()).default([]),
+  synonyms: z.record(z.string()).optional(),
+});
+
 export const createProductTypeSchema = z.object({
   body: z.object({
     id: z
@@ -84,24 +83,13 @@ export const createProductTypeSchema = z.object({
       .min(1)
       .regex(/^[a-z0-9-]+$/, 'ID must be lowercase alphanumeric with hyphens'),
     name: z.string().trim().min(1),
-    search: z
-      .object({
-        phrases: z.array(z.string().trim()).optional(),
-        exclude: z.array(z.string().trim()).optional(),
-      })
-      .optional(),
+    matchingProfile: matchingProfileSchema.optional(),
   }),
 });
 
 export const updateProductTypeSchema = z.object({
   body: z.object({
     name: z.string().trim().min(1).optional(),
-    search: z
-      .object({
-        phrases: z.array(z.string().trim()).optional(),
-        exclude: z.array(z.string().trim()).optional(),
-      })
-      .nullable()
-      .optional(),
+    matchingProfile: matchingProfileSchema.nullable().optional(),
   }),
 });

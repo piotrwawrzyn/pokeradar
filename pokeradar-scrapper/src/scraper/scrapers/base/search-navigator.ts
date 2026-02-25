@@ -2,7 +2,12 @@
  * Search and navigation logic for product scraping.
  */
 
-import { ShopConfig, WatchlistProductInternal, Selector } from '../../../shared/types';
+import {
+  ShopConfig,
+  WatchlistProductInternal,
+  ResolvedWatchlistProduct,
+  Selector,
+} from '../../../shared/types';
 import { IEngine, IElement } from '../../engines/engine.interface';
 import {
   normalizeUrl,
@@ -11,6 +16,7 @@ import {
 } from '../../../shared/utils/url-normalizer';
 import { ProductMatcher, ProductCandidate } from './product-matcher';
 import { PriceParser } from '../../../shared/utils/price-parser';
+import { isLanguageFiltered } from '@pokeradar/shared';
 
 /**
  * Logger interface for search navigation.
@@ -59,8 +65,8 @@ export class SearchNavigator {
   /**
    * Searches for a product and returns its URL.
    */
-  async findProductUrl(product: WatchlistProductInternal): Promise<SearchResult | null> {
-    for (const phrase of product.search!.phrases!) {
+  async findProductUrl(product: ResolvedWatchlistProduct): Promise<SearchResult | null> {
+    for (const phrase of product.search.phrases) {
       const searchUrl = buildSearchUrl(this.config.baseUrl, this.config.searchUrl, phrase);
 
       await this.engine.goto(searchUrl);
@@ -89,7 +95,7 @@ export class SearchNavigator {
    * Checks if search resulted in a direct hit to product page.
    */
   private async checkDirectHit(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     phrase: string,
   ): Promise<SearchResult | null> {
     if (!this.config.directHitPattern) {
@@ -126,7 +132,7 @@ export class SearchNavigator {
    * Validates a direct hit by checking the product page title.
    */
   private async validateDirectHit(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     phrase: string,
   ): Promise<boolean> {
     const titleSelector = this.config.selectors.productPage.title;
@@ -176,7 +182,7 @@ export class SearchNavigator {
    * Searches for product in search results page.
    */
   private async findInSearchResults(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     phrase: string,
   ): Promise<{
     url: string;
@@ -218,6 +224,10 @@ export class SearchNavigator {
       const title = useTitleFromUrl && productUrl ? extractTitleFromUrl(productUrl) : titleResult;
 
       if (!title || !productUrl) {
+        return null;
+      }
+
+      if (isLanguageFiltered(title)) {
         return null;
       }
 
@@ -306,6 +316,10 @@ export class SearchNavigator {
         return null;
       }
 
+      if (isLanguageFiltered(title)) {
+        return null;
+      }
+
       const candidate: ProductCandidate = {
         title,
         url: normalizeUrl(productUrl, this.config.baseUrl),
@@ -329,10 +343,10 @@ export class SearchNavigator {
    * Returns the best matching result or null. No HTTP requests.
    */
   matchProductFromCandidates(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     candidates: ProductCandidate[],
   ): MatchResult | null {
-    for (const phrase of product.search!.phrases!) {
+    for (const phrase of product.search.phrases) {
       const scoredCandidates: ProductCandidate[] = [];
 
       for (const candidate of candidates) {

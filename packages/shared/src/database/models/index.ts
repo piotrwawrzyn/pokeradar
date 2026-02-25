@@ -22,7 +22,33 @@ export { ProductSetModel } from './product-set.model';
 export type { IProductSetDoc } from './product-set.model';
 
 export { ProductTypeModel } from './product-type.model';
-export type { IProductTypeDoc } from './product-type.model';
+export type { IProductTypeDoc, IMatchingProfile } from './product-type.model';
 
 export { WatchlistProductModel } from './watchlist-product.model';
-export type { IWatchlistProductDoc } from './watchlist-product.model';
+export type { IWatchlistProductDoc, ISearchOverride } from './watchlist-product.model';
+
+export { MatchRejectionEventModel } from './match-rejection-event.model';
+export type { IMatchRejectionEventDoc, RejectionReason } from './match-rejection-event.model';
+
+export { MatchConfirmationEventModel } from './match-confirmation-event.model';
+export type {
+  IMatchConfirmationEventDoc,
+  MatchBandValue,
+  ConfirmationSource,
+} from './match-confirmation-event.model';
+
+export { PendingMatchModel } from './pending-match.model';
+export type {
+  IPendingMatchDoc,
+  PendingMatchStatus,
+  PendingMatchSource,
+} from './pending-match.model';
+
+export { SuppressedTitleModel } from './suppressed-title.model';
+export type { ISuppressedTitleDoc, SuppressedReason } from './suppressed-title.model';
+
+export { ClassificationCorrectionModel } from './classification-correction.model';
+export type {
+  IClassificationCorrectionDoc,
+  CorrectionReason,
+} from './classification-correction.model';

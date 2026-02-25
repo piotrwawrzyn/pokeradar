@@ -3,13 +3,14 @@ import { Outlet, NavLink, Link } from 'react-router-dom';
 import { AdminGuard } from '@/components/auth/admin-guard';
 import { Toaster } from '@/components/ui/sonner';
 import { Button } from '@/components/ui/button';
-import { Store, Package, Users, Bell, ArrowLeft, Menu } from 'lucide-react';
+import { Store, Package, Users, Bell, ArrowLeft, Menu, GitMerge } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/admin/shops', label: 'Sklepy', icon: Store },
   { to: '/admin/products', label: 'Produkty', icon: Package },
   { to: '/admin/users', label: 'Użytkownicy', icon: Users },
   { to: '/admin/notifications', label: 'Powiadomienia', icon: Bell },
+  { to: '/admin/matching', label: 'Dopasowania', icon: GitMerge },
 ];
 
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {

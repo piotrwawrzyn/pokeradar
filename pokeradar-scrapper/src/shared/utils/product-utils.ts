@@ -2,7 +2,7 @@
  * Product utility functions.
  */
 
-import { WatchlistProduct, WatchlistProductInternal } from '../types';
+import { WatchlistProduct, WatchlistProductInternal, ResolvedWatchlistProduct } from '../types';
 
 /**
  * Converts a product name to a safe kebab-case ID.
@@ -42,7 +42,7 @@ export function toInternalProducts(products: WatchlistProduct[]): WatchlistProdu
 export interface SetGroup {
   setId: string;
   searchPhrase: string;
-  products: WatchlistProductInternal[];
+  products: ResolvedWatchlistProduct[];
 }
 
 /**
@@ -65,11 +65,11 @@ function buildSeriesIndex(
  * Partitions products into those belonging to known sets and those without sets.
  */
 function partitionProductsBySet(
-  products: WatchlistProductInternal[],
+  products: ResolvedWatchlistProduct[],
   setMap: Map<string, { name: string; series: string }>,
-): { bySet: Map<string, WatchlistProductInternal[]>; ungrouped: WatchlistProductInternal[] } {
-  const bySet = new Map<string, WatchlistProductInternal[]>();
-  const ungrouped: WatchlistProductInternal[] = [];
+): { bySet: Map<string, ResolvedWatchlistProduct[]>; ungrouped: ResolvedWatchlistProduct[] } {
+  const bySet = new Map<string, ResolvedWatchlistProduct[]>();
+  const ungrouped: ResolvedWatchlistProduct[] = [];
 
   for (const product of products) {
     if (product.productSetId && setMap.has(product.productSetId)) {
@@ -86,11 +86,12 @@ function partitionProductsBySet(
 
 /**
  * Creates a SetGroup with automatic exclusions for generic sets.
- * Generic sets (where name === series) automatically exclude all other sets in the same series.
+ * Generic sets (where name === series) automatically exclude all other sets in the same series
+ * by appending sibling set names to each product's search.exclude list.
  */
 function createSetGroupWithExclusions(
   setId: string,
-  members: WatchlistProductInternal[],
+  members: ResolvedWatchlistProduct[],
   setMap: Map<string, { name: string; series: string }>,
   seriesIndex: Map<string, string[]>,
 ): SetGroup {
@@ -105,14 +106,16 @@ function createSetGroupWithExclusions(
           .map((name) => name.toLowerCase())
       : [];
 
-  const membersWithExcludes = members.map((product) => ({
-    ...product,
-    search: {
-      ...(product.search ?? {}),
-      phrases: product.search?.phrases ?? [],
-      exclude: [...(product.search?.exclude ?? []), ...otherSetsInSeries],
-    },
-  }));
+  const membersWithExcludes: ResolvedWatchlistProduct[] =
+    otherSetsInSeries.length > 0
+      ? members.map((product) => ({
+          ...product,
+          search: {
+            phrases: product.search.phrases,
+            exclude: [...product.search.exclude, ...otherSetsInSeries],
+          },
+        }))
+      : members;
 
   return {
     setId,
@@ -172,9 +175,9 @@ function createSetGroupWithExclusions(
  * }
  */
 export function groupProductsBySet(
-  products: WatchlistProductInternal[],
+  products: ResolvedWatchlistProduct[],
   setMap: Map<string, { name: string; series: string }>,
-): { setGroups: SetGroup[]; ungrouped: WatchlistProductInternal[] } {
+): { setGroups: SetGroup[]; ungrouped: ResolvedWatchlistProduct[] } {
   const seriesIndex = buildSeriesIndex(setMap);
   const { bySet, ungrouped } = partitionProductsBySet(products, setMap);
 

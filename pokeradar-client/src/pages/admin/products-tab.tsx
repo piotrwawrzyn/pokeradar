@@ -64,9 +64,9 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
     name: '',
     productSetId: 'none',
     productTypeId: 'none',
-    searchPhrases: '',
-    searchExclude: '',
-    searchOverride: false,
+    customPhrase: '',
+    additionalRequired: '',
+    additionalForbidden: '',
   });
 
   const toggleRow = (id: string) => {
@@ -103,9 +103,9 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
       name: '',
       productSetId: 'none',
       productTypeId: 'none',
-      searchPhrases: '',
-      searchExclude: '',
-      searchOverride: false,
+      customPhrase: '',
+      additionalRequired: '',
+      additionalForbidden: '',
     });
   };
 
@@ -116,28 +116,28 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
   const populateForm = (product: AdminProduct) => {
     image.reset();
     setFormError(null);
-    const hasCustomSearch = Boolean(
-      product.search?.phrases?.length ||
-      product.search?.exclude?.length ||
-      product.search?.override,
+    const hasSearchOverride = Boolean(
+      product.searchOverride?.customPhrase ||
+      product.searchOverride?.additionalRequired?.length ||
+      product.searchOverride?.additionalForbidden?.length,
     );
-    setCustomSearch(hasCustomSearch);
+    setCustomSearch(hasSearchOverride);
     setFormData({
       name: product.name,
       productSetId: product.productSetId || 'none',
       productTypeId: product.productTypeId || 'none',
-      searchPhrases: product.search?.phrases?.join(', ') || '',
-      searchExclude: product.search?.exclude?.join(', ') || '',
-      searchOverride: product.search?.override || false,
+      customPhrase: product.searchOverride?.customPhrase || '',
+      additionalRequired: product.searchOverride?.additionalRequired?.join(', ') || '',
+      additionalForbidden: product.searchOverride?.additionalForbidden?.join(', ') || '',
     });
   };
 
   const handleSave = async () => {
     const hasType = formData.productTypeId !== 'none';
-    const hasSearchPhrases = customSearch && formData.searchPhrases.trim().length > 0;
+    const hasCustomPhrase = customSearch && formData.customPhrase.trim().length > 0;
 
-    if (!hasType && !hasSearchPhrases) {
-      setFormError('Musisz wybrać Typ lub podać własne Frazy wyszukiwania');
+    if (!hasType && !hasCustomPhrase) {
+      setFormError('Musisz wybrać Typ lub podać własną frazę wyszukiwania');
       return;
     }
 
@@ -159,17 +159,23 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
     }
 
     if (customSearch) {
-      payload.search = {
-        phrases: formData.searchPhrases
-          ? formData.searchPhrases.split(',').map((s) => s.trim())
+      payload.searchOverride = {
+        customPhrase: formData.customPhrase.trim() || undefined,
+        additionalRequired: formData.additionalRequired
+          ? formData.additionalRequired
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
           : undefined,
-        exclude: formData.searchExclude
-          ? formData.searchExclude.split(',').map((s) => s.trim())
+        additionalForbidden: formData.additionalForbidden
+          ? formData.additionalForbidden
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
           : undefined,
-        override: formData.searchOverride,
       };
     } else if (dialog.selected) {
-      payload.search = null;
+      payload.searchOverride = null;
     }
 
     try {
@@ -586,38 +592,47 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
           {customSearch && (
             <div className="space-y-6 pl-4 border-l-2 border-muted">
               <div>
-                <Label htmlFor="searchPhrases" className="mb-2 block">
-                  Frazy wyszukiwania (oddzielone przecinkami)
+                <Label htmlFor="customPhrase" className="mb-2 block">
+                  Własna fraza wyszukiwania
                 </Label>
                 <Input
-                  id="searchPhrases"
-                  value={formData.searchPhrases}
-                  onChange={(e) => setFormData({ ...formData, searchPhrases: e.target.value })}
-                  placeholder="np. Surging Sparks Booster Box"
+                  id="customPhrase"
+                  value={formData.customPhrase}
+                  onChange={(e) => setFormData({ ...formData, customPhrase: e.target.value })}
+                  placeholder="np. Reshiram & Charizard GX Premium Collection"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Pełne nadpisanie — ignoruje typ produktu i set. Używaj dla promek bez setu.
+                </p>
               </div>
 
               <div>
-                <Label htmlFor="searchExclude" className="mb-2 block">
-                  Wykluczenia (oddzielone przecinkami)
+                <Label htmlFor="additionalRequired" className="mb-2 block">
+                  Dodatkowe wymagane tokeny (oddzielone przecinkami)
                 </Label>
                 <Input
-                  id="searchExclude"
-                  value={formData.searchExclude}
-                  onChange={(e) => setFormData({ ...formData, searchExclude: e.target.value })}
-                  placeholder="np. case, etb"
+                  id="additionalRequired"
+                  value={formData.additionalRequired}
+                  onChange={(e) => setFormData({ ...formData, additionalRequired: e.target.value })}
+                  placeholder="np. reshiram, premium"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Dodaje tokeny do wymaganych z typu produktu.
+                </p>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="searchOverride"
-                  checked={formData.searchOverride}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, searchOverride: checked })
+              <div>
+                <Label htmlFor="additionalForbidden" className="mb-2 block">
+                  Dodatkowe wykluczone tokeny (oddzielone przecinkami)
+                </Label>
+                <Input
+                  id="additionalForbidden"
+                  value={formData.additionalForbidden}
+                  onChange={(e) =>
+                    setFormData({ ...formData, additionalForbidden: e.target.value })
                   }
+                  placeholder="np. case, display"
                 />
-                <Label htmlFor="searchOverride">Nadpisz frazy typu produktu</Label>
               </div>
             </div>
           )}

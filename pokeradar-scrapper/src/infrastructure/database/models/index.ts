@@ -10,6 +10,28 @@ export {
 export { ProductSetModel, type IProductSetDoc } from '@pokeradar/shared';
 export { ProductTypeModel, type IProductTypeDoc } from '@pokeradar/shared';
 export { WatchlistProductModel, type IWatchlistProductDoc } from '@pokeradar/shared';
+export {
+  MatchRejectionEventModel,
+  type IMatchRejectionEventDoc,
+  type RejectionReason,
+} from '@pokeradar/shared';
+export {
+  MatchConfirmationEventModel,
+  type IMatchConfirmationEventDoc,
+  type MatchBandValue,
+  type ConfirmationSource,
+} from '@pokeradar/shared';
+export {
+  PendingMatchModel,
+  type IPendingMatchDoc,
+  type PendingMatchStatus,
+  type PendingMatchSource,
+} from '@pokeradar/shared';
+export {
+  SuppressedTitleModel,
+  type ISuppressedTitleDoc,
+  type SuppressedReason,
+} from '@pokeradar/shared';
 
 // Local models (scrapper-only)
 export { NotificationStateModel, type INotificationStateDoc } from './notification-state.model';

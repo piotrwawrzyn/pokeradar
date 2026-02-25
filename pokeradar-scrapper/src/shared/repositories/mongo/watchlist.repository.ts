@@ -23,7 +23,7 @@ export class MongoWatchlistRepository implements IWatchlistRepository {
     await WatchlistProductModel.create({
       id: product.id,
       name: product.name,
-      search: product.search,
+      searchOverride: product.searchOverride,
       disabled: product.disabled,
     });
   }
@@ -33,7 +33,7 @@ export class MongoWatchlistRepository implements IWatchlistRepository {
       { id: product.id },
       {
         name: product.name,
-        search: product.search,
+        searchOverride: product.searchOverride,
         disabled: product.disabled,
       },
     );

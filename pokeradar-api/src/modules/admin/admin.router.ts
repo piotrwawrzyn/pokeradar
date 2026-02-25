@@ -4,6 +4,7 @@ import { AdminShopsController } from './admin-shops.controller';
 import { AdminProductsController } from './admin-products.controller';
 import { AdminUsersController } from './admin-users.controller';
 import { AdminNotificationsController } from './admin-notifications.controller';
+import { AdminMatchingController } from './admin-matching.controller';
 import {
   createProductSchema,
   updateProductSchema,
@@ -18,6 +19,7 @@ const shopsCtrl = new AdminShopsController();
 const productsCtrl = new AdminProductsController();
 const usersCtrl = new AdminUsersController();
 const notificationsCtrl = new AdminNotificationsController();
+const matchingCtrl = new AdminMatchingController();
 
 // Shop monitoring
 router.get('/shops', (req, res, next) => shopsCtrl.list(req, res, next));
@@ -71,5 +73,17 @@ router.get('/users/:clerkId', (req, res, next) => usersCtrl.getById(req, res, ne
 
 // Notifications
 router.get('/notifications', (req, res, next) => notificationsCtrl.list(req, res, next));
+
+// Matching
+router.get('/matching/review-queue', (req, res, next) =>
+  matchingCtrl.getReviewQueue(req, res, next),
+);
+router.get('/matching/rejections', (req, res, next) => matchingCtrl.getRejections(req, res, next));
+router.get('/matching/corrections', (req, res, next) =>
+  matchingCtrl.getCorrections(req, res, next),
+);
+router.post('/matching/confirm/:matchId', (req, res, next) => matchingCtrl.confirm(req, res, next));
+router.post('/matching/correct/:matchId', (req, res, next) => matchingCtrl.correct(req, res, next));
+router.post('/matching/reject/:matchId', (req, res, next) => matchingCtrl.reject(req, res, next));
 
 export default router;

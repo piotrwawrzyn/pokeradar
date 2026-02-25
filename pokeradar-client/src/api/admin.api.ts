@@ -46,6 +46,12 @@ export interface AdminProductShopFind {
   timestamp: string;
 }
 
+export interface SearchOverride {
+  additionalRequired?: string[];
+  additionalForbidden?: string[];
+  customPhrase?: string;
+}
+
 export interface AdminProduct {
   id: string;
   name: string;
@@ -53,7 +59,7 @@ export interface AdminProduct {
   productSetId?: string;
   productTypeId?: string;
   disabled?: boolean;
-  search?: { phrases?: string[]; exclude?: string[]; override?: boolean };
+  searchOverride?: SearchOverride;
   price?: { max: number; min?: number };
   shopFinds: AdminProductShopFind[];
   bestPrice: number | null;
@@ -67,10 +73,16 @@ export interface ProductSet {
   releaseDate?: string;
 }
 
+export interface MatchingProfile {
+  required: string[];
+  forbidden: string[];
+  synonyms?: Record<string, string>;
+}
+
 export interface ProductType {
   id: string;
   name: string;
-  search: { phrases?: string[]; exclude?: string[] };
+  matchingProfile: MatchingProfile;
 }
 
 export interface AdminUserSearchItem {
@@ -144,6 +156,58 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+// ===== MATCHING TYPES =====
+
+export type PendingMatchStatus = 'PENDING' | 'CONFIRMED' | 'CORRECTED' | 'REJECTED';
+export type MatchBand = 'HIGH' | 'MEDIUM' | 'LOW';
+export type PendingMatchSource = 'AUTO_MEDIUM' | 'AUTO_ML';
+
+export interface PendingMatch {
+  id: string;
+  rawTitle: string;
+  shopId: string;
+  productId: string;
+  confidence: number;
+  phrase: string;
+  status: PendingMatchStatus;
+  source: PendingMatchSource;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  createdAt: string;
+}
+
+export type RejectionReason =
+  | 'EXCLUDE_MATCH'
+  | 'MISSING_TOKEN'
+  | 'SCORE_TOO_LOW'
+  | 'LANGUAGE_FILTERED';
+
+export interface MatchRejectionEvent {
+  id: string;
+  rawTitle: string;
+  shopId: string;
+  productId: string;
+  phrase: string;
+  reason: RejectionReason;
+  details: string;
+  lastSeenAt: string;
+  occurrenceCount: number;
+  createdAt: string;
+}
+
+export type CorrectionReason = 'WRONG_TYPE' | 'WRONG_SET' | 'NON_ENGLISH' | 'FALSE_POSITIVE';
+
+export interface ClassificationCorrection {
+  id: string;
+  rawTitle: string;
+  shopId: string;
+  originalProductId: string;
+  correctedProductId: string;
+  reason: CorrectionReason;
+  correctedAt: string;
+  adminId: string;
 }
 
 // ===== API CLIENT =====
@@ -231,4 +295,28 @@ export const adminApi = {
     apiClient
       .get<PaginatedResponse<AdminNotification>>('/admin/notifications', { params })
       .then((r) => r.data),
+
+  // Matching
+  getReviewQueue: () =>
+    apiClient.get<PendingMatch[]>('/admin/matching/review-queue').then((r) => r.data),
+  getRejections: (params?: {
+    productId?: string;
+    shopId?: string;
+    reason?: string;
+    page?: number;
+    limit?: number;
+  }) =>
+    apiClient
+      .get<PaginatedResponse<MatchRejectionEvent>>('/admin/matching/rejections', { params })
+      .then((r) => r.data),
+  getCorrections: (params?: { page?: number; limit?: number }) =>
+    apiClient
+      .get<PaginatedResponse<ClassificationCorrection>>('/admin/matching/corrections', { params })
+      .then((r) => r.data),
+  confirmMatch: (matchId: string) =>
+    apiClient.post(`/admin/matching/confirm/${matchId}`).then((r) => r.data),
+  correctMatch: (matchId: string, data: { correctProductId: string; reason: CorrectionReason }) =>
+    apiClient.post(`/admin/matching/correct/${matchId}`, data).then((r) => r.data),
+  rejectMatch: (matchId: string, reason: 'NON_ENGLISH' | 'FALSE_POSITIVE') =>
+    apiClient.post(`/admin/matching/reject/${matchId}`, { reason }).then((r) => r.data),
 };

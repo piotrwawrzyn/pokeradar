@@ -8,6 +8,8 @@ import { CheerioEngine } from '../engines/cheerio-engine';
 import { PlaywrightEngine } from '../engines/playwright-engine';
 import { DefaultScraper } from './default-scraper';
 import { IScraper, IScraperLogger } from './base/base-scraper';
+import { MatchEventRepository } from '../../shared/repositories/mongo/match-event.repository';
+import { MLClassifierClient } from '../../shared/clients/ml-classifier-client';
 
 /**
  * Groups shops by their configured engine type.
@@ -21,6 +23,11 @@ export interface EngineGroups {
  * Factory for creating scrapers with appropriate engines.
  */
 export class ScraperFactory {
+  static readonly eventRepo = new MatchEventRepository();
+  static readonly mlClient: MLClassifierClient | undefined = process.env.ML_SERVICE_URL
+    ? new MLClassifierClient(process.env.ML_SERVICE_URL, Number(process.env.ML_THRESHOLD ?? '70'))
+    : undefined;
+
   /**
    * Creates a scraper for the given shop configuration.
    */
@@ -30,7 +37,13 @@ export class ScraperFactory {
         ? new PlaywrightEngine(shop, browser, logger)
         : new CheerioEngine(shop, logger);
 
-    return new DefaultScraper(shop, engine, logger);
+    return new DefaultScraper(
+      shop,
+      engine,
+      logger,
+      ScraperFactory.eventRepo,
+      ScraperFactory.mlClient,
+    );
   }
 
   /**

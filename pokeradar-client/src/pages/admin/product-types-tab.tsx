@@ -32,32 +32,38 @@ export function ProductTypesTab() {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
-    searchPhrases: '',
-    searchExclude: '',
+    required: '',
+    forbidden: '',
   });
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', searchPhrases: '', searchExclude: '' });
+    setFormData({ id: '', name: '', required: '', forbidden: '' });
   };
 
   const populateForm = (type: ProductType) => {
     setFormData({
       id: type.id,
       name: type.name,
-      searchPhrases: type.search.phrases?.join(', ') || '',
-      searchExclude: type.search.exclude?.join(', ') || '',
+      required: type.matchingProfile?.required?.join(', ') || '',
+      forbidden: type.matchingProfile?.forbidden?.join(', ') || '',
     });
   };
 
   const handleSave = async () => {
     const payload: any = {
       name: formData.name,
-      search: {
-        phrases: formData.searchPhrases
-          ? formData.searchPhrases.split(',').map((s) => s.trim())
+      matchingProfile: {
+        required: formData.required
+          ? formData.required
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
           : [],
-        exclude: formData.searchExclude
-          ? formData.searchExclude.split(',').map((s) => s.trim())
+        forbidden: formData.forbidden
+          ? formData.forbidden
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
           : [],
       },
     };
@@ -105,8 +111,8 @@ export function ProductTypesTab() {
         headers={[
           'Nazwa',
           'Produkty',
-          'Frazy wyszukiwania',
-          'Wykluczenia',
+          'Wymagane tokeny',
+          'Wykluczone tokeny',
           { label: '', className: 'w-16' },
         ]}
       >
@@ -121,10 +127,10 @@ export function ProductTypesTab() {
               {products?.filter((p) => p.productTypeId === type.id).length ?? 0}
             </TableCell>
             <TableCell className="text-muted-foreground text-sm">
-              {type.search.phrases?.join(', ') || '-'}
+              {type.matchingProfile?.required?.join(', ') || '-'}
             </TableCell>
             <TableCell className="text-muted-foreground text-sm">
-              {type.search.exclude?.join(', ') || '-'}
+              {type.matchingProfile?.forbidden?.join(', ') || '-'}
             </TableCell>
             <TableCell>
               <Button
@@ -162,26 +168,30 @@ export function ProductTypesTab() {
         </div>
 
         <div>
-          <Label htmlFor="type-searchPhrases" className="mb-2 block">
-            Frazy wyszukiwania (oddzielone przecinkami)
+          <Label htmlFor="type-required" className="mb-2 block">
+            Wymagane tokeny (oddzielone przecinkami)
           </Label>
           <Textarea
-            id="type-searchPhrases"
-            value={formData.searchPhrases}
-            onChange={(e) => setFormData({ ...formData, searchPhrases: e.target.value })}
-            placeholder="np. V, VMAX, VSTAR"
+            id="type-required"
+            value={formData.required}
+            onChange={(e) => setFormData({ ...formData, required: e.target.value })}
+            placeholder="np. booster, box"
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Tokeny łączone z nazwą setu tworzą frazę wyszukiwania (np. &quot;Surging Sparks booster
+            box&quot;)
+          </p>
         </div>
 
         <div>
-          <Label htmlFor="type-searchExclude" className="mb-2 block">
-            Wykluczenia (oddzielone przecinkami)
+          <Label htmlFor="type-forbidden" className="mb-2 block">
+            Wykluczone tokeny (oddzielone przecinkami)
           </Label>
           <Textarea
-            id="type-searchExclude"
-            value={formData.searchExclude}
-            onChange={(e) => setFormData({ ...formData, searchExclude: e.target.value })}
-            placeholder="np. proxy, damaged"
+            id="type-forbidden"
+            value={formData.forbidden}
+            onChange={(e) => setFormData({ ...formData, forbidden: e.target.value })}
+            placeholder="np. kiosk, half, case"
           />
         </div>
       </CrudDialog>

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@clerk/clerk-react';
-import { adminApi } from '@/api/admin.api';
+import { adminApi, CorrectionReason } from '@/api/admin.api';
 
 // Admin identity check — reads from Clerk publicMetadata (no API call)
 export function useIsAdmin() {
@@ -211,5 +211,72 @@ export function useAdminNotifications(params?: {
   return useQuery({
     queryKey: ['admin', 'notifications', params],
     queryFn: () => adminApi.getNotifications(params),
+  });
+}
+
+// Matching
+export function useAdminReviewQueue() {
+  return useQuery({
+    queryKey: ['admin', 'matching', 'review-queue'],
+    queryFn: adminApi.getReviewQueue,
+    refetchInterval: 30_000,
+  });
+}
+
+export function useAdminRejections(params?: {
+  productId?: string;
+  shopId?: string;
+  reason?: string;
+  page?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: ['admin', 'matching', 'rejections', params],
+    queryFn: () => adminApi.getRejections(params),
+  });
+}
+
+export function useAdminCorrections(params?: { page?: number; limit?: number }) {
+  return useQuery({
+    queryKey: ['admin', 'matching', 'corrections', params],
+    queryFn: () => adminApi.getCorrections(params),
+  });
+}
+
+export function useConfirmMatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (matchId: string) => adminApi.confirmMatch(matchId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'matching'] }),
+  });
+}
+
+export function useCorrectMatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      matchId,
+      correctProductId,
+      reason,
+    }: {
+      matchId: string;
+      correctProductId: string;
+      reason: CorrectionReason;
+    }) => adminApi.correctMatch(matchId, { correctProductId, reason }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'matching'] }),
+  });
+}
+
+export function useRejectMatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      matchId,
+      reason,
+    }: {
+      matchId: string;
+      reason: 'NON_ENGLISH' | 'FALSE_POSITIVE';
+    }) => adminApi.rejectMatch(matchId, reason),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'matching'] }),
   });
 }

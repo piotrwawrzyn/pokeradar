@@ -4,17 +4,19 @@
 
 import mongoose, { Schema, Document } from 'mongoose';
 
+export interface ISearchOverride {
+  additionalRequired?: string[];
+  additionalForbidden?: string[];
+  customPhrase?: string;
+}
+
 export interface IWatchlistProductDoc extends Document {
   id: string;
   name: string;
   imageUrl: string;
   productSetId?: string;
   productTypeId?: string;
-  search?: {
-    phrases?: string[];
-    exclude?: string[];
-    override?: boolean;
-  };
+  searchOverride?: ISearchOverride;
   price?: {
     max: number;
     min?: number;
@@ -28,11 +30,11 @@ const WatchlistProductSchema = new Schema<IWatchlistProductDoc>({
   imageUrl: { type: String, required: true },
   productSetId: { type: String },
   productTypeId: { type: String },
-  search: {
+  searchOverride: {
     type: {
-      phrases: { type: [String] },
-      exclude: { type: [String] },
-      override: { type: Boolean },
+      additionalRequired: { type: [String] },
+      additionalForbidden: { type: [String] },
+      customPhrase: { type: String },
     },
     required: false,
   },

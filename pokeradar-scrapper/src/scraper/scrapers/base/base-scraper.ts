@@ -4,11 +4,13 @@
  * Engine-agnostic - works with both Cheerio and Playwright engines.
  */
 
-import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../../shared/types';
+import { ShopConfig, ResolvedWatchlistProduct, ProductResult } from '../../../shared/types';
 import { IEngine } from '../../engines/engine.interface';
 import { PriceParser } from '../../../shared/utils/price-parser';
 import { ProductMatcher } from './product-matcher';
 import { SearchNavigator, SearchResult } from './search-navigator';
+import { MatchEventRepository } from '../../../shared/repositories/mongo/match-event.repository';
+import { MLClassifierClient } from '../../../shared/clients/ml-classifier-client';
 
 /**
  * Logger interface for scraper operations.
@@ -24,13 +26,13 @@ export interface IScraperLogger {
  * Scraper interface for dependency injection.
  */
 export interface IScraper {
-  scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult | null>;
+  scrapeProduct(product: ResolvedWatchlistProduct): Promise<ProductResult | null>;
   scrapeProductWithUrl(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     productUrl: string,
   ): Promise<ProductResult | null>;
   createResultFromSearchData(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     productUrl: string,
     searchPageData: { price: number | null; isAvailable: boolean },
   ): ProductResult;
@@ -50,16 +52,18 @@ export abstract class BaseScraper implements IScraper {
     protected config: ShopConfig,
     protected engine: IEngine,
     protected logger?: IScraperLogger,
+    protected eventRepo?: MatchEventRepository,
+    protected mlClient?: MLClassifierClient,
   ) {
     this.priceParser = new PriceParser();
-    this.matcher = new ProductMatcher(logger);
+    this.matcher = new ProductMatcher(logger, eventRepo, mlClient);
     this.navigator = new SearchNavigator(config, engine, this.matcher, logger);
   }
 
   /**
    * Main template method that orchestrates the scraping process.
    */
-  async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult | null> {
+  async scrapeProduct(product: ResolvedWatchlistProduct): Promise<ProductResult | null> {
     try {
       // Step 1: Search for product and get its URL
       const searchResult = await this.findProductUrl(product);
@@ -110,7 +114,7 @@ export abstract class BaseScraper implements IScraper {
    * Searches for the product and returns its URL.
    * Can be overridden by custom scrapers.
    */
-  protected async findProductUrl(product: WatchlistProductInternal): Promise<SearchResult | null> {
+  protected async findProductUrl(product: ResolvedWatchlistProduct): Promise<SearchResult | null> {
     return this.navigator.findProductUrl(product);
   }
 
@@ -179,7 +183,7 @@ export abstract class BaseScraper implements IScraper {
    * Skips the search phase — used when set-based search already found the URL.
    */
   async scrapeProductWithUrl(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     productUrl: string,
   ): Promise<ProductResult | null> {
     try {
@@ -211,7 +215,7 @@ export abstract class BaseScraper implements IScraper {
    * Synchronous method - no HTTP requests.
    */
   createResultFromSearchData(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     productUrl: string,
     searchPageData: { price: number | null; isAvailable: boolean },
   ): ProductResult {

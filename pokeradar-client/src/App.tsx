@@ -9,6 +9,7 @@ import { AdminProductsPage } from '@/pages/admin/admin-products-page';
 import { AdminUsersPage } from '@/pages/admin/admin-users-page';
 import { AdminUserDetailPage } from '@/pages/admin/admin-user-detail-page';
 import { AdminNotificationsPage } from '@/pages/admin/admin-notifications-page';
+import { AdminMatchingPage } from '@/pages/admin/admin-matching-page';
 
 if (import.meta.env.DEV) {
   import('react-grab');
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="users/:clerkId" element={<AdminUserDetailPage />} />
           <Route path="notifications" element={<AdminNotificationsPage />} />
+          <Route path="matching" element={<AdminMatchingPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

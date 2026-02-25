@@ -6,112 +6,58 @@
  * Each product in the watchlist needs search phrases (used to find the product
  * on shop websites) and optional exclude words (used to filter out false matches).
  *
- * Previously, every product defined its own `search.phrases` and `search.exclude`
- * directly. This led to repetition — e.g. every "Booster Box" product had the same
- * exclude words like "kiosk", "half", "case", "elite".
+ * ## ProductType MatchingProfile
  *
- * ## ProductType
- *
- * A `ProductType` (e.g. "Booster Box", "Poster Collection") defines shared search
- * config that multiple products can inherit. Products reference a type via
- * `productTypeId`.
+ * A `ProductType` (e.g. "Booster Box", "Poster Collection") defines a MatchingProfile
+ * with `required` tokens and `forbidden` tokens that products inherit.
  *
  * ## Set name joining
  *
  * When a product has both a `productTypeId` and a `productSetId`, the ProductType's
- * phrases are **joined with the set name** to form the actual search query.
- * This joining ONLY applies to phrases from the ProductType, NOT to phrases
- * defined directly on the product.
+ * `required` tokens are **joined with the set name** to form the actual search phrase.
  *
  * Example:
- *   ProductType "booster-box" has phrase: "Booster Box"
+ *   ProductType "booster-box" has required: ["booster", "box"]
  *   Product belongs to set "sv08" (name: "Surging Sparks")
- *   Resolved phrase: "Surging Sparks Booster Box"
- *
- * If the product has no set, type phrases are NOT used — they would be too generic
- * (e.g. just "Booster Box" matches everything). In that case, only the product's
- * own phrases are used. Type excludes are still merged in.
+ *   Resolved phrase: "surging sparks booster box"
  *
  * ## Resolution rules
  *
- * 1. **No type, has own search** — use product's own search as-is (legacy behavior)
+ * 1. **customPhrase set** — use it as the sole phrase (full override, for promos)
  *
- *    Product: { search: { phrases: ["Pikachu SWSH039"] } }
- *    Result:  { phrases: ["Pikachu SWSH039"], exclude: [] }
+ * 2. **Has type + set** — build phrase from required tokens joined with set name,
+ *    merge type forbidden + product additionalForbidden
  *
- * 2. **Has type + set, no own search** — build phrases from type (joined with set name)
+ * 3. **Has type but NO set, no customPhrase** — unresolvable (required tokens alone are
+ *    too generic), product is skipped
  *
- *    Type:    { phrases: ["Booster Box"], exclude: ["kiosk", "half"] }
- *    Product: { productSetId: "sv08", productTypeId: "booster-box" }
- *    Set:     { name: "Surging Sparks" }
- *    Result:  { phrases: ["Surging Sparks Booster Box"], exclude: ["kiosk", "half"] }
- *
- * 2b. **Has type but NO set, no own search** — unresolvable (type phrases alone
- *     are too generic, e.g. just "Booster Box"), product is skipped
- *
- * 2c. **Has type but NO set, has own search** — use product's own phrases,
- *     merge type excludes only
- *
- *    Type:    { phrases: ["Booster Box"], exclude: ["kiosk"] }
- *    Product: { productTypeId: "booster-box", search: { phrases: ["Mystery BB"] } }
- *    Result:  { phrases: ["Mystery BB"], exclude: ["kiosk"] }
- *
- * 3. **Has type + own search, override: true** — ignore type entirely
- *
- *    Type:    { phrases: ["Booster Box"], exclude: ["kiosk"] }
- *    Product: { productTypeId: "booster-box", search: { phrases: ["Special BB"], override: true } }
- *    Result:  { phrases: ["Special BB"], exclude: [] }
- *
- * 4. **Has type + own search, no override (merge)** — combine both
- *
- *    Type:    { phrases: ["Booster Box"], exclude: ["kiosk"] }
- *    Product: { productSetId: "sv08", productTypeId: "booster-box", search: { phrases: ["SV08 display"], exclude: ["tin"] } }
- *    Set:     { name: "Surging Sparks" }
- *    Result:  { phrases: ["SV08 display", "Surging Sparks Booster Box"], exclude: ["kiosk", "tin"] }
- *
- *    Product's own phrases come first (searched first), then type-derived phrases.
- *    Excludes are merged (type excludes + product excludes), deduplicated.
- *
- * 5. **No type AND no search** — unresolvable, product is skipped with a warning
- *
- * ## How resolved search is used downstream
- *
- * After resolution, each product has a guaranteed `search.phrases[]` and
- * `search.exclude[]`. The scraper uses these to:
- *
- * - Build search URLs: each phrase becomes a search query on the shop website
- *   (e.g. "https://shop.com/search?q=Surging+Sparks+Booster+Box")
- * - Validate results: when a shop returns search results, the product title
- *   is fuzzy-matched against the phrase using fuzzball's token_set_ratio
- *   (threshold: 95). If any exclude word appears in the title (case-insensitive
- *   substring match), the result is rejected.
- * - The scraper tries each phrase in order and returns the first match found.
+ * 4. **No type AND no customPhrase** — unresolvable, product is skipped with a warning
  */
 
 import { WatchlistProductInternal, ResolvedWatchlistProduct } from '../types';
 import { ProductTypeModel } from '../../infrastructure/database/models';
 
-export interface ProductTypeSearch {
-  phrases?: string[];
-  exclude?: string[];
+export interface ProductTypeMatchingProfile {
+  required: string[];
+  forbidden: string[];
 }
 
 /**
- * Builds ProductType-derived phrases by joining with the set name.
- * If the product has no set, returns empty — type phrases alone are too generic.
+ * Builds the search phrase by joining set name with required tokens.
+ * Returns empty array if no set name is given (phrase would be too generic).
  *
  * @example
- * buildTypePhrases(["Booster Box"], "Surging Sparks")
- * // => ["Surging Sparks Booster Box"]
+ * buildRequiredPhrase(["booster", "box"], "Surging Sparks")
+ * // => ["surging sparks booster box"]
  *
- * buildTypePhrases(["Booster Box"], undefined)
- * // => [] (no set = too generic, don't use type phrases)
+ * buildRequiredPhrase(["booster", "box"], undefined)
+ * // => []
  */
-function buildTypePhrases(typePhrases: string[], setName: string | undefined): string[] {
-  if (!setName) {
+function buildRequiredPhrase(required: string[], setName: string | undefined): string[] {
+  if (!setName || required.length === 0) {
     return [];
   }
-  return typePhrases.map((phrase) => `${setName} ${phrase}`.toLowerCase());
+  return [`${setName} ${required.join(' ')}`.toLowerCase()];
 }
 
 /**
@@ -130,91 +76,70 @@ function dedupe(arr: string[]): string[] {
 /**
  * Resolves the effective search config for a single product.
  *
- * Combines the product's own search config with its ProductType's search config
- * (if any), applying set-name joining and merge/override rules.
+ * Combines the product's searchOverride with its ProductType's matchingProfile
+ * (if any), applying set-name joining and merge rules.
  *
  * @returns A product with guaranteed `search.phrases` and `search.exclude`,
  *          or `null` if no search can be determined.
  */
 export function resolveSearchConfig(
   product: WatchlistProductInternal,
-  productTypeMap: Map<string, ProductTypeSearch>,
+  productTypeMap: Map<string, ProductTypeMatchingProfile>,
   setMap: Map<string, { name: string; series: string }>,
 ): ResolvedWatchlistProduct | null {
-  const productPhrases = product.search?.phrases ?? [];
-  const productExclude = product.search?.exclude ?? [];
-  const hasProductSearch = productPhrases.length > 0 || productExclude.length > 0;
+  const override = product.searchOverride;
 
-  // No type — use product's own search
-  if (!product.productTypeId) {
-    if (!hasProductSearch && productPhrases.length === 0) {
-      return null;
-    }
+  // Case 1: customPhrase — full override, use as-is
+  if (override?.customPhrase) {
     return {
       ...product,
       search: {
-        phrases: productPhrases,
-        exclude: productExclude,
+        phrases: [override.customPhrase.toLowerCase()],
+        exclude: dedupe(override.additionalForbidden ?? []),
       },
     };
+  }
+
+  // No type and no customPhrase — unresolvable
+  if (!product.productTypeId) {
+    return null;
   }
 
   const productType = productTypeMap.get(product.productTypeId);
+
+  // Type referenced but not found in DB — unresolvable
   if (!productType) {
-    // Type referenced but not found in DB — fall back to product's own search
-    if (productPhrases.length === 0 && !hasProductSearch) {
-      return null;
-    }
-    return {
-      ...product,
-      search: {
-        phrases: productPhrases,
-        exclude: productExclude,
-      },
-    };
+    return null;
   }
 
-  // Override — product explicitly ignores its type's search
-  if (product.search?.override) {
-    return {
-      ...product,
-      search: {
-        phrases: productPhrases,
-        exclude: productExclude,
-      },
-    };
-  }
-
-  // Build type-derived phrases (joined with set name if product belongs to a set)
   const setName = product.productSetId ? setMap.get(product.productSetId)?.name : undefined;
-  const typePhrases = buildTypePhrases(productType.phrases ?? [], setName);
-  const typeExclude = productType.exclude ?? [];
 
-  // Merge: product's own phrases first, then type-derived; excludes combined
-  const mergedPhrases = dedupe([...productPhrases, ...typePhrases]);
-  const mergedExclude = dedupe([...typeExclude, ...productExclude]);
+  const allRequired = dedupe([...productType.required, ...(override?.additionalRequired ?? [])]);
 
-  if (mergedPhrases.length === 0) {
+  const allForbidden = dedupe([...productType.forbidden, ...(override?.additionalForbidden ?? [])]);
+
+  const phrases = buildRequiredPhrase(allRequired, setName);
+
+  if (phrases.length === 0) {
+    // Has type but no set — unresolvable (phrase would be too generic)
     return null;
   }
 
   return {
     ...product,
     search: {
-      phrases: mergedPhrases,
-      exclude: mergedExclude,
+      phrases,
+      exclude: allForbidden,
     },
   };
 }
 
 /**
  * Resolves search config for all products, filtering out unresolvable ones.
- * Products with no resolvable search (no type and no search defined) are
- * logged and excluded from the result.
  */
 export function resolveAllProducts(
   products: WatchlistProductInternal[],
-  productTypeMap: Map<string, ProductTypeSearch>,
+  productTypeMap: Map<string, ProductTypeMatchingProfile>,
   setMap: Map<string, { name: string; series: string }>,
   logger?: { error(message: string, meta?: Record<string, unknown>): void },
 ): ResolvedWatchlistProduct[] {
@@ -237,8 +162,6 @@ export function resolveAllProducts(
 
 /**
  * Loads ProductType docs from MongoDB and resolves search config for all products.
- * Use this instead of calling resolveAllProducts() directly — it handles the
- * ProductType DB query so callers don't need to duplicate that logic.
  */
 export async function loadAndResolveProducts(
   products: WatchlistProductInternal[],
@@ -246,11 +169,11 @@ export async function loadAndResolveProducts(
   logger?: { error(message: string, meta?: Record<string, unknown>): void },
 ): Promise<{ resolved: ResolvedWatchlistProduct[]; productTypeCount: number }> {
   const productTypeDocs = await ProductTypeModel.find().lean();
-  const productTypeMap = new Map<string, ProductTypeSearch>();
+  const productTypeMap = new Map<string, ProductTypeMatchingProfile>();
   for (const doc of productTypeDocs) {
     productTypeMap.set(doc.id, {
-      phrases: doc.search?.phrases,
-      exclude: doc.search?.exclude,
+      required: doc.matchingProfile?.required ?? [],
+      forbidden: doc.matchingProfile?.forbidden ?? [],
     });
   }
 

@@ -3,12 +3,12 @@
  */
 
 /**
- * Search configuration for a product.
+ * Per-product search override (for edge cases: promos, special naming).
  */
-export interface SearchConfig {
-  phrases?: string[];
-  exclude?: string[];
-  override?: boolean;
+export interface SearchOverride {
+  additionalRequired?: string[];
+  additionalForbidden?: string[];
+  customPhrase?: string;
 }
 
 /**
@@ -18,7 +18,7 @@ export interface WatchlistProduct {
   name: string;
   productSetId?: string;
   productTypeId?: string;
-  search?: SearchConfig;
+  searchOverride?: SearchOverride;
   disabled?: boolean;
 }
 
