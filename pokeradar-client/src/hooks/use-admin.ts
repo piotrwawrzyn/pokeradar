@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUser } from '@clerk/clerk-react';
-import { adminApi, CorrectionReason } from '@/api/admin.api';
+import { adminApi } from '@/api/admin.api';
+import type { CorrectionReason } from '@/api/admin.api';
 
 // Admin identity check — reads from Clerk publicMetadata (no API call)
 export function useIsAdmin() {
