@@ -171,10 +171,16 @@ export async function loadAndResolveProducts(
   const productTypeDocs = await ProductTypeModel.find().lean();
   const productTypeMap = new Map<string, ProductTypeMatchingProfile>();
   for (const doc of productTypeDocs) {
-    productTypeMap.set(doc.id, {
-      required: doc.matchingProfile?.required ?? [],
-      forbidden: doc.matchingProfile?.forbidden ?? [],
-    });
+    // Support both migrated (matchingProfile) and legacy (search) schemas
+    const legacy = (doc as any).search;
+    const required: string[] = doc.matchingProfile?.required?.length
+      ? doc.matchingProfile.required
+      : (legacy?.phrases?.flatMap((p: string) => p.toLowerCase().split(/\s+/)).filter(Boolean) ??
+        []);
+    const forbidden: string[] = doc.matchingProfile?.forbidden?.length
+      ? doc.matchingProfile.forbidden
+      : (legacy?.exclude?.map((e: string) => e.toLowerCase()) ?? []);
+    productTypeMap.set(doc.id, { required, forbidden });
   }
 
   const resolved = resolveAllProducts(products, productTypeMap, setMap, logger);
