@@ -14,13 +14,6 @@ export function toWatchlistProduct(doc: IWatchlistProductDoc): WatchlistProductI
     name: doc.name,
     productSetId: doc.productSetId,
     productTypeId: doc.productTypeId,
-    search: doc.search
-      ? {
-          phrases: doc.search.phrases,
-          exclude: doc.search.exclude,
-          override: doc.search.override,
-        }
-      : undefined,
     disabled: doc.disabled,
   };
 }
@@ -43,13 +36,6 @@ export function toWatchlistProductDoc(
     name: product.name,
     productSetId: product.productSetId,
     productTypeId: product.productTypeId,
-    search: product.search
-      ? {
-          phrases: product.search.phrases,
-          exclude: product.search.exclude,
-          override: product.search.override,
-        }
-      : undefined,
     disabled: product.disabled,
   };
 }

@@ -50,10 +50,9 @@ export interface AdminProduct {
   id: string;
   name: string;
   imageUrl: string;
-  productSetId?: string;
-  productTypeId?: string;
+  productSetId: string;
+  productTypeId: string;
   disabled?: boolean;
-  search?: { phrases?: string[]; exclude?: string[]; override?: boolean };
   price?: { max: number; min?: number };
   shopFinds: AdminProductShopFind[];
   bestPrice: number | null;
@@ -70,7 +69,7 @@ export interface ProductSet {
 export interface ProductType {
   id: string;
   name: string;
-  search: { phrases?: string[]; exclude?: string[] };
+  matchingProfile: { required: string[]; forbidden: string[] };
 }
 
 export interface AdminUserSearchItem {

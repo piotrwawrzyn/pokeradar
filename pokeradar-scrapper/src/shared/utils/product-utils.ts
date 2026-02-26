@@ -2,7 +2,7 @@
  * Product utility functions.
  */
 
-import { WatchlistProduct, WatchlistProductInternal } from '../types';
+import { WatchlistProduct, WatchlistProductInternal, ResolvedWatchlistProduct } from '../types';
 
 /**
  * Converts a product name to a safe kebab-case ID.
@@ -42,7 +42,7 @@ export function toInternalProducts(products: WatchlistProduct[]): WatchlistProdu
 export interface SetGroup {
   setId: string;
   searchPhrase: string;
-  products: WatchlistProductInternal[];
+  products: ResolvedWatchlistProduct[];
 }
 
 /**
@@ -65,14 +65,14 @@ function buildSeriesIndex(
  * Partitions products into those belonging to known sets and those without sets.
  */
 function partitionProductsBySet(
-  products: WatchlistProductInternal[],
+  products: ResolvedWatchlistProduct[],
   setMap: Map<string, { name: string; series: string }>,
-): { bySet: Map<string, WatchlistProductInternal[]>; ungrouped: WatchlistProductInternal[] } {
-  const bySet = new Map<string, WatchlistProductInternal[]>();
-  const ungrouped: WatchlistProductInternal[] = [];
+): { bySet: Map<string, ResolvedWatchlistProduct[]>; ungrouped: ResolvedWatchlistProduct[] } {
+  const bySet = new Map<string, ResolvedWatchlistProduct[]>();
+  const ungrouped: ResolvedWatchlistProduct[] = [];
 
   for (const product of products) {
-    if (product.productSetId && setMap.has(product.productSetId)) {
+    if (setMap.has(product.productSetId)) {
       const existing = bySet.get(product.productSetId) || [];
       existing.push(product);
       bySet.set(product.productSetId, existing);
@@ -90,7 +90,7 @@ function partitionProductsBySet(
  */
 function createSetGroupWithExclusions(
   setId: string,
-  members: WatchlistProductInternal[],
+  members: ResolvedWatchlistProduct[],
   setMap: Map<string, { name: string; series: string }>,
   seriesIndex: Map<string, string[]>,
 ): SetGroup {
@@ -108,9 +108,8 @@ function createSetGroupWithExclusions(
   const membersWithExcludes = members.map((product) => ({
     ...product,
     search: {
-      ...(product.search ?? {}),
-      phrases: product.search?.phrases ?? [],
-      exclude: [...(product.search?.exclude ?? []), ...otherSetsInSeries],
+      phrases: product.search.phrases,
+      exclude: [...product.search.exclude, ...otherSetsInSeries],
     },
   }));
 
@@ -122,59 +121,17 @@ function createSetGroupWithExclusions(
 }
 
 /**
- * Groups products by their productSetId.
+ * Groups resolved products by their productSetId.
  * All products with a known set become SetGroups (even single-member sets).
- * Products without a set are ungrouped and use individual search.
+ * Products whose set is not in the setMap are ungrouped.
  *
  * For generic sets (where name === series), automatically excludes all other
  * sets in the same series to prevent cross-set matching conflicts.
- *
- * @param products - All products to group
- * @param setMap - Map of setId -> { name, series } loaded from ProductSet collection
- *
- * @example
- * // Input products:
- * const products = [
- *   { id: 'p1', name: 'Booster Box', productSetId: 'sv08', search: { phrases: ['booster'] } },
- *   { id: 'p2', name: 'ETB', productSetId: 'sv08', search: { phrases: ['etb'] } },
- *   { id: 'p3', name: 'Single Card', productSetId: 'sv09', search: { phrases: [] } },
- *   { id: 'p4', name: 'Accessory', search: { phrases: [] } } // no productSetId
- * ];
- *
- * // Input setMap:
- * const setMap = new Map([
- *   ['sv08', { name: 'Surging Sparks', series: 'Scarlet & Violet' }],
- *   ['sv09', { name: 'Prismatic Evolutions', series: 'Scarlet & Violet' }]
- * ]);
- *
- * // Output:
- * {
- *   setGroups: [
- *     {
- *       setId: 'sv08',
- *       searchPhrase: 'Surging Sparks',
- *       products: [
- *         { id: 'p1', name: 'Booster Box', productSetId: 'sv08', search: { phrases: ['booster'], exclude: [] } },
- *         { id: 'p2', name: 'ETB', productSetId: 'sv08', search: { phrases: ['etb'], exclude: [] } }
- *       ]
- *     },
- *     {
- *       setId: 'sv09',
- *       searchPhrase: 'Prismatic Evolutions',
- *       products: [
- *         { id: 'p3', name: 'Single Card', productSetId: 'sv09', search: { phrases: [], exclude: [] } }
- *       ]
- *     }
- *   ],
- *   ungrouped: [
- *     { id: 'p4', name: 'Accessory', search: { phrases: [] } }
- *   ]
- * }
  */
 export function groupProductsBySet(
-  products: WatchlistProductInternal[],
+  products: ResolvedWatchlistProduct[],
   setMap: Map<string, { name: string; series: string }>,
-): { setGroups: SetGroup[]; ungrouped: WatchlistProductInternal[] } {
+): { setGroups: SetGroup[]; ungrouped: ResolvedWatchlistProduct[] } {
   const seriesIndex = buildSeriesIndex(setMap);
   const { bySet, ungrouped } = partitionProductsBySet(products, setMap);
 

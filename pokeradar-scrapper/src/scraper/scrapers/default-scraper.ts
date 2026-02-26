@@ -2,7 +2,7 @@
  * Default scraper implementation using configuration-only approach.
  */
 
-import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../shared/types';
+import { ShopConfig } from '../../shared/types';
 import { IEngine } from '../engines/engine.interface';
 import { BaseScraper, IScraperLogger } from './base/base-scraper';
 

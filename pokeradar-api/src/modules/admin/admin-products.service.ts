@@ -28,10 +28,9 @@ export interface AdminProduct {
   id: string;
   name: string;
   imageUrl: string;
-  productSetId?: string;
-  productTypeId?: string;
+  productSetId: string;
+  productTypeId: string;
   disabled?: boolean;
-  search?: { phrases?: string[]; exclude?: string[]; override?: boolean };
   price?: { max: number; min?: number };
   shopFinds: AdminProductShopFind[];
   bestPrice: number | null;
@@ -101,7 +100,6 @@ export class AdminProductsService {
         productSetId: p.productSetId,
         productTypeId: p.productTypeId,
         disabled: p.disabled,
-        search: p.search,
         price: p.price,
         shopFinds,
         bestPrice: bestAvailable?.price ?? null,
@@ -125,9 +123,8 @@ export class AdminProductsService {
     id: string;
     name: string;
     imageUrl: string;
-    productSetId?: string;
-    productTypeId?: string;
-    search?: { phrases?: string[]; exclude?: string[]; override?: boolean };
+    productSetId: string;
+    productTypeId: string;
     price?: { max: number; min?: number };
     disabled?: boolean;
   }) {
@@ -284,7 +281,7 @@ export class AdminProductsService {
   async createType(data: {
     id: string;
     name: string;
-    search?: { phrases?: string[]; exclude?: string[] };
+    matchingProfile: { required: string[]; forbidden?: string[] };
   }) {
     const existing = await ProductTypeModel.findOne({ id: data.id }).lean();
     if (existing) throw new ConflictError('Product type with this ID already exists');

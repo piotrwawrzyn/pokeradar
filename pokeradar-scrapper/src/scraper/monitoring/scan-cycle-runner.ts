@@ -5,7 +5,7 @@
  */
 
 import { Browser } from 'playwright';
-import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../shared/types';
+import { ShopConfig, ResolvedWatchlistProduct, ProductResult } from '../../shared/types';
 import { SetGroup } from '../../shared/utils/product-utils';
 import { IScraper } from '../scrapers/base/base-scraper';
 import { ResultBuffer } from './result-buffer';
@@ -16,7 +16,7 @@ const PRODUCT_CONCURRENCY = 3;
 
 function countTotalProducts(
   setGroups: SetGroup[],
-  ungroupedProducts: WatchlistProductInternal[],
+  ungroupedProducts: ResolvedWatchlistProduct[],
 ): number {
   return setGroups.reduce((sum, g) => sum + g.products.length, 0) + ungroupedProducts.length;
 }
@@ -54,7 +54,7 @@ export interface IScraperFactory {
  * Processes scrape results against all watching users.
  */
 export interface IMultiUserDispatcher {
-  processResult(product: WatchlistProductInternal, result: ProductResult, shop: ShopConfig): void;
+  processResult(product: ResolvedWatchlistProduct, result: ProductResult, shop: ShopConfig): void;
 }
 
 /**
@@ -71,7 +71,7 @@ export interface ScanCycleConfig {
  * A product task resolved after set-based search phase.
  */
 interface ProductTask {
-  product: WatchlistProductInternal;
+  product: ResolvedWatchlistProduct;
   /** If set, skip search and go directly to this URL. */
   resolvedUrl?: string;
   /** If present, skip product page visit entirely and use this data. */
@@ -120,7 +120,7 @@ export class ScanCycleRunner {
   async runCheerioScanCycle(
     shops: ShopConfig[],
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[],
+    ungroupedProducts: ResolvedWatchlistProduct[],
   ): Promise<void> {
     const { cheerio: cheerioShops } = this.config.scraperFactory.groupByEngine(shops);
 
@@ -157,7 +157,7 @@ export class ScanCycleRunner {
   async runPlaywrightScanCycle(
     shops: ShopConfig[],
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[],
+    ungroupedProducts: ResolvedWatchlistProduct[],
   ): Promise<void> {
     const { playwright: playwrightShops } = this.config.scraperFactory.groupByEngine(shops);
 
@@ -207,7 +207,7 @@ export class ScanCycleRunner {
   private async scanShopConcurrent(
     shop: ShopConfig,
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[],
+    ungroupedProducts: ResolvedWatchlistProduct[],
     breaker: ShopCircuitBreaker,
   ): Promise<void> {
     // Phase 1: Resolve set-based URLs using a single scraper
@@ -270,7 +270,7 @@ export class ScanCycleRunner {
   private async scanShopSequential(
     shop: ShopConfig,
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[],
+    ungroupedProducts: ResolvedWatchlistProduct[],
     browser: Browser,
     breaker: ShopCircuitBreaker,
   ): Promise<void> {
@@ -312,7 +312,7 @@ export class ScanCycleRunner {
   private async resolveSetSearches(
     shop: ShopConfig,
     setGroups: SetGroup[],
-    ungroupedProducts: WatchlistProductInternal[],
+    ungroupedProducts: ResolvedWatchlistProduct[],
     breaker: ShopCircuitBreaker,
   ): Promise<ProductTask[]> {
     const tasks: ProductTask[] = [];
@@ -486,7 +486,7 @@ export class ScanCycleRunner {
   private async scanProductIndividual(
     scraper: IScraper,
     shop: ShopConfig,
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
   ): Promise<void> {
     try {
       const result = await scraper.scrapeProduct(product);
@@ -506,7 +506,7 @@ export class ScanCycleRunner {
    * Called when a product is not found in search or skipped due to circuit breaker.
    * No-op: unfound products are not stored or dispatched to avoid false state resets.
    */
-  private handleNotFound(_product: WatchlistProductInternal, shop: ShopConfig): void {
+  private handleNotFound(_product: ResolvedWatchlistProduct, shop: ShopConfig): void {
     // Intentionally empty — transient failures should not affect notification state
     const stats = this.getOrCreateStats(shop.id);
     stats.notFound++;
@@ -516,7 +516,7 @@ export class ScanCycleRunner {
    * Handles a scrape result: buffers and dispatches notifications.
    */
   private handleResult(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     result: ProductResult,
     shop: ShopConfig,
   ): void {

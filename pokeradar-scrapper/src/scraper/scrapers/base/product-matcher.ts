@@ -3,7 +3,7 @@
  */
 
 import * as fuzz from 'fuzzball';
-import { WatchlistProductInternal } from '../../../shared/types';
+import { ResolvedWatchlistProduct } from '../../../shared/types';
 import { normalizeForMatching } from '../../../shared/utils/text-normalizer';
 import { selectBestCandidate as rankCandidates } from './helpers/candidate-selector';
 
@@ -45,17 +45,17 @@ export class ProductMatcher {
   validateTitle(
     title: string,
     phrase: string,
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     shopId: string,
   ): number | null {
     // Check exclude list
-    if (product.search?.exclude && product.search?.exclude.length > 0) {
+    if (product.search.exclude.length > 0) {
       const titleLower = title.toLowerCase();
       // Use negative lookbehind/lookahead instead of simple .includes() to avoid
       // false positives where an exclude word appears as a substring of another word.
       // e.g. "tin" (exclude for Mini Tin) would incorrectly block "Destined Rivals"
       // because "destined" contains "tin" as a substring.
-      const isExcluded = product.search?.exclude.some((word) =>
+      const isExcluded = product.search.exclude.some((word) =>
         new RegExp(`(?<![a-z])${word.toLowerCase()}(?![a-z])`).test(titleLower),
       );
       if (isExcluded) {
@@ -63,7 +63,7 @@ export class ProductMatcher {
           shop: shopId,
           product: product.id,
           title,
-          exclude: product.search?.exclude,
+          exclude: product.search.exclude,
         });
         return null;
       }
@@ -118,7 +118,7 @@ export class ProductMatcher {
    */
   selectBestCandidate(
     candidates: ProductCandidate[],
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     phrase: string,
     shopId: string,
   ): string | null {

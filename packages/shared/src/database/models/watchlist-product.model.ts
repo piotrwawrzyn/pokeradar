@@ -8,13 +8,8 @@ export interface IWatchlistProductDoc extends Document {
   id: string;
   name: string;
   imageUrl: string;
-  productSetId?: string;
-  productTypeId?: string;
-  search?: {
-    phrases?: string[];
-    exclude?: string[];
-    override?: boolean;
-  };
+  productSetId: string;
+  productTypeId: string;
   price?: {
     max: number;
     min?: number;
@@ -26,16 +21,8 @@ const WatchlistProductSchema = new Schema<IWatchlistProductDoc>({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   imageUrl: { type: String, required: true },
-  productSetId: { type: String },
-  productTypeId: { type: String },
-  search: {
-    type: {
-      phrases: { type: [String] },
-      exclude: { type: [String] },
-      override: { type: Boolean },
-    },
-    required: false,
-  },
+  productSetId: { type: String, required: true },
+  productTypeId: { type: String, required: true },
   price: {
     type: {
       max: { type: Number, required: true },

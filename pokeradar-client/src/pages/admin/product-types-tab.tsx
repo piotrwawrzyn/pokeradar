@@ -32,32 +32,32 @@ export function ProductTypesTab() {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
-    searchPhrases: '',
-    searchExclude: '',
+    matchingRequired: '',
+    matchingForbidden: '',
   });
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', searchPhrases: '', searchExclude: '' });
+    setFormData({ id: '', name: '', matchingRequired: '', matchingForbidden: '' });
   };
 
   const populateForm = (type: ProductType) => {
     setFormData({
       id: type.id,
       name: type.name,
-      searchPhrases: type.search.phrases?.join(', ') || '',
-      searchExclude: type.search.exclude?.join(', ') || '',
+      matchingRequired: type.matchingProfile.required.join(', '),
+      matchingForbidden: type.matchingProfile.forbidden?.join(', ') || '',
     });
   };
 
   const handleSave = async () => {
     const payload: any = {
       name: formData.name,
-      search: {
-        phrases: formData.searchPhrases
-          ? formData.searchPhrases.split(',').map((s) => s.trim())
+      matchingProfile: {
+        required: formData.matchingRequired
+          ? formData.matchingRequired.split(',').map((s) => s.trim())
           : [],
-        exclude: formData.searchExclude
-          ? formData.searchExclude.split(',').map((s) => s.trim())
+        forbidden: formData.matchingForbidden
+          ? formData.matchingForbidden.split(',').map((s) => s.trim())
           : [],
       },
     };
@@ -105,8 +105,8 @@ export function ProductTypesTab() {
         headers={[
           'Nazwa',
           'Produkty',
-          'Frazy wyszukiwania',
-          'Wykluczenia',
+          'Wymagane tokeny',
+          'Zabronione tokeny',
           { label: '', className: 'w-16' },
         ]}
       >
@@ -121,10 +121,10 @@ export function ProductTypesTab() {
               {products?.filter((p) => p.productTypeId === type.id).length ?? 0}
             </TableCell>
             <TableCell className="text-muted-foreground text-sm">
-              {type.search.phrases?.join(', ') || '-'}
+              {type.matchingProfile.required.join(', ') || '-'}
             </TableCell>
             <TableCell className="text-muted-foreground text-sm">
-              {type.search.exclude?.join(', ') || '-'}
+              {type.matchingProfile.forbidden?.join(', ') || '-'}
             </TableCell>
             <TableCell>
               <Button
@@ -162,25 +162,25 @@ export function ProductTypesTab() {
         </div>
 
         <div>
-          <Label htmlFor="type-searchPhrases" className="mb-2 block">
-            Frazy wyszukiwania (oddzielone przecinkami)
+          <Label htmlFor="type-matchingRequired" className="mb-2 block">
+            Wymagane tokeny (oddzielone przecinkami) <span className="text-red-500">*</span>
           </Label>
           <Textarea
-            id="type-searchPhrases"
-            value={formData.searchPhrases}
-            onChange={(e) => setFormData({ ...formData, searchPhrases: e.target.value })}
-            placeholder="np. V, VMAX, VSTAR"
+            id="type-matchingRequired"
+            value={formData.matchingRequired}
+            onChange={(e) => setFormData({ ...formData, matchingRequired: e.target.value })}
+            placeholder="np. Booster, Box"
           />
         </div>
 
         <div>
-          <Label htmlFor="type-searchExclude" className="mb-2 block">
-            Wykluczenia (oddzielone przecinkami)
+          <Label htmlFor="type-matchingForbidden" className="mb-2 block">
+            Zabronione tokeny (oddzielone przecinkami)
           </Label>
           <Textarea
-            id="type-searchExclude"
-            value={formData.searchExclude}
-            onChange={(e) => setFormData({ ...formData, searchExclude: e.target.value })}
+            id="type-matchingForbidden"
+            value={formData.matchingForbidden}
+            onChange={(e) => setFormData({ ...formData, matchingForbidden: e.target.value })}
             placeholder="np. proxy, damaged"
           />
         </div>

@@ -3,7 +3,7 @@
  * Designed for single-run cron execution with multi-user notification support.
  */
 
-import { ShopConfig, WatchlistProductInternal } from '../../shared/types';
+import { ShopConfig, WatchlistProductInternal, ResolvedWatchlistProduct } from '../../shared/types';
 import { MultiUserNotificationDispatcher } from '../../shared/notification';
 import { NotificationStateService } from '../../shared/notification';
 import { ResultBuffer, IProductResultRepository } from './result-buffer';
@@ -45,9 +45,9 @@ export interface PriceMonitorConfig {
  */
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
-  private products: WatchlistProductInternal[] = [];
+  private products: ResolvedWatchlistProduct[] = [];
   private setGroups: SetGroup[] = [];
-  private ungroupedProducts: WatchlistProductInternal[] = [];
+  private ungroupedProducts: ResolvedWatchlistProduct[] = [];
   private resultBuffer: ResultBuffer;
   private cycleRunner: ScanCycleRunner;
 
@@ -84,12 +84,8 @@ export class PriceMonitor {
     const allProductIds = allProducts.map((p) => p.id);
     await this.config.dispatcher.preloadForCycle(allProductIds);
 
-    // Scrape all products, regardless of subscriber count
-    this.products = allProducts;
-
     // Load notification states for subscribed products only (1 DB query)
-    const subscribedIds = this.products.map((p) => p.id);
-    await this.config.stateManager.loadFromRepository(subscribedIds);
+    await this.config.stateManager.loadFromRepository(allProductIds);
 
     // Load product sets for set-based search grouping
     const productSetDocs = await ProductSetModel.find().select('id name series').lean();
@@ -100,12 +96,12 @@ export class PriceMonitor {
 
     // Resolve search config for each product (merge with ProductType + set name)
     const { resolved: resolvedProducts, productTypeCount } = await loadAndResolveProducts(
-      this.products,
+      allProducts,
       setMap,
       this.config.logger,
     );
 
-    const unresolvedCount = this.products.length - resolvedProducts.length;
+    const unresolvedCount = allProducts.length - resolvedProducts.length;
     if (unresolvedCount > 0) {
       this.config.logger.info('Products with no resolvable search config skipped', {
         skipped: unresolvedCount,

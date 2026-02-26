@@ -3,7 +3,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -57,16 +56,12 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
   const dialog = useCrudDialog<AdminProduct>();
   const image = useImageUpload();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [customSearch, setCustomSearch] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
-    productSetId: 'none',
-    productTypeId: 'none',
-    searchPhrases: '',
-    searchExclude: '',
-    searchOverride: false,
+    productSetId: '',
+    productTypeId: '',
   });
 
   const toggleRow = (id: string) => {
@@ -83,12 +78,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
 
   // Auto-fill product name as "{set} {type}" when both are selected and name is still empty (create mode only)
   const tryAutoFillName = (updated: typeof formData) => {
-    if (
-      !dialog.selected &&
-      !updated.name &&
-      updated.productSetId !== 'none' &&
-      updated.productTypeId !== 'none'
-    ) {
+    if (!dialog.selected && !updated.name && updated.productSetId && updated.productTypeId) {
       const setName = sets?.find((s) => s.id === updated.productSetId)?.name ?? '';
       const typeName = types?.find((t) => t.id === updated.productTypeId)?.name ?? '';
       updated.name = `${setName} ${typeName}`;
@@ -97,15 +87,11 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
 
   const resetForm = () => {
     image.reset();
-    setCustomSearch(false);
     setFormError(null);
     setFormData({
       name: '',
-      productSetId: 'none',
-      productTypeId: 'none',
-      searchPhrases: '',
-      searchExclude: '',
-      searchOverride: false,
+      productSetId: '',
+      productTypeId: '',
     });
   };
 
@@ -116,28 +102,16 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
   const populateForm = (product: AdminProduct) => {
     image.reset();
     setFormError(null);
-    const hasCustomSearch = Boolean(
-      product.search?.phrases?.length ||
-      product.search?.exclude?.length ||
-      product.search?.override,
-    );
-    setCustomSearch(hasCustomSearch);
     setFormData({
       name: product.name,
-      productSetId: product.productSetId || 'none',
-      productTypeId: product.productTypeId || 'none',
-      searchPhrases: product.search?.phrases?.join(', ') || '',
-      searchExclude: product.search?.exclude?.join(', ') || '',
-      searchOverride: product.search?.override || false,
+      productSetId: product.productSetId,
+      productTypeId: product.productTypeId,
     });
   };
 
   const handleSave = async () => {
-    const hasType = formData.productTypeId !== 'none';
-    const hasSearchPhrases = customSearch && formData.searchPhrases.trim().length > 0;
-
-    if (!hasType && !hasSearchPhrases) {
-      setFormError('Musisz wybrać Typ lub podać własne Frazy wyszukiwania');
+    if (!formData.productSetId || !formData.productTypeId) {
+      setFormError('Set i Typ produktu są wymagane');
       return;
     }
 
@@ -150,26 +124,12 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
 
     const payload: any = {
       name: formData.name,
-      productSetId: formData.productSetId !== 'none' ? formData.productSetId : undefined,
-      productTypeId: formData.productTypeId !== 'none' ? formData.productTypeId : undefined,
+      productSetId: formData.productSetId,
+      productTypeId: formData.productTypeId,
     };
 
     if (!dialog.selected) {
       payload.id = generateIdFromName(formData.name);
-    }
-
-    if (customSearch) {
-      payload.search = {
-        phrases: formData.searchPhrases
-          ? formData.searchPhrases.split(',').map((s) => s.trim())
-          : undefined,
-        exclude: formData.searchExclude
-          ? formData.searchExclude.split(',').map((s) => s.trim())
-          : undefined,
-        override: formData.searchOverride,
-      };
-    } else if (dialog.selected) {
-      payload.search = null;
     }
 
     try {
@@ -527,7 +487,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
           <div className="flex gap-4">
             <div className="w-48">
               <Label htmlFor="productSetId" className="mb-2 block">
-                Set
+                Set <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.productSetId}
@@ -541,7 +501,6 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                   <SelectValue placeholder="Wybierz set" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Brak</SelectItem>
                   {sets?.map((set) => (
                     <SelectItem key={set.id} value={set.id}>
                       {set.name}
@@ -553,7 +512,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
 
             <div className="w-48">
               <Label htmlFor="productTypeId" className="mb-2 block">
-                Typ produktu
+                Typ produktu <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={formData.productTypeId}
@@ -567,7 +526,6 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                   <SelectValue placeholder="Wybierz typ produktu" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Brak</SelectItem>
                   {types?.map((type) => (
                     <SelectItem key={type.id} value={type.id}>
                       {type.name}
@@ -577,50 +535,6 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
               </Select>
             </div>
           </div>
-
-          <div className="flex items-center space-x-2 pt-2">
-            <Switch id="customSearch" checked={customSearch} onCheckedChange={setCustomSearch} />
-            <Label htmlFor="customSearch">Dostosuj frazy wyszukiwania</Label>
-          </div>
-
-          {customSearch && (
-            <div className="space-y-6 pl-4 border-l-2 border-muted">
-              <div>
-                <Label htmlFor="searchPhrases" className="mb-2 block">
-                  Frazy wyszukiwania (oddzielone przecinkami)
-                </Label>
-                <Input
-                  id="searchPhrases"
-                  value={formData.searchPhrases}
-                  onChange={(e) => setFormData({ ...formData, searchPhrases: e.target.value })}
-                  placeholder="np. Surging Sparks Booster Box"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="searchExclude" className="mb-2 block">
-                  Wykluczenia (oddzielone przecinkami)
-                </Label>
-                <Input
-                  id="searchExclude"
-                  value={formData.searchExclude}
-                  onChange={(e) => setFormData({ ...formData, searchExclude: e.target.value })}
-                  placeholder="np. case, etb"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="searchOverride"
-                  checked={formData.searchOverride}
-                  onCheckedChange={(checked) =>
-                    setFormData({ ...formData, searchOverride: checked })
-                  }
-                />
-                <Label htmlFor="searchOverride">Nadpisz frazy typu produktu</Label>
-              </div>
-            </div>
-          )}
 
           <ImageUpload
             id="image"

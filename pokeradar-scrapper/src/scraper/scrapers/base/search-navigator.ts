@@ -2,7 +2,7 @@
  * Search and navigation logic for product scraping.
  */
 
-import { ShopConfig, WatchlistProductInternal, Selector } from '../../../shared/types';
+import { ShopConfig, ResolvedWatchlistProduct, Selector } from '../../../shared/types';
 import { IEngine, IElement } from '../../engines/engine.interface';
 import {
   normalizeUrl,
@@ -59,8 +59,8 @@ export class SearchNavigator {
   /**
    * Searches for a product and returns its URL.
    */
-  async findProductUrl(product: WatchlistProductInternal): Promise<SearchResult | null> {
-    for (const phrase of product.search!.phrases!) {
+  async findProductUrl(product: ResolvedWatchlistProduct): Promise<SearchResult | null> {
+    for (const phrase of product.search.phrases) {
       const searchUrl = buildSearchUrl(this.config.baseUrl, this.config.searchUrl, phrase);
 
       await this.engine.goto(searchUrl);
@@ -89,7 +89,7 @@ export class SearchNavigator {
    * Checks if search resulted in a direct hit to product page.
    */
   private async checkDirectHit(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     phrase: string,
   ): Promise<SearchResult | null> {
     if (!this.config.directHitPattern) {
@@ -126,7 +126,7 @@ export class SearchNavigator {
    * Validates a direct hit by checking the product page title.
    */
   private async validateDirectHit(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     phrase: string,
   ): Promise<boolean> {
     const titleSelector = this.config.selectors.productPage.title;
@@ -176,7 +176,7 @@ export class SearchNavigator {
    * Searches for product in search results page.
    */
   private async findInSearchResults(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     phrase: string,
   ): Promise<{
     url: string;
@@ -329,10 +329,10 @@ export class SearchNavigator {
    * Returns the best matching result or null. No HTTP requests.
    */
   matchProductFromCandidates(
-    product: WatchlistProductInternal,
+    product: ResolvedWatchlistProduct,
     candidates: ProductCandidate[],
   ): MatchResult | null {
-    for (const phrase of product.search!.phrases!) {
+    for (const phrase of product.search.phrases) {
       const scoredCandidates: ProductCandidate[] = [];
 
       for (const candidate of candidates) {

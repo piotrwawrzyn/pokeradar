@@ -2,7 +2,7 @@ export interface Product {
   id: string;
   name: string;
   imageUrl: string;
-  productSetId?: string;
+  productSetId: string;
   disabled?: boolean;
 }
 

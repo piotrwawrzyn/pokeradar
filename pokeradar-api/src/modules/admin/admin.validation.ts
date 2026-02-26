@@ -9,15 +9,8 @@ export const createProductSchema = z.object({
       .regex(/^[a-z0-9-]+$/, 'ID must be lowercase alphanumeric with hyphens'),
     name: z.string().trim().min(1),
     imageUrl: z.string().trim().url().optional(),
-    productSetId: z.string().trim().optional(),
-    productTypeId: z.string().trim().optional(),
-    search: z
-      .object({
-        phrases: z.array(z.string().trim()).optional(),
-        exclude: z.array(z.string().trim()).optional(),
-        override: z.boolean().optional(),
-      })
-      .optional(),
+    productSetId: z.string().trim().min(1),
+    productTypeId: z.string().trim().min(1),
     price: z
       .object({
         max: z.number().positive(),
@@ -32,16 +25,8 @@ export const updateProductSchema = z.object({
   body: z.object({
     name: z.string().trim().min(1).optional(),
     imageUrl: z.string().trim().url().optional(),
-    productSetId: z.string().trim().nullable().optional(),
-    productTypeId: z.string().trim().nullable().optional(),
-    search: z
-      .object({
-        phrases: z.array(z.string().trim()).optional(),
-        exclude: z.array(z.string().trim()).optional(),
-        override: z.boolean().optional(),
-      })
-      .nullable()
-      .optional(),
+    productSetId: z.string().trim().min(1).optional(),
+    productTypeId: z.string().trim().min(1).optional(),
     price: z
       .object({
         max: z.number().positive(),
@@ -84,24 +69,21 @@ export const createProductTypeSchema = z.object({
       .min(1)
       .regex(/^[a-z0-9-]+$/, 'ID must be lowercase alphanumeric with hyphens'),
     name: z.string().trim().min(1),
-    search: z
-      .object({
-        phrases: z.array(z.string().trim()).optional(),
-        exclude: z.array(z.string().trim()).optional(),
-      })
-      .optional(),
+    matchingProfile: z.object({
+      required: z.array(z.string().trim()).min(1),
+      forbidden: z.array(z.string().trim()).optional(),
+    }),
   }),
 });
 
 export const updateProductTypeSchema = z.object({
   body: z.object({
     name: z.string().trim().min(1).optional(),
-    search: z
+    matchingProfile: z
       .object({
-        phrases: z.array(z.string().trim()).optional(),
-        exclude: z.array(z.string().trim()).optional(),
+        required: z.array(z.string().trim()).min(1),
+        forbidden: z.array(z.string().trim()).optional(),
       })
-      .nullable()
       .optional(),
   }),
 });

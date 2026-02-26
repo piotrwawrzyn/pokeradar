@@ -3,22 +3,12 @@
  */
 
 /**
- * Search configuration for a product.
- */
-export interface SearchConfig {
-  phrases?: string[];
-  exclude?: string[];
-  override?: boolean;
-}
-
-/**
  * Product to monitor (config format).
  */
 export interface WatchlistProduct {
   name: string;
-  productSetId?: string;
-  productTypeId?: string;
-  search?: SearchConfig;
+  productSetId: string;
+  productTypeId: string;
   disabled?: boolean;
 }
 
@@ -31,7 +21,7 @@ export interface WatchlistProductInternal extends WatchlistProduct {
 
 /**
  * A product with fully resolved search config (guaranteed non-optional).
- * Produced by search-resolver after merging ProductType + product search.
+ * Produced by search-resolver from ProductType's matching profile + set name.
  */
 export interface ResolvedWatchlistProduct extends WatchlistProductInternal {
   search: {
