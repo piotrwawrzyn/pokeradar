@@ -40,14 +40,14 @@ const PRODUCT_TYPE_SYNONYM_RULES: SynonymRule[] = [
   // "Checklane" (a specific blister format) → Blister
   { pattern: /\bchecklane\b/g, replacement: 'blister' },
 
-  // "3PK", "Trójpak" (Polish) → 3 pack
+  // "3PK", "3Pack", "Trójpak" (Polish) → 3 pack
   // Note: "3-Pack" is already handled by the normalize layer (dash → space) so
-  // the expand layer only needs to cover the abbreviation forms.
+  // the expand layer only needs to cover the abbreviation and merged forms.
   // Diacritics are also already stripped by normalize ("trojpak" not "trójpak").
-  { pattern: /\b3pk\b|\btrojpak\b/g, replacement: '3 pack' },
+  { pattern: /\b3pk\b|\b3pack\b|\btrojpak\b/g, replacement: '3 pack' },
 
-  // "2PK" → 2 pack  ("2-Pack" is normalized to "2 pack" by the normalize layer)
-  { pattern: /\b2pk\b/g, replacement: '2 pack' },
+  // "2PK", "2Pack" → 2 pack  ("2-Pack" is normalized to "2 pack" by the normalize layer)
+  { pattern: /\b2pk\b|\b2pack\b/g, replacement: '2 pack' },
 
   // "Puszka" (Polish for tin/can) → Tin
   { pattern: /\bpuszka\b/g, replacement: 'tin' },

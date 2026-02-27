@@ -32,10 +32,11 @@ interface SetNumberRule {
 const LETTER_PREFIX_DIGIT = /^([A-Za-z]+)(0*)([1-9]\d*)$/;
 
 /**
- * Letters + integer + dot + integer, e.g. "SV3.5", "ME2.5".
+ * Letters + integer + dot-or-comma + integer, e.g. "SV3.5", "ME2.5", "SV8,5".
+ * Polish shops often use a comma as the decimal separator.
  * The leading-zero group captures optional zero-padding before the major digit.
  */
-const LETTER_PREFIX_DIGIT_DOT_DIGIT = /^([A-Za-z]+)(0*)([1-9]\d*)\.(\d+)$/;
+const LETTER_PREFIX_DIGIT_DOT_DIGIT = /^([A-Za-z]+)(0*)([1-9]\d*)[.,](\d+)$/;
 
 function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -48,20 +49,21 @@ function escapeRegex(str: string): string {
  * Examples:
  *   "ME2"   → "ME0?2"       (matches "ME2", "ME02", "me2", "me02")
  *   "SV8"   → "SV0?8"       (matches "SV8", "SV08", etc.)
- *   "SV3.5" → "SV0?3\\.5"   (matches "SV3.5", "SV03.5", etc.)
- *   "ME2.5" → "ME0?2\\.5"   (matches "ME2.5", "ME02.5", etc.)
+ *   "SV3.5" → "SV\s?0?3[.,]5"  (matches "SV3.5", "SV 3.5", "SV3,5", "SV03.5", etc.)
+ *   "ME2.5" → "ME\s?0?2[.,]5"  (matches "ME2.5", "ME 2.5", "ME2,5", "ME02.5", etc.)
+ *   "SV8"   → "SV\s?0?8"        (matches "SV8", "SV 8", "SV08", "SV 08", etc.)
  */
 function buildSetNumberPattern(rawSetNumber: string): string {
   const dotMatch = LETTER_PREFIX_DIGIT_DOT_DIGIT.exec(rawSetNumber);
   if (dotMatch) {
     const [, prefix, , major, minor] = dotMatch;
-    return `${escapeRegex(prefix)}0?${escapeRegex(major)}\\.${escapeRegex(minor)}`;
+    return `${escapeRegex(prefix)}\\s?0?${escapeRegex(major)}[.,]${escapeRegex(minor)}`;
   }
 
   const simpleMatch = LETTER_PREFIX_DIGIT.exec(rawSetNumber);
   if (simpleMatch) {
     const [, prefix, , major] = simpleMatch;
-    return `${escapeRegex(prefix)}0?${escapeRegex(major)}`;
+    return `${escapeRegex(prefix)}\\s?0?${escapeRegex(major)}`;
   }
 
   return escapeRegex(rawSetNumber);

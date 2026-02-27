@@ -44,6 +44,10 @@ describe('ExpandSynonymsLayer', () => {
       expect(layer.execute(input('surging sparks 3pk')).normalized).toBe('surging sparks 3 pack');
     });
 
+    it('expands 3pack (merged, no separator) to "3 pack"', () => {
+      expect(layer.execute(input('surging sparks 3pack')).normalized).toBe('surging sparks 3 pack');
+    });
+
     it('expands trojpak (Polish, already diacritic-stripped by normalize) to "3 pack"', () => {
       expect(layer.execute(input('surging sparks trojpak')).normalized).toBe(
         'surging sparks 3 pack',
@@ -58,6 +62,12 @@ describe('ExpandSynonymsLayer', () => {
 
     it('expands 2pk to "2 pack"', () => {
       expect(layer.execute(input('surging sparks 2pk')).normalized).toBe('surging sparks 2 pack');
+    });
+
+    it('expands 2pack (merged, no separator) to "2 pack"', () => {
+      expect(layer.execute(input('ascended heroes 2pack blister larry')).normalized).toBe(
+        'ascended heroes 2 pack blister larry',
+      );
     });
 
     it('does not need to expand 2-pack — normalize layer converts the dash to a space first', () => {

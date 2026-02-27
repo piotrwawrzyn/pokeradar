@@ -50,6 +50,27 @@ describe('ExpandSetNumbersLayer', () => {
     });
   });
 
+  // ── Spaced set numbers (e.g. "SV 8" instead of "SV8") ──
+
+  describe('spaced set number expansion', () => {
+    it('expands "SV 8" (space between prefix and digit) identically to SV8', () => {
+      expect(
+        layer.execute(input('Pokemon TCG: Scarlet & Violet SV 8 Surging Sparks Booster Box (36)'))
+          .rawTitle,
+      ).toBe('Pokemon TCG: Scarlet & Violet Surging Sparks Surging Sparks Booster Box (36)');
+    });
+
+    it('expands "ME 2" (space) identically to ME2', () => {
+      expect(layer.execute(input('ME 2 Blister')).rawTitle).toBe('Phantasmal Flames Blister');
+    });
+
+    it('expands "ME 2.5" (space before decimal) identically to ME2.5', () => {
+      expect(layer.execute(input('ME 2.5 Ascended Heroes Booster')).rawTitle).toBe(
+        'Ascended Heroes Ascended Heroes Booster',
+      );
+    });
+  });
+
   // ── Zero-padded set numbers ──
 
   describe('zero-padded set number expansion', () => {
@@ -97,6 +118,32 @@ describe('ExpandSetNumbersLayer', () => {
       // "SV3.5x" has no word boundary after the "5" before "x" — should not expand
       const result = layer.execute(input('SV3.5x Booster'));
       expect(result.rawTitle).toBe('SV3.5x Booster');
+    });
+  });
+
+  // ── Comma decimal separator (Polish shops) ──
+
+  describe('comma as decimal separator', () => {
+    it('expands ME2,5 (comma) identically to ME2.5', () => {
+      expect(layer.execute(input('Pokemon ME2,5 Ascended Heroes Booster')).rawTitle).toBe(
+        'Pokemon Ascended Heroes Ascended Heroes Booster',
+      );
+    });
+
+    it('expands ME02,5 (zero-padded, comma) identically to ME2.5', () => {
+      expect(layer.execute(input('Pokemon ME02,5 Ascended Heroes Blister')).rawTitle).toBe(
+        'Pokemon Ascended Heroes Ascended Heroes Blister',
+      );
+    });
+
+    it('expands SV8,5 (comma) to Prismatic Evolutions', () => {
+      const layerWithPE = new ExpandSetNumbersLayer([
+        set('sv085', 'Prismatic Evolutions', 'SV8.5'),
+      ]);
+      expect(
+        layerWithPE.execute(input('Pokemon SV8,5 TCG Prismatic Evolutions Booster Bundle'))
+          .rawTitle,
+      ).toBe('Pokemon Prismatic Evolutions TCG Prismatic Evolutions Booster Bundle');
     });
   });
 

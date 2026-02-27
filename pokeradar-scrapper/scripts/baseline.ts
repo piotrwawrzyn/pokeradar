@@ -329,7 +329,17 @@ async function runScraping(
   const { setGroups, ungrouped } = groupProductsBySet(products, setMap);
 
   // Build pipeline and watchlist index
-  const pipeline = new ProductMatchingPipeline({ productTypes, productSets });
+  const debugLogger = {
+    debug: (msg: string, meta?: Record<string, unknown>) => {
+      if (process.env.PIPELINE_DEBUG)
+        console.log(`  [DEBUG] ${msg}`, meta ? JSON.stringify(meta) : '');
+    },
+    warn: (msg: string, meta?: Record<string, unknown>) => {
+      if (process.env.PIPELINE_DEBUG)
+        console.log(`  [WARN]  ${msg}`, meta ? JSON.stringify(meta) : '');
+    },
+  };
+  const pipeline = new ProductMatchingPipeline({ productTypes, productSets }, debugLogger);
   const watchlistIndex = new Map<string, WatchlistProductInternal[]>();
   for (const product of products) {
     const key = `${product.productTypeId}|${product.productSetId}`;
