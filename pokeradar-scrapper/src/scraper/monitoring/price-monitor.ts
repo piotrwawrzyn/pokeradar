@@ -89,7 +89,7 @@ export class PriceMonitor {
 
     // Load product types and sets from DB
     const [productTypeDocs, productSetDocs] = await Promise.all([
-      ProductTypeModel.find().select('id name matchingProfile').lean(),
+      ProductTypeModel.find().select('id name matchingProfile contains').lean(),
       ProductSetModel.find().select('id name series setNumber setAbbreviation').lean(),
     ]);
 
@@ -100,6 +100,7 @@ export class PriceMonitor {
         required: doc.matchingProfile?.required ?? [],
         forbidden: doc.matchingProfile?.forbidden ?? [],
       },
+      contains: doc.contains ?? [],
     }));
 
     const productSets: MatchableProductSet[] = productSetDocs.map((doc) => ({

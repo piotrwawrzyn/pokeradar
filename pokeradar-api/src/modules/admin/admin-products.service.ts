@@ -284,6 +284,7 @@ export class AdminProductsService {
     id: string;
     name: string;
     matchingProfile: { required: string[]; forbidden?: string[] };
+    contains?: string[];
   }) {
     const existing = await ProductTypeModel.findOne({ id: data.id }).lean();
     if (existing) throw new ConflictError('Product type with this ID already exists');

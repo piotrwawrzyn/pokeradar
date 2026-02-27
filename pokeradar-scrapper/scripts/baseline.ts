@@ -756,8 +756,8 @@ async function main() {
 
     // Load product types and sets from DB
     const [productTypeDocs, productSetDocs] = await Promise.all([
-      ProductTypeModel.find().select('id name matchingProfile').lean(),
-      ProductSetModel.find().select('id name series').lean(),
+      ProductTypeModel.find().select('id name matchingProfile contains').lean(),
+      ProductSetModel.find().select('id name series setNumber setAbbreviation').lean(),
     ]);
 
     const productTypes: MatchableProductType[] = productTypeDocs.map((doc) => ({
@@ -767,12 +767,15 @@ async function main() {
         required: doc.matchingProfile?.required ?? [],
         forbidden: doc.matchingProfile?.forbidden ?? [],
       },
+      contains: doc.contains ?? [],
     }));
 
     const productSets: MatchableProductSet[] = productSetDocs.map((doc) => ({
       id: doc.id,
       name: doc.name,
       series: doc.series,
+      setNumber: doc.setNumber,
+      setAbbreviation: doc.setAbbreviation,
     }));
 
     const setMap = new Map<string, { name: string; series: string }>();
@@ -803,7 +806,7 @@ async function main() {
       const hasDifferences = compareResults(baseline.results, scrapingResult.results, shopFilter);
 
       // Print detailed product results
-      printProductDetails(scrapingResult.results, resolvedProducts, shopFilter);
+      printProductDetails(scrapingResult.results, products, shopFilter);
 
       const duration = Math.round((Date.now() - startTime) / 1000);
       console.log(`⏱️  Check completed in ${duration}s\n`);

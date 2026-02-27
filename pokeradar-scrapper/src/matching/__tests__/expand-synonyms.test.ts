@@ -23,6 +23,9 @@ const SETS: MatchableProductSet[] = [
   set('sv09', 'Journey Together', 'SV9', 'JTG'),
   set('sv06', 'Twilight Masquerade', 'SV6', 'TWM'),
   set('sv035', '151', 'SV3.5', 'MEW'),
+  // ME-series uses single-digit set numbers; shops often zero-pad them (ME02, ME03)
+  set('me02', 'Phantasmal Flames', 'ME2', 'PFL'),
+  set('me03', 'Extradimensional Crisis', 'ME3', 'ECR'),
 ];
 
 // ── Tests ──
@@ -40,6 +43,11 @@ describe('ExpandSynonymsLayer', () => {
 
     it('expands BB to "booster box"', () => {
       const result = layer.execute(input('surging sparks bb'));
+      expect(result.normalized).toBe('surging sparks booster box');
+    });
+
+    it('expands "booster display" to "booster box"', () => {
+      const result = layer.execute(input('surging sparks booster display'));
       expect(result.normalized).toBe('surging sparks booster box');
     });
 
@@ -116,6 +124,46 @@ describe('ExpandSynonymsLayer', () => {
       // normalizeTitle('SV3.5') → 'sv3 5' (dot → space)
       const result = layer.execute(input('sv3 5 booster'));
       expect(result.normalized).toBe('151 booster');
+    });
+
+    it('expands me2 (unpadded) to set name', () => {
+      const result = layer.execute(input('me2 blister'));
+      expect(result.normalized).toBe('phantasmal flames blister');
+    });
+  });
+
+  // ── Zero-padded set number expansion ──
+
+  describe('zero-padded set number expansion', () => {
+    it('expands me02 (zero-padded) to the same set name as me2', () => {
+      // Shops may zero-pad set numbers: "ME02" normalises to "me02"
+      // The DB stores "ME2" which normalises to "me2".
+      // The generated pattern "me0?2" must match both.
+      const result = layer.execute(input('me02 blister'));
+      expect(result.normalized).toBe('phantasmal flames blister');
+    });
+
+    it('expands me03 (zero-padded) to the same set name as me3', () => {
+      const result = layer.execute(input('me03 booster box'));
+      expect(result.normalized).toBe('extradimensional crisis booster box');
+    });
+
+    it('expands sv08 (zero-padded) to "surging sparks"', () => {
+      // SV-series shops may also zero-pad: "SV08" → "sv08"
+      const result = layer.execute(input('sv08 elite trainer box'));
+      expect(result.normalized).toBe('surging sparks elite trainer box');
+    });
+
+    it('does not affect set numbers with a dot (complex structure matched literally)', () => {
+      // "SV3.5" normalises to "sv3 5" — not a simple letter+digit token, matched literally
+      const result = layer.execute(input('sv3 5 booster'));
+      expect(result.normalized).toBe('151 booster');
+    });
+
+    it('expands both zero-padded set number and product type in a single title', () => {
+      // "ME02 ETB" → set expands → "phantasmal flames etb" → type expands → "phantasmal flames elite trainer box"
+      const result = layer.execute(input('me02 etb'));
+      expect(result.normalized).toBe('phantasmal flames elite trainer box');
     });
   });
 

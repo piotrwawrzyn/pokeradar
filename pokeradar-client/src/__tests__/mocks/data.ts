@@ -59,6 +59,8 @@ export const mockProductSets: ProductSet[] = [
     series: 'Scarlet & Violet',
     imageUrl: 'https://example.com/sv.jpg',
     releaseDate: '2024-01-15',
+    setNumber: 'SV1',
+    setAbbreviation: 'SVI',
   },
   {
     id: 'set-2',
@@ -66,6 +68,8 @@ export const mockProductSets: ProductSet[] = [
     series: 'Sword & Shield',
     imageUrl: 'https://example.com/swsh.jpg',
     releaseDate: '2023-06-01',
+    setNumber: 'SWSH1',
+    setAbbreviation: 'SSH',
   },
 ];
 

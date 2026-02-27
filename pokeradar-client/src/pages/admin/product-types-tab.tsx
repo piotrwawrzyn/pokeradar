@@ -4,6 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { TableCell, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+} from '@/components/ui/dropdown-menu';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
 import { CrudDialog } from '@/components/admin/crud-dialog';
 import { EntityTable } from '@/components/admin/entity-table';
@@ -16,7 +23,7 @@ import {
 } from '@/hooks/use-admin';
 import { useCrudDialog } from '@/hooks/use-crud-dialog';
 import { toast } from 'sonner';
-import { Trash2 } from 'lucide-react';
+import { ChevronDown, X, Trash2 } from 'lucide-react';
 import type { ProductType } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 
@@ -34,10 +41,11 @@ export function ProductTypesTab() {
     name: '',
     matchingRequired: '',
     matchingForbidden: '',
+    contains: [] as string[],
   });
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', matchingRequired: '', matchingForbidden: '' });
+    setFormData({ id: '', name: '', matchingRequired: '', matchingForbidden: '', contains: [] });
   };
 
   const populateForm = (type: ProductType) => {
@@ -46,6 +54,7 @@ export function ProductTypesTab() {
       name: type.name,
       matchingRequired: type.matchingProfile.required.join(', '),
       matchingForbidden: type.matchingProfile.forbidden?.join(', ') || '',
+      contains: type.contains ?? [],
     });
   };
 
@@ -60,6 +69,7 @@ export function ProductTypesTab() {
           ? formData.matchingForbidden.split(',').map((s) => s.trim())
           : [],
       },
+      contains: formData.contains,
     };
 
     if (!dialog.selected) {
@@ -107,6 +117,7 @@ export function ProductTypesTab() {
           'Produkty',
           'Wymagane tokeny',
           'Zabronione tokeny',
+          'Zawiera',
           { label: '', className: 'w-16' },
         ]}
       >
@@ -125,6 +136,11 @@ export function ProductTypesTab() {
             </TableCell>
             <TableCell className="text-muted-foreground text-sm">
               {type.matchingProfile.forbidden?.join(', ') || '-'}
+            </TableCell>
+            <TableCell className="text-muted-foreground text-sm">
+              {type.contains?.length
+                ? type.contains.map((id) => types?.find((t) => t.id === id)?.name ?? id).join(', ')
+                : '-'}
             </TableCell>
             <TableCell>
               <Button
@@ -183,6 +199,75 @@ export function ProductTypesTab() {
             onChange={(e) => setFormData({ ...formData, matchingForbidden: e.target.value })}
             placeholder="np. proxy, damaged"
           />
+        </div>
+
+        <div>
+          <Label className="mb-2 block">Zawiera typy (składniki)</Label>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-between font-normal"
+                type="button"
+              >
+                <span className="text-muted-foreground text-sm">
+                  {formData.contains.length === 0
+                    ? 'Wybierz typy składowe…'
+                    : `${formData.contains.length} wybranych`}
+                </span>
+                <ChevronDown className="size-4 shrink-0 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+              {types
+                ?.filter((t) => t.id !== dialog.selected?.id)
+                .map((t) => (
+                  <DropdownMenuCheckboxItem
+                    key={t.id}
+                    checked={formData.contains.includes(t.id)}
+                    onCheckedChange={(checked) => {
+                      setFormData({
+                        ...formData,
+                        contains: checked
+                          ? [...formData.contains, t.id]
+                          : formData.contains.filter((id) => id !== t.id),
+                      });
+                    }}
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    {t.name}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {formData.contains.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {formData.contains.map((id) => {
+                const name = types?.find((t) => t.id === id)?.name ?? id;
+                return (
+                  <Badge
+                    key={id}
+                    variant="secondary"
+                    className="gap-1.5 px-2.5 py-1 text-sm pr-1.5"
+                  >
+                    {name}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          contains: formData.contains.filter((c) => c !== id),
+                        })
+                      }
+                      className="rounded-full hover:bg-muted-foreground/20 p-0.5"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
         </div>
       </CrudDialog>
 

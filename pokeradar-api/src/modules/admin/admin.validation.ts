@@ -77,6 +77,7 @@ export const createProductTypeSchema = z.object({
       required: z.array(z.string().trim()).min(1),
       forbidden: z.array(z.string().trim()).optional(),
     }),
+    contains: z.array(z.string().trim().min(1)).optional(),
   }),
 });
 
@@ -89,5 +90,6 @@ export const updateProductTypeSchema = z.object({
         forbidden: z.array(z.string().trim()).optional(),
       })
       .optional(),
+    contains: z.array(z.string().trim().min(1)).optional(),
   }),
 });

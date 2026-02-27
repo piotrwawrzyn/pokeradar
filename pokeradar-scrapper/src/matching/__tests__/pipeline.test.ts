@@ -9,26 +9,31 @@ const CONFIG: PipelineConfig = {
       id: 'booster',
       name: 'Booster',
       matchingProfile: { required: ['booster'], forbidden: [] },
+      contains: [],
     },
     {
       id: 'booster-box',
       name: 'Booster Box',
       matchingProfile: { required: ['booster', 'box'], forbidden: [] },
+      contains: ['booster'],
     },
     {
       id: 'booster-bundle',
       name: 'Booster Bundle',
       matchingProfile: { required: ['booster', 'bundle'], forbidden: [] },
+      contains: ['booster'],
     },
     {
       id: 'etb',
       name: 'Elite Trainer Box',
       matchingProfile: { required: ['elite', 'trainer', 'box'], forbidden: [] },
+      contains: ['booster'],
     },
     {
       id: 'mini-tin',
       name: 'Mini Tin',
       matchingProfile: { required: ['mini', 'tin'], forbidden: [] },
+      contains: ['booster'],
     },
   ],
   productSets: [

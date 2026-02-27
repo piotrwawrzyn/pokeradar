@@ -72,6 +72,7 @@ export interface ProductType {
   id: string;
   name: string;
   matchingProfile: { required: string[]; forbidden: string[] };
+  contains: string[];
 }
 
 export interface AdminUserSearchItem {

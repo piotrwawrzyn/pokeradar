@@ -71,6 +71,7 @@ const BOOSTER_BOX_TYPE: MatchableProductType = {
   id: 'booster-box',
   name: 'Booster Box',
   matchingProfile: { required: ['booster', 'box'], forbidden: [] },
+  contains: ['booster'],
 };
 
 function makeInput(residualTitle: string): TypeMatchResult {

@@ -15,6 +15,8 @@ export interface MatchableProductType {
     required: string[];
     forbidden: string[];
   };
+  /** IDs of product types that are direct ingredients of this type (e.g. Tin contains Booster). */
+  contains: string[];
 }
 
 /** Product set used as pipeline reference data. */
