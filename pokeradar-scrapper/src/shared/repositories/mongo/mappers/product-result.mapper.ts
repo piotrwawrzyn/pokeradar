@@ -12,6 +12,7 @@ export interface IProductResultDoc {
   shopId: string;
   hourBucket: string;
   productUrl: string;
+  productTitle: string;
   price: number | null;
   isAvailable: boolean;
   timestamp: Date;
@@ -34,6 +35,7 @@ export function toProductResult(doc: IProductResultDoc): ProductResult {
     productId: doc.productId,
     shopId: doc.shopId,
     productUrl: doc.productUrl,
+    productTitle: doc.productTitle,
     price: doc.price,
     isAvailable: doc.isAvailable,
     timestamp: doc.timestamp,
@@ -56,6 +58,7 @@ export function toProductResultDoc(result: ProductResult): Omit<IProductResultDo
     shopId: result.shopId,
     hourBucket: getHourBucket(result.timestamp),
     productUrl: result.productUrl,
+    productTitle: result.productTitle,
     price: result.price,
     isAvailable: result.isAvailable,
     timestamp: result.timestamp,

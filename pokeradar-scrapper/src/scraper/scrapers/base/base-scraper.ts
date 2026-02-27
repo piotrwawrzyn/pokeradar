@@ -26,11 +26,13 @@ export interface IScraper {
   scrapeProductWithUrl(
     product: WatchlistProductInternal,
     productUrl: string,
+    productTitle: string,
   ): Promise<ProductResult | null>;
   createResultFromSearchData(
     product: WatchlistProductInternal,
     productUrl: string,
     searchPageData: { price: number | null; isAvailable: boolean },
+    productTitle: string,
   ): ProductResult;
   getNavigator(): SearchNavigator;
   close(): Promise<void>;
@@ -117,6 +119,7 @@ export abstract class BaseScraper implements IScraper {
   async scrapeProductWithUrl(
     product: WatchlistProductInternal,
     productUrl: string,
+    productTitle: string,
   ): Promise<ProductResult | null> {
     try {
       await this.navigateToProductPage(productUrl);
@@ -127,6 +130,7 @@ export abstract class BaseScraper implements IScraper {
         productId: product.id,
         shopId: this.config.id,
         productUrl,
+        productTitle,
         price,
         isAvailable,
         timestamp: new Date(),
@@ -149,6 +153,7 @@ export abstract class BaseScraper implements IScraper {
     product: WatchlistProductInternal,
     productUrl: string,
     searchPageData: { price: number | null; isAvailable: boolean },
+    productTitle: string,
   ): ProductResult {
     this.logger?.debug('Using search page data (skipping product page visit)', {
       shop: this.config.id,
@@ -162,6 +167,7 @@ export abstract class BaseScraper implements IScraper {
       productId: product.id,
       shopId: this.config.id,
       productUrl,
+      productTitle,
       price: searchPageData.price,
       isAvailable: searchPageData.isAvailable,
       timestamp: new Date(),

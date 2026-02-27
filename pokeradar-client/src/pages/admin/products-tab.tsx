@@ -395,10 +395,20 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                                                   : 'border-border bg-background'
                                               }`}
                                             >
-                                              <span className="font-medium min-w-[150px]">
-                                                {find.shopName}
-                                              </span>
-                                              <div className="flex items-center gap-4">
+                                              <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                <span className="font-medium shrink-0">
+                                                  {find.shopName}
+                                                </span>
+                                                {find.productTitle && (
+                                                  <span
+                                                    className="text-muted-foreground text-xs truncate"
+                                                    title={find.productTitle}
+                                                  >
+                                                    {find.productTitle}
+                                                  </span>
+                                                )}
+                                              </div>
+                                              <div className="flex items-center gap-4 shrink-0">
                                                 {find.isAvailable ? (
                                                   <>
                                                     <span className="text-green-500 font-semibold min-w-[80px] text-right">

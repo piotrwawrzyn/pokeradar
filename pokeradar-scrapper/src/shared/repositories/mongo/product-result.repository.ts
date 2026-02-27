@@ -21,6 +21,7 @@ export class MongoProductResultRepository implements IProductResultRepository {
       shopId: result.shopId,
       hourBucket: getHourBucket(result.timestamp),
       productUrl: result.productUrl,
+      productTitle: result.productTitle,
       price: result.price,
       isAvailable: result.isAvailable,
       timestamp: result.timestamp,
@@ -36,6 +37,7 @@ export class MongoProductResultRepository implements IProductResultRepository {
         shopId: r.shopId,
         hourBucket: getHourBucket(r.timestamp),
         productUrl: r.productUrl,
+        productTitle: r.productTitle,
         price: r.price,
         isAvailable: r.isAvailable,
         timestamp: r.timestamp,
@@ -58,6 +60,7 @@ export class MongoProductResultRepository implements IProductResultRepository {
           update: {
             $set: {
               productUrl: result.productUrl,
+              productTitle: result.productTitle,
               price: result.price,
               isAvailable: result.isAvailable,
               timestamp: result.timestamp,

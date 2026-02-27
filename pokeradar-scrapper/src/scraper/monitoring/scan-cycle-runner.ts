@@ -76,6 +76,8 @@ interface ProductTask {
   product: WatchlistProductInternal;
   /** Pre-resolved URL to the product page. */
   resolvedUrl: string;
+  /** Raw product title from the shop's search results. */
+  productTitle: string;
   /** If present, skip product page visit entirely and use this data. */
   searchPageData?: {
     price: number | null;
@@ -242,6 +244,7 @@ export class ScanCycleRunner {
             task.product,
             task.resolvedUrl,
             task.searchPageData,
+            task.productTitle,
           );
           this.handleResult(task.product, result, shop);
         } else {
@@ -251,7 +254,11 @@ export class ScanCycleRunner {
             shop: shop.id,
             url: task.resolvedUrl,
           });
-          const result = await scraper.scrapeProductWithUrl(task.product, task.resolvedUrl);
+          const result = await scraper.scrapeProductWithUrl(
+            task.product,
+            task.resolvedUrl,
+            task.productTitle,
+          );
           if (result) {
             this.handleResult(task.product, result, shop);
           }
@@ -305,10 +312,15 @@ export class ScanCycleRunner {
               task.product,
               task.resolvedUrl,
               task.searchPageData,
+              task.productTitle,
             );
             this.handleResult(task.product, result, shop);
           } else {
-            const result = await scraper.scrapeProductWithUrl(task.product, task.resolvedUrl);
+            const result = await scraper.scrapeProductWithUrl(
+              task.product,
+              task.resolvedUrl,
+              task.productTitle,
+            );
             if (result) {
               this.handleResult(task.product, result, shop);
             }
@@ -427,6 +439,7 @@ export class ScanCycleRunner {
         tasks.push({
           product,
           resolvedUrl: best.url,
+          productTitle: best.title,
           searchPageData: best.searchPageData,
         });
       }

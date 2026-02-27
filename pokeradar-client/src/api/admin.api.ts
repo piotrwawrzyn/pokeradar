@@ -40,6 +40,7 @@ export interface AdminShopDetail {
 export interface AdminProductShopFind {
   shopId: string;
   shopName: string;
+  productTitle: string;
   price: number | null;
   isAvailable: boolean;
   productUrl: string;

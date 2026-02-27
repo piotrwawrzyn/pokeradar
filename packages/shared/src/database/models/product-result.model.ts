@@ -5,6 +5,7 @@ export interface IProductResultDoc extends Document {
   shopId: string;
   hourBucket: string;
   productUrl: string;
+  productTitle: string;
   price: number | null;
   isAvailable: boolean;
   timestamp: Date;
@@ -17,6 +18,7 @@ const ProductResultSchema = new Schema<IProductResultDoc>(
     shopId: { type: String, required: true },
     hourBucket: { type: String, required: true },
     productUrl: { type: String, default: '' },
+    productTitle: { type: String, default: '' },
     price: { type: Number, default: null },
     isAvailable: { type: Boolean, required: true },
     timestamp: { type: Date, required: true },

@@ -18,6 +18,7 @@ const imageService = new ImageService();
 export interface AdminProductShopFind {
   shopId: string;
   shopName: string;
+  productTitle: string;
   price: number | null;
   isAvailable: boolean;
   productUrl: string;
@@ -60,6 +61,7 @@ export class AdminProductsService {
           price: { $first: '$price' },
           isAvailable: { $first: '$isAvailable' },
           productUrl: { $first: '$productUrl' },
+          productTitle: { $first: '$productTitle' },
           timestamp: { $first: '$timestamp' },
         },
       },
@@ -71,6 +73,7 @@ export class AdminProductsService {
       finds.push({
         shopId: find.shopId,
         shopName: shopNameMap.get(find.shopId) ?? find.shopId,
+        productTitle: find.productTitle ?? '',
         price: find.price,
         isAvailable: find.isAvailable,
         productUrl: find.productUrl,
