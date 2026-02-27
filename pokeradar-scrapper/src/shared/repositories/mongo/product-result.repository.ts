@@ -6,13 +6,7 @@ import { ProductResult } from '../../types';
 import { IProductResultRepository } from '../interfaces';
 import { ProductResultModel } from '../../../infrastructure/database/models';
 import { toProductResult, toProductResultArray, getHourBucket } from './mappers';
-
-function getFreshnessCutoff(): Date {
-  const now = new Date();
-  const cutoff = new Date(now);
-  cutoff.setHours(cutoff.getHours() - 1, 0, 0, 0);
-  return cutoff;
-}
+import { getFreshnessCutoff, buildBestPriceAggregation } from '@pokeradar/shared';
 
 export class MongoProductResultRepository implements IProductResultRepository {
   async save(result: ProductResult): Promise<void> {
@@ -122,24 +116,8 @@ export class MongoProductResultRepository implements IProductResultRepository {
     const freshSet = new Set<string>(productsWithFreshData);
 
     // Find best available offers among fresh results
-    const docs = await ProductResultModel.aggregate([
-      {
-        $match: {
-          productId: { $in: productIds },
-          isAvailable: true,
-          price: { $ne: null },
-          timestamp: { $gte: cutoff },
-        },
-      },
-      { $sort: { productId: 1, shopId: 1, timestamp: -1 } },
-      {
-        $group: { _id: { productId: '$productId', shopId: '$shopId' }, doc: { $first: '$$ROOT' } },
-      },
-      { $replaceRoot: { newRoot: '$doc' } },
-      { $sort: { productId: 1, price: 1 } },
-      { $group: { _id: '$productId', doc: { $first: '$$ROOT' } } },
-      { $replaceRoot: { newRoot: '$doc' } },
-    ]);
+    const pipeline = buildBestPriceAggregation(productIds, cutoff);
+    const docs = await ProductResultModel.aggregate(pipeline);
 
     // null = fresh data exists but nothing available, absent from map = no fresh data at all
     const result = new Map<string, ProductResult | null>();

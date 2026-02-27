@@ -6,3 +6,4 @@ export {
   isConnected,
 } from './db-connect';
 export * from './models';
+export { getFreshnessCutoff, buildBestPriceAggregation } from './query-utils';

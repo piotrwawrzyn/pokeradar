@@ -19,15 +19,4 @@ export interface WatchlistProductInternal extends WatchlistProduct {
   id: string;
 }
 
-/**
- * Scraping result for a product.
- */
-export interface ProductResult {
-  productId: string;
-  shopId: string;
-  productUrl: string;
-  productTitle: string;
-  price: number | null;
-  isAvailable: boolean;
-  timestamp: Date;
-}
+export type { ProductResult } from '@pokeradar/shared';

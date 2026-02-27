@@ -12,6 +12,7 @@ import {
   NotificationChannel,
   NotificationModel,
   UserModel,
+  formatError,
 } from '@pokeradar/shared';
 import { INotificationChannel } from './channels';
 import { RateLimiter } from './rate-limiter';
@@ -273,7 +274,7 @@ export class NotificationProcessor {
         });
         return;
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
+        const errorMsg = formatError(error);
 
         if (attempt === this.retryConfig.maxAttempts) {
           this.logger.error('Delivery failed permanently', {

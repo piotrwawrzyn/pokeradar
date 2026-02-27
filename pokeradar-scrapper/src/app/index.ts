@@ -29,7 +29,7 @@ import {
   IShopRepository,
   IWatchlistRepository,
 } from '../shared/repositories';
-import { getShopConfigDir } from '@pokeradar/shared';
+import { getShopConfigDir, formatError } from '@pokeradar/shared';
 import { Logger } from '../shared/logger';
 import { NotificationStateService, MultiUserNotificationDispatcher } from '../shared/notification';
 
@@ -83,10 +83,7 @@ async function main() {
     notificationRepository = new MongoNotificationRepository();
     console.log('MongoDB connected');
   } catch (error) {
-    console.error(
-      'Failed to connect to MongoDB:',
-      error instanceof Error ? error.message : String(error),
-    );
+    console.error('Failed to connect to MongoDB:', formatError(error));
     process.exit(1);
   }
 
@@ -123,7 +120,7 @@ async function main() {
     const duration = Math.round((Date.now() - startTime) / 1000);
     console.log(`Scan completed in ${duration}s`);
   } catch (error) {
-    console.error('Scan failed:', error instanceof Error ? error.message : String(error));
+    console.error('Scan failed:', formatError(error));
     process.exit(1);
   } finally {
     await disconnectDB();

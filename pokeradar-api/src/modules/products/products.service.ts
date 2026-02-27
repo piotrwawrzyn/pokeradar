@@ -1,12 +1,6 @@
 import { WatchlistProductModel, ProductResultModel } from '../../infrastructure/database/models';
 import { Product, ProductWithPrice, ProductPriceResponse } from '../../shared/types';
-
-function getFreshnessCutoff(): Date {
-  const now = new Date();
-  const cutoff = new Date(now);
-  cutoff.setHours(cutoff.getHours() - 1, 0, 0, 0);
-  return cutoff;
-}
+import { getFreshnessCutoff, buildBestPriceAggregation } from '@pokeradar/shared';
 
 export class ProductsService {
   async listAll(): Promise<ProductWithPrice[]> {
@@ -86,34 +80,14 @@ export class ProductsService {
     if (productIds.length === 0) return new Map();
 
     const cutoff = getFreshnessCutoff();
-    const bestPrices = await ProductResultModel.aggregate([
-      {
-        $match: {
-          productId: { $in: productIds },
-          isAvailable: true,
-          price: { $ne: null },
-          timestamp: { $gte: cutoff },
-        },
-      },
-      { $sort: { productId: 1, shopId: 1, timestamp: -1 } },
-      {
-        $group: {
-          _id: { productId: '$productId', shopId: '$shopId' },
-          doc: { $first: '$$ROOT' },
-        },
-      },
-      { $replaceRoot: { newRoot: '$doc' } },
-      { $sort: { productId: 1, price: 1 } },
-      {
-        $group: {
-          _id: '$productId',
-          bestPrice: { $first: '$price' },
-          shopId: { $first: '$shopId' },
-          productUrl: { $first: '$productUrl' },
-        },
-      },
-    ]);
+    const pipeline = buildBestPriceAggregation(productIds, cutoff);
+    const docs = await ProductResultModel.aggregate(pipeline);
 
-    return new Map(bestPrices.map((p) => [p._id, p]));
+    return new Map(
+      docs.map((d: any) => [
+        d.productId,
+        { bestPrice: d.price, shopId: d.shopId, productUrl: d.productUrl },
+      ]),
+    );
   }
 }
