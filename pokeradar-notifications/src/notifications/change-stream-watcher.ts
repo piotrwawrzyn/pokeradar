@@ -13,6 +13,7 @@ export type NotificationHandler = (doc: INotificationDoc) => void;
 export class ChangeStreamWatcher {
   private changeStream: mongoose.mongo.ChangeStream | null = null;
   private running = false;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private logger: ILogger) {}
 
@@ -30,10 +31,11 @@ export class ChangeStreamWatcher {
    */
   async stop(): Promise<void> {
     this.running = false;
-    if (this.changeStream) {
-      await this.changeStream.close();
-      this.changeStream = null;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
     }
+    await this.closeStream();
     this.logger.info('Change stream watcher stopped');
   }
 
@@ -54,21 +56,35 @@ export class ChangeStreamWatcher {
     });
 
     this.changeStream.on('error', (error) => {
-      this.logger.error('Change stream error, reconnecting...', error);
-      this.changeStream = null;
-
-      if (this.running) {
-        setTimeout(() => this.watch(onNotification), 1000);
-      }
+      this.logger.error('Change stream error', error);
+      this.reconnect(onNotification);
     });
 
     this.changeStream.on('close', () => {
       if (this.running) {
-        this.logger.warn('Change stream closed unexpectedly, reconnecting...');
-        setTimeout(() => this.watch(onNotification), 1000);
+        this.logger.warn('Change stream closed unexpectedly');
+        this.reconnect(onNotification);
       }
     });
 
     this.logger.info('Change stream watcher started');
+  }
+
+  private reconnect(onNotification: NotificationHandler): void {
+    if (!this.running || this.reconnectTimer) return;
+
+    this.closeStream();
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.watch(onNotification);
+    }, 1000);
+  }
+
+  private closeStream(): void {
+    if (this.changeStream) {
+      this.changeStream.removeAllListeners();
+      this.changeStream.close().catch(() => {});
+      this.changeStream = null;
+    }
   }
 }
