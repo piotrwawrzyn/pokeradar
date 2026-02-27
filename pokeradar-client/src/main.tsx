@@ -25,7 +25,11 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 2, // 2 minutes
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        const status = error?.response?.status ?? error?.status;
+        if (status === 429 || status === 401 || status === 403) return false;
+        return failureCount < 1;
+      },
     },
   },
 });

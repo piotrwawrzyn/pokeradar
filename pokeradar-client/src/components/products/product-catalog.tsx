@@ -6,7 +6,6 @@ import { useWatchlistState, WatchlistBanner } from '@/components/watchlist/login
 import { useAuth } from '@/hooks/use-auth';
 import { ProductSetGroup } from './product-set-group';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,6 +18,14 @@ import {
 import { AlertTriangle, FilterX, RefreshCw, Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product, ProductSet, WatchlistEntry } from '@/types';
+
+function pluralize(n: number, one: string, few: string, many: string): string {
+  if (n === 1) return one;
+  const lastDigit = n % 10;
+  const lastTwo = n % 100;
+  if (lastDigit >= 2 && lastDigit <= 4 && (lastTwo < 12 || lastTwo > 14)) return few;
+  return many;
+}
 
 interface GroupedProducts {
   set: ProductSet | null;
@@ -186,11 +193,7 @@ export function ProductCatalog() {
                 ) : (
                   <>
                     {totalProductsCount}{' '}
-                    {totalProductsCount === 1
-                      ? 'produkt'
-                      : totalProductsCount < 5
-                        ? 'produkty'
-                        : 'produktów'}
+                    {pluralize(totalProductsCount, 'produkt', 'produkty', 'produktów')}
                   </>
                 )}
               </span>
@@ -330,27 +333,26 @@ export function ProductCatalog() {
           ))}
         </div>
       ) : isError ? (
-        <Alert variant="destructive" className="max-w-lg mx-auto mt-8">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertTitle>Błąd ładowania</AlertTitle>
-          <AlertDescription className="mt-2">
-            <p className="mb-3">
-              Nie udało się załadować listy produktów. Sprawdź połączenie z internetem i spróbuj
-              ponownie.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                refetchProducts();
-                refetchSets();
-              }}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Spróbuj ponownie
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="rounded-full bg-destructive/10 p-3 mb-4">
+            <AlertTriangle className="h-6 w-6 text-destructive" />
+          </div>
+          <h3 className="text-lg font-semibold mb-1">Nie udało się załadować produktów</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Coś poszło nie tak podczas ładowania danych. Spróbuj odświeżyć stronę.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              refetchProducts();
+              refetchSets();
+            }}
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Spróbuj ponownie
+          </Button>
+        </div>
       ) : (
         <>
           {groups.map((group) => (
