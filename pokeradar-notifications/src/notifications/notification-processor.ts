@@ -26,7 +26,6 @@ interface RetryConfig {
 export class NotificationProcessor {
   private channels: Map<string, INotificationChannel> = new Map();
   private rateLimiters: Map<string, RateLimiter> = new Map();
-  private processing = false;
   private queue: INotificationDoc[] = [];
   private processedIds = new Set<string>();
   private drainResolve: (() => void) | null = null;
@@ -34,6 +33,7 @@ export class NotificationProcessor {
   constructor(
     private retryConfig: RetryConfig,
     private logger: ILogger,
+    private concurrency: number = 1,
   ) {}
 
   /**
@@ -69,7 +69,7 @@ export class NotificationProcessor {
    * Waits until the queue is fully drained.
    */
   async drain(): Promise<void> {
-    if (this.queue.length === 0 && !this.processing) return;
+    if (this.queue.length === 0 && this.activeWorkers === 0) return;
     return new Promise((resolve) => {
       this.drainResolve = resolve;
     });
@@ -133,21 +133,20 @@ export class NotificationProcessor {
     return { fresh };
   }
 
-  private async processQueue(): Promise<void> {
-    if (this.processing) return;
-    this.processing = true;
+  private activeWorkers = 0;
 
-    try {
-      while (this.queue.length > 0) {
-        const doc = this.queue.shift()!;
-        await this.processOne(doc);
-      }
-    } finally {
-      this.processing = false;
-      if (this.drainResolve && this.queue.length === 0) {
-        this.drainResolve();
-        this.drainResolve = null;
-      }
+  private async processQueue(): Promise<void> {
+    while (this.queue.length > 0 && this.activeWorkers < this.concurrency) {
+      const doc = this.queue.shift()!;
+      this.activeWorkers++;
+      this.processOne(doc).finally(() => {
+        this.activeWorkers--;
+        this.processQueue();
+        if (this.activeWorkers === 0 && this.queue.length === 0 && this.drainResolve) {
+          this.drainResolve();
+          this.drainResolve = null;
+        }
+      });
     }
   }
 

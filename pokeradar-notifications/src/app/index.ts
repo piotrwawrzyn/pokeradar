@@ -44,7 +44,7 @@ async function main() {
   }
 
   // Create notification processor
-  const processor = new NotificationProcessor(config.retry, logger);
+  const processor = new NotificationProcessor(config.retry, logger, config.processingConcurrency);
 
   // Register each platform's notification channel with its own rate limiter
   const rateLimiterConfigs: Record<string, { size: number; intervalMs: number }> = {
