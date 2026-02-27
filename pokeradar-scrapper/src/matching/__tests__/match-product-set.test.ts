@@ -9,14 +9,62 @@ import {
 // ── Test fixtures ──
 
 const SETS: MatchableProductSet[] = [
-  { id: 'sv08', name: 'Surging Sparks', series: 'Scarlet & Violet' },
-  { id: 'sv07', name: 'Stellar Crown', series: 'Scarlet & Violet' },
-  { id: 'sv06', name: 'Twilight Masquerade', series: 'Scarlet & Violet' },
-  { id: 'sv-generic', name: 'Scarlet & Violet', series: 'Scarlet & Violet' },
-  { id: 'xy-me', name: 'Mega Evolution', series: 'Mega Evolution' },
-  { id: 'xy-pf', name: 'Phantasmal Flames', series: 'Mega Evolution' },
-  { id: 'xy-po', name: 'Perfect Order', series: 'Mega Evolution' },
-  { id: 'sv09', name: 'Destined Rivals', series: 'Scarlet & Violet' },
+  {
+    id: 'sv08',
+    name: 'Surging Sparks',
+    series: 'Scarlet & Violet',
+    setNumber: 'SV8',
+    setAbbreviation: 'SSP',
+  },
+  {
+    id: 'sv07',
+    name: 'Stellar Crown',
+    series: 'Scarlet & Violet',
+    setNumber: 'SV7',
+    setAbbreviation: 'SCR',
+  },
+  {
+    id: 'sv06',
+    name: 'Twilight Masquerade',
+    series: 'Scarlet & Violet',
+    setNumber: 'SV6',
+    setAbbreviation: 'TWM',
+  },
+  {
+    id: 'sv-generic',
+    name: 'Scarlet & Violet',
+    series: 'Scarlet & Violet',
+    setNumber: 'SV1',
+    setAbbreviation: 'SVI',
+  },
+  {
+    id: 'xy-me',
+    name: 'Mega Evolution',
+    series: 'Mega Evolution',
+    setNumber: 'ME1',
+    setAbbreviation: 'MEG',
+  },
+  {
+    id: 'xy-pf',
+    name: 'Phantasmal Flames',
+    series: 'Mega Evolution',
+    setNumber: 'ME2',
+    setAbbreviation: 'PFL',
+  },
+  {
+    id: 'xy-po',
+    name: 'Perfect Order',
+    series: 'Mega Evolution',
+    setNumber: 'ME3',
+    setAbbreviation: 'POR',
+  },
+  {
+    id: 'sv09',
+    name: 'Destined Rivals',
+    series: 'Scarlet & Violet',
+    setNumber: 'SV10',
+    setAbbreviation: 'DRI',
+  },
 ];
 
 const BOOSTER_BOX_TYPE: MatchableProductType = {
@@ -105,8 +153,20 @@ describe('MatchProductSetLayer', () => {
     it('returns null when multiple non-generic sets match', () => {
       // Build sets that would both match the same residual
       const ambiguousSets: MatchableProductSet[] = [
-        { id: 'set-a', name: 'Sparks', series: 'Series A' },
-        { id: 'set-b', name: 'Sparks', series: 'Series B' },
+        {
+          id: 'set-a',
+          name: 'Sparks',
+          series: 'Series A',
+          setNumber: 'A1',
+          setAbbreviation: 'SPA',
+        },
+        {
+          id: 'set-b',
+          name: 'Sparks',
+          series: 'Series B',
+          setNumber: 'B1',
+          setAbbreviation: 'SPB',
+        },
       ];
       const ambiguousLayer = new MatchProductSetLayer(ambiguousSets);
       const result = ambiguousLayer.execute(makeInput('sparks'));
@@ -150,7 +210,9 @@ describe('MatchProductSetLayer', () => {
     });
 
     it('handles set with empty name', () => {
-      const layerWithEmpty = new MatchProductSetLayer([{ id: 'empty', name: '', series: 'Empty' }]);
+      const layerWithEmpty = new MatchProductSetLayer([
+        { id: 'empty', name: '', series: 'Empty', setNumber: 'E1', setAbbreviation: 'EMP' },
+      ]);
       const result = layerWithEmpty.execute(makeInput('anything'));
       expect(result).toBeNull();
     });

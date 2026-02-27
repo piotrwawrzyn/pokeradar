@@ -90,7 +90,7 @@ export class PriceMonitor {
     // Load product types and sets from DB
     const [productTypeDocs, productSetDocs] = await Promise.all([
       ProductTypeModel.find().select('id name matchingProfile').lean(),
-      ProductSetModel.find().select('id name series').lean(),
+      ProductSetModel.find().select('id name series setNumber setAbbreviation').lean(),
     ]);
 
     const productTypes: MatchableProductType[] = productTypeDocs.map((doc) => ({
@@ -106,6 +106,8 @@ export class PriceMonitor {
       id: doc.id,
       name: doc.name,
       series: doc.series,
+      setNumber: doc.setNumber,
+      setAbbreviation: doc.setAbbreviation,
     }));
 
     // Build pipeline (precomputed once, reused for every title match)

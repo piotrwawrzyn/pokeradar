@@ -206,6 +206,8 @@ export class AdminProductsService {
     series: string;
     imageUrl?: string;
     releaseDate?: string;
+    setNumber: string;
+    setAbbreviation: string;
   }) {
     const existing = await ProductSetModel.findOne({ id: data.id }).lean();
     if (existing) throw new ConflictError('Product set with this ID already exists');

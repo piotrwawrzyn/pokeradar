@@ -49,6 +49,8 @@ export const createProductSetSchema = z.object({
     series: z.string().trim().min(1),
     imageUrl: z.string().trim().url().optional(),
     releaseDate: z.string().trim().optional(),
+    setNumber: z.string().trim().min(1),
+    setAbbreviation: z.string().trim().min(1),
   }),
 });
 
@@ -58,6 +60,8 @@ export const updateProductSetSchema = z.object({
     series: z.string().trim().min(1).optional(),
     imageUrl: z.string().trim().url().optional(),
     releaseDate: z.string().trim().nullable().optional(),
+    setNumber: z.string().trim().min(1).optional(),
+    setAbbreviation: z.string().trim().min(1).optional(),
   }),
 });
 

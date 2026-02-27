@@ -4,4 +4,6 @@ export interface ProductSet {
   series: string;
   imageUrl: string;
   releaseDate?: Date;
+  setNumber: string;
+  setAbbreviation: string;
 }

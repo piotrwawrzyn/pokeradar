@@ -22,6 +22,10 @@ export interface MatchableProductSet {
   id: string;
   name: string;
   series: string;
+  /** Official set number, e.g. "SV8" or "ME2.5". Used by the synonym expansion layer. */
+  setNumber: string;
+  /** Three-letter set abbreviation, e.g. "SSP" or "PFL". Used by the synonym expansion layer. */
+  setAbbreviation: string;
 }
 
 // ── Data flowing through the pipeline ──

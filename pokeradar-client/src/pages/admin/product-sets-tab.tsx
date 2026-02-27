@@ -39,11 +39,13 @@ export function ProductSetsTab() {
     name: '',
     series: '',
     releaseDate: '',
+    setNumber: '',
+    setAbbreviation: '',
   });
 
   const resetForm = () => {
     image.reset();
-    setFormData({ name: '', series: '', releaseDate: '' });
+    setFormData({ name: '', series: '', releaseDate: '', setNumber: '', setAbbreviation: '' });
   };
 
   const populateForm = (set: ProductSet) => {
@@ -52,6 +54,8 @@ export function ProductSetsTab() {
       name: set.name,
       series: set.series,
       releaseDate: set.releaseDate ? set.releaseDate.split('T')[0] : '',
+      setNumber: set.setNumber,
+      setAbbreviation: set.setAbbreviation,
     });
   };
 
@@ -65,6 +69,8 @@ export function ProductSetsTab() {
       name: formData.name,
       series: formData.series,
       releaseDate: formData.releaseDate || undefined,
+      setNumber: formData.setNumber,
+      setAbbreviation: formData.setAbbreviation,
     };
 
     if (!dialog.selected) {
@@ -134,6 +140,8 @@ export function ProductSetsTab() {
           { label: 'Obrazek', className: 'w-32' },
           'Nazwa',
           'Seria',
+          'Numer',
+          'Skrót',
           'Produkty',
           'Data wydania',
           { label: '', className: 'w-16' },
@@ -156,6 +164,8 @@ export function ProductSetsTab() {
             </TableCell>
             <TableCell className="font-medium">{set.name}</TableCell>
             <TableCell>{set.series}</TableCell>
+            <TableCell className="text-muted-foreground font-mono">{set.setNumber}</TableCell>
+            <TableCell className="text-muted-foreground font-mono">{set.setAbbreviation}</TableCell>
             <TableCell className="text-muted-foreground">
               {products?.filter((p) => p.productSetId === set.id).length ?? 0}
             </TableCell>
@@ -211,6 +221,30 @@ export function ProductSetsTab() {
             id="series"
             value={formData.series}
             onChange={(e) => setFormData({ ...formData, series: e.target.value })}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="setNumber" className="mb-2 block">
+            Numer setu (np. SV8)
+          </Label>
+          <Input
+            id="setNumber"
+            value={formData.setNumber}
+            onChange={(e) => setFormData({ ...formData, setNumber: e.target.value })}
+            placeholder="np. SV8"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="setAbbreviation" className="mb-2 block">
+            Skrót setu (np. SSP)
+          </Label>
+          <Input
+            id="setAbbreviation"
+            value={formData.setAbbreviation}
+            onChange={(e) => setFormData({ ...formData, setAbbreviation: e.target.value })}
+            placeholder="np. SSP"
           />
         </div>
 
