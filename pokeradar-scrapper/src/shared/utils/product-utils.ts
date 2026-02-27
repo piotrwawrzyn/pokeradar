@@ -2,7 +2,7 @@
  * Product utility functions.
  */
 
-import { WatchlistProduct, WatchlistProductInternal, ResolvedWatchlistProduct } from '../types';
+import { WatchlistProduct, WatchlistProductInternal } from '../types';
 
 /**
  * Converts a product name to a safe kebab-case ID.
@@ -42,34 +42,20 @@ export function toInternalProducts(products: WatchlistProduct[]): WatchlistProdu
 export interface SetGroup {
   setId: string;
   searchPhrase: string;
-  products: ResolvedWatchlistProduct[];
+  products: WatchlistProductInternal[];
 }
 
 /**
- * Builds a series index mapping series names to all set names in that series.
+ * Groups products by their productSetId.
+ * All products with a known set become SetGroups (even single-member sets).
+ * Products whose set is not in the setMap are ungrouped.
  */
-function buildSeriesIndex(
+export function groupProductsBySet(
+  products: WatchlistProductInternal[],
   setMap: Map<string, { name: string; series: string }>,
-): Map<string, string[]> {
-  const seriesIndex = new Map<string, string[]>();
-  for (const [, set] of setMap.entries()) {
-    if (!seriesIndex.has(set.series)) {
-      seriesIndex.set(set.series, []);
-    }
-    seriesIndex.get(set.series)!.push(set.name);
-  }
-  return seriesIndex;
-}
-
-/**
- * Partitions products into those belonging to known sets and those without sets.
- */
-function partitionProductsBySet(
-  products: ResolvedWatchlistProduct[],
-  setMap: Map<string, { name: string; series: string }>,
-): { bySet: Map<string, ResolvedWatchlistProduct[]>; ungrouped: ResolvedWatchlistProduct[] } {
-  const bySet = new Map<string, ResolvedWatchlistProduct[]>();
-  const ungrouped: ResolvedWatchlistProduct[] = [];
+): { setGroups: SetGroup[]; ungrouped: WatchlistProductInternal[] } {
+  const bySet = new Map<string, WatchlistProductInternal[]>();
+  const ungrouped: WatchlistProductInternal[] = [];
 
   for (const product of products) {
     if (setMap.has(product.productSetId)) {
@@ -81,63 +67,10 @@ function partitionProductsBySet(
     }
   }
 
-  return { bySet, ungrouped };
-}
-
-/**
- * Creates a SetGroup with automatic exclusions for generic sets.
- * Generic sets (where name === series) automatically exclude all other sets in the same series.
- */
-function createSetGroupWithExclusions(
-  setId: string,
-  members: ResolvedWatchlistProduct[],
-  setMap: Map<string, { name: string; series: string }>,
-  seriesIndex: Map<string, string[]>,
-): SetGroup {
-  const set = setMap.get(setId)!;
-
-  // Auto-exclude other sets in series for generic sets (name === series)
-  const otherSetsInSeries =
-    set.name === set.series && seriesIndex.has(set.series)
-      ? seriesIndex
-          .get(set.series)!
-          .filter((name) => name !== set.name)
-          .map((name) => name.toLowerCase())
-      : [];
-
-  const membersWithExcludes = members.map((product) => ({
-    ...product,
-    search: {
-      phrases: product.search.phrases,
-      exclude: [...product.search.exclude, ...otherSetsInSeries],
-    },
-  }));
-
-  return {
-    setId,
-    searchPhrase: set.name,
-    products: membersWithExcludes,
-  };
-}
-
-/**
- * Groups resolved products by their productSetId.
- * All products with a known set become SetGroups (even single-member sets).
- * Products whose set is not in the setMap are ungrouped.
- *
- * For generic sets (where name === series), automatically excludes all other
- * sets in the same series to prevent cross-set matching conflicts.
- */
-export function groupProductsBySet(
-  products: ResolvedWatchlistProduct[],
-  setMap: Map<string, { name: string; series: string }>,
-): { setGroups: SetGroup[]; ungrouped: ResolvedWatchlistProduct[] } {
-  const seriesIndex = buildSeriesIndex(setMap);
-  const { bySet, ungrouped } = partitionProductsBySet(products, setMap);
-
   const setGroups: SetGroup[] = [];
   for (const [setId, members] of bySet.entries()) {
-    setGroups.push(createSetGroupWithExclusions(setId, members, setMap, seriesIndex));
+    const set = setMap.get(setId)!;
+    setGroups.push({ setId, searchPhrase: set.name, products: members });
   }
 
   return { setGroups, ungrouped };

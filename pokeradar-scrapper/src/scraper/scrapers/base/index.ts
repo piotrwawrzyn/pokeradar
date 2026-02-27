@@ -3,5 +3,5 @@
  */
 
 export { BaseScraper, type IScraper, type IScraperLogger } from './base-scraper';
-export { ProductMatcher, type ProductCandidate } from './product-matcher';
-export { SearchNavigator, type SearchResult } from './search-navigator';
+export { SearchNavigator } from './search-navigator';
+export { type ProductCandidate, selectBestCandidate } from './helpers/candidate-selector';

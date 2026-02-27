@@ -2,14 +2,14 @@
  * Search and navigation logic for product scraping.
  */
 
-import { ShopConfig, ResolvedWatchlistProduct, Selector } from '../../../shared/types';
+import { ShopConfig, Selector } from '../../../shared/types';
 import { IEngine, IElement } from '../../engines/engine.interface';
 import {
   normalizeUrl,
   buildSearchUrl,
   extractTitleFromUrl,
 } from '../../../shared/utils/url-normalizer';
-import { ProductMatcher, ProductCandidate } from './product-matcher';
+import { ProductCandidate } from './helpers/candidate-selector';
 import { PriceParser } from '../../../shared/utils/price-parser';
 
 /**
@@ -21,30 +21,7 @@ interface ILogger {
 }
 
 /**
- * Result of a product search.
- */
-export interface SearchResult {
-  url: string;
-  isDirectHit: boolean;
-  searchPageData?: {
-    price: number | null;
-    isAvailable: boolean;
-  };
-}
-
-/**
- * Result of matching a product from pre-extracted candidates.
- */
-export interface MatchResult {
-  url: string;
-  searchPageData?: {
-    price: number | null;
-    isAvailable: boolean;
-  };
-}
-
-/**
- * Handles product search and URL discovery.
+ * Handles search page extraction and navigation.
  */
 export class SearchNavigator {
   private priceParser = new PriceParser();
@@ -52,213 +29,12 @@ export class SearchNavigator {
   constructor(
     private config: ShopConfig,
     private engine: IEngine,
-    private matcher: ProductMatcher,
     private logger?: ILogger,
   ) {}
 
   /**
-   * Searches for a product and returns its URL.
-   */
-  async findProductUrl(product: ResolvedWatchlistProduct): Promise<SearchResult | null> {
-    for (const phrase of product.search.phrases) {
-      const searchUrl = buildSearchUrl(this.config.baseUrl, this.config.searchUrl, phrase);
-
-      await this.engine.goto(searchUrl);
-
-      // Check for direct hit - search redirected to product page
-      const directHitResult = await this.checkDirectHit(product, phrase);
-      if (directHitResult) {
-        return directHitResult;
-      }
-
-      // Get all product articles from search results
-      const result = await this.findInSearchResults(product, phrase);
-      if (result) {
-        return {
-          url: normalizeUrl(result.url, this.config.baseUrl),
-          isDirectHit: false,
-          searchPageData: result.searchPageData,
-        };
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Checks if search resulted in a direct hit to product page.
-   */
-  private async checkDirectHit(
-    product: ResolvedWatchlistProduct,
-    phrase: string,
-  ): Promise<SearchResult | null> {
-    if (!this.config.directHitPattern) {
-      return null;
-    }
-
-    const currentUrl = this.engine.getCurrentUrl();
-    if (!currentUrl || !new RegExp(this.config.directHitPattern).test(currentUrl)) {
-      return null;
-    }
-
-    this.logger?.info('Direct hit detected - validating product match', {
-      shop: this.config.id,
-      product: product.id,
-      phrase,
-      productUrl: currentUrl,
-    });
-
-    const isValid = await this.validateDirectHit(product, phrase);
-    if (isValid) {
-      return { url: currentUrl, isDirectHit: true };
-    }
-
-    this.logger?.info('Direct hit validation failed - product does not match', {
-      shop: this.config.id,
-      product: product.id,
-      phrase,
-    });
-
-    return null;
-  }
-
-  /**
-   * Validates a direct hit by checking the product page title.
-   */
-  private async validateDirectHit(
-    product: ResolvedWatchlistProduct,
-    phrase: string,
-  ): Promise<boolean> {
-    const titleSelector = this.config.selectors.productPage.title;
-    if (!titleSelector) {
-      this.logger?.debug('No productPage.title selector configured, accepting direct hit', {
-        shop: this.config.id,
-      });
-      return true;
-    }
-
-    const title = await this.engine.extract(titleSelector);
-    if (!title) {
-      this.logger?.debug('Could not extract title from product page', {
-        shop: this.config.id,
-        product: product.id,
-      });
-      return false;
-    }
-
-    const score = this.matcher.validateTitle(title, phrase, product, this.config.id);
-    if (score === null) {
-      return false;
-    }
-
-    if (!this.matcher.isValidDirectHitScore(score)) {
-      this.logger?.debug('Direct hit fuzzy match score too low', {
-        shop: this.config.id,
-        product: product.id,
-        title,
-        phrase,
-        score,
-        threshold: this.matcher.getDirectHitThreshold(),
-      });
-      return false;
-    }
-
-    this.logger?.info('Direct hit validated', {
-      shop: this.config.id,
-      product: product.id,
-      title,
-      score,
-    });
-    return true;
-  }
-
-  /**
-   * Searches for product in search results page.
-   */
-  private async findInSearchResults(
-    product: ResolvedWatchlistProduct,
-    phrase: string,
-  ): Promise<{
-    url: string;
-    searchPageData?: { price: number | null; isAvailable: boolean };
-  } | null> {
-    const articles = await this.engine.extractAll(this.config.selectors.searchPage.article);
-
-    if (articles.length === 0) {
-      this.logger?.info('No product articles found on search page', {
-        shop: this.config.id,
-        product: product.id,
-        phrase,
-      });
-      return null;
-    }
-
-    // Extract titles and URLs in parallel for all articles
-    const candidatePromises = articles.map(async (article): Promise<ProductCandidate | null> => {
-      const titleSelector = this.config.selectors.searchPage.title;
-      const useTitleFromUrl = this.config.selectors.searchPage.titleFromUrl;
-
-      // Parallelize all element lookups for this article
-      const [titleResult, urlElement, searchPageData] = await Promise.all([
-        // Get title from DOM (skip if using URL slug)
-        useTitleFromUrl
-          ? Promise.resolve(null)
-          : titleSelector && 'extract' in titleSelector && titleSelector.extract
-            ? article.getAttribute(titleSelector.extract)
-            : titleSelector
-              ? article.find(titleSelector).then((el) => el?.getText() ?? null)
-              : Promise.resolve(null),
-        // Get URL
-        article.find(this.config.selectors.searchPage.productUrl),
-        // Get search page data (price, availability)
-        this.extractSearchPageData(article),
-      ]);
-
-      const productUrl = urlElement ? await urlElement.getAttribute('href') : null;
-      const title = useTitleFromUrl && productUrl ? extractTitleFromUrl(productUrl) : titleResult;
-
-      if (!title || !productUrl) {
-        return null;
-      }
-
-      const score = this.matcher.validateTitle(title, phrase, product, this.config.id);
-      if (score === null) {
-        return null;
-      }
-
-      const candidate: ProductCandidate = {
-        title,
-        url: productUrl,
-        score,
-      };
-
-      if (searchPageData) {
-        candidate.searchPageData = searchPageData;
-      }
-
-      return candidate;
-    });
-
-    // Wait for all articles to be processed in parallel
-    const results = await Promise.all(candidatePromises);
-    const candidates: ProductCandidate[] = results.filter((c): c is ProductCandidate => c !== null);
-
-    const bestUrl = this.matcher.selectBestCandidate(candidates, product, phrase, this.config.id);
-
-    if (bestUrl) {
-      const matchedCandidate = candidates.find((c) => c.url === bestUrl);
-      return {
-        url: bestUrl,
-        searchPageData: matchedCandidate?.searchPageData,
-      };
-    }
-    return null;
-  }
-
-  /**
    * Performs a set-level search and extracts all article candidates (title + URL).
-   * Does NOT do product-specific matching. Used for set-based searching
-   * where one search covers multiple products.
+   * Does NOT do product-specific matching — pipeline identifies what each candidate is.
    */
   async extractSearchCandidates(
     searchPhrase: string,
@@ -321,45 +97,6 @@ export class SearchNavigator {
 
     const results = await Promise.all(candidatePromises);
     return results.filter((c): c is ProductCandidate => c !== null);
-  }
-
-  /**
-   * Matches a specific product against pre-extracted search candidates.
-   * Tries each of the product's search phrases against the candidates.
-   * Returns the best matching result or null. No HTTP requests.
-   */
-  matchProductFromCandidates(
-    product: ResolvedWatchlistProduct,
-    candidates: ProductCandidate[],
-  ): MatchResult | null {
-    for (const phrase of product.search.phrases) {
-      const scoredCandidates: ProductCandidate[] = [];
-
-      for (const candidate of candidates) {
-        const score = this.matcher.validateTitle(candidate.title, phrase, product, this.config.id);
-
-        if (score !== null) {
-          scoredCandidates.push({ ...candidate, score });
-        }
-      }
-
-      const bestUrl = this.matcher.selectBestCandidate(
-        scoredCandidates,
-        product,
-        phrase,
-        this.config.id,
-      );
-
-      if (bestUrl) {
-        const matchedCandidate = scoredCandidates.find((c) => c.url === bestUrl);
-        return {
-          url: bestUrl,
-          searchPageData: matchedCandidate?.searchPageData,
-        };
-      }
-    }
-
-    return null;
   }
 
   /**

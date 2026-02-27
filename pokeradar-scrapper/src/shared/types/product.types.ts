@@ -20,17 +20,6 @@ export interface WatchlistProductInternal extends WatchlistProduct {
 }
 
 /**
- * A product with fully resolved search config (guaranteed non-optional).
- * Produced by search-resolver from ProductType's matching profile + set name.
- */
-export interface ResolvedWatchlistProduct extends WatchlistProductInternal {
-  search: {
-    phrases: string[];
-    exclude: string[];
-  };
-}
-
-/**
  * Scraping result for a product.
  */
 export interface ProductResult {

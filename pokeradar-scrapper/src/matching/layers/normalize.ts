@@ -51,7 +51,8 @@ export function normalizeTitle(raw: string): string {
     .trim()
     .replace(CHAR_REGEX, (ch) => CHAR_MAP[ch] || ch)
     .replace(/[–—‐‑−]/g, '-')
-    .replace(/[-:&/+]+/g, ' ')
+    .replace(/[-:&/+()\[\]{}]+/g, ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }

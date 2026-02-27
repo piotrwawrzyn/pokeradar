@@ -17,12 +17,16 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { getShopConfigDir } from '@pokeradar/shared';
 import { connectDB, disconnectDB } from '../src/infrastructure/database';
-import { ProductSetModel } from '../src/infrastructure/database/models';
+import { ProductSetModel, ProductTypeModel } from '../src/infrastructure/database/models';
 import { FileShopRepository } from '../src/shared/repositories/file/file-shop.repository';
 import { MongoWatchlistRepository } from '../src/shared/repositories/mongo/watchlist.repository';
 import { Logger } from '../src/shared/logger';
 import { groupProductsBySet } from '../src/shared/utils/product-utils';
-import { loadAndResolveProducts } from '../src/shared/utils/search-resolver';
+import {
+  ProductMatchingPipeline,
+  MatchableProductType,
+  MatchableProductSet,
+} from '../src/matching';
 import {
   ScanCycleRunner,
   IScraperFactory,
@@ -181,20 +185,6 @@ class TimedNavigator {
       this.timingTracker.end(this.shopId);
     }
   }
-
-  async findProductUrl(product: WatchlistProductInternal): Promise<any> {
-    this.timingTracker.start(this.shopId);
-    try {
-      return await this.wrapped.findProductUrl(product);
-    } finally {
-      this.timingTracker.end(this.shopId);
-    }
-  }
-
-  matchProductFromCandidates(product: WatchlistProductInternal, candidates: any[]): any {
-    // Matching is fast, no need to track timing
-    return this.wrapped.matchProductFromCandidates(product, candidates);
-  }
 }
 
 /**
@@ -210,15 +200,6 @@ class TimedScraper implements IScraper {
   ) {
     // Wrap the navigator to track search timing
     this.timedNavigator = new TimedNavigator(this.wrapped.getNavigator(), shopId, timingTracker);
-  }
-
-  async scrapeProduct(product: WatchlistProductInternal): Promise<ProductResult> {
-    this.timingTracker.start(this.shopId);
-    try {
-      return await this.wrapped.scrapeProduct(product);
-    } finally {
-      this.timingTracker.end(this.shopId);
-    }
   }
 
   async scrapeProductWithUrl(
@@ -339,11 +320,23 @@ interface ScrapingResult {
 async function runScraping(
   shops: ShopConfig[],
   products: WatchlistProductInternal[],
+  productTypes: MatchableProductType[],
+  productSets: MatchableProductSet[],
   setMap: Map<string, { name: string; series: string }>,
   logger: Logger,
 ): Promise<ScrapingResult> {
   // Group products by set for efficient searching
   const { setGroups, ungrouped } = groupProductsBySet(products, setMap);
+
+  // Build pipeline and watchlist index
+  const pipeline = new ProductMatchingPipeline({ productTypes, productSets });
+  const watchlistIndex = new Map<string, WatchlistProductInternal[]>();
+  for (const product of products) {
+    const key = `${product.productTypeId}|${product.productSetId}`;
+    const existing = watchlistIndex.get(key) ?? [];
+    existing.push(product);
+    watchlistIndex.set(key, existing);
+  }
 
   // Create trackers
   const requestCounter = new RequestCounter();
@@ -365,6 +358,8 @@ async function runScraping(
     dispatcher,
     logger,
   });
+
+  cycleRunner.setPipelineConfig(pipeline, watchlistIndex);
 
   console.log(`🚀 Running scraping for ${shops.length} shops...\n`);
 
@@ -595,12 +590,9 @@ function compareResults(
   // Print changes
   if (priceChanged.length > 0) {
     console.log(colors.yellow + `⚠️  PRICE CHANGED (${priceChanged.length}):` + colors.reset);
-    for (const { key, baseline, current } of priceChanged.slice(0, 10)) {
+    for (const { key, baseline, current } of priceChanged) {
       const [shopId, productId] = key.split(':');
       console.log(`  ${shopId} / ${productId}: ${baseline.price} → ${current.price}`);
-    }
-    if (priceChanged.length > 10) {
-      console.log(colors.gray + `  ... and ${priceChanged.length - 10} more` + colors.reset);
     }
     console.log('');
   }
@@ -609,50 +601,38 @@ function compareResults(
     console.log(
       colors.yellow + `⚠️  AVAILABILITY CHANGED (${availabilityChanged.length}):` + colors.reset,
     );
-    for (const { key, baseline, current } of availabilityChanged.slice(0, 10)) {
+    for (const { key, baseline, current } of availabilityChanged) {
       const [shopId, productId] = key.split(':');
       console.log(`  ${shopId} / ${productId}: ${baseline.isAvailable} → ${current.isAvailable}`);
-    }
-    if (availabilityChanged.length > 10) {
-      console.log(colors.gray + `  ... and ${availabilityChanged.length - 10} more` + colors.reset);
     }
     console.log('');
   }
 
   if (urlChanged.length > 0) {
     console.log(colors.red + `❌ URL CHANGED (${urlChanged.length}):` + colors.reset);
-    for (const { key, baseline, current } of urlChanged.slice(0, 5)) {
+    for (const { key, baseline, current } of urlChanged) {
       const [shopId, productId] = key.split(':');
       console.log(`  ${shopId} / ${productId}:`);
       console.log(`    Was: ${baseline.productUrl}`);
       console.log(`    Now: ${current.productUrl}`);
-    }
-    if (urlChanged.length > 5) {
-      console.log(colors.gray + `  ... and ${urlChanged.length - 5} more` + colors.reset);
     }
     console.log('');
   }
 
   if (lost.length > 0) {
     console.log(colors.red + `❌ LOST (${lost.length}):` + colors.reset);
-    for (const { key, result } of lost.slice(0, 10)) {
+    for (const { key, result } of lost) {
       const [shopId, productId] = key.split(':');
       console.log(`  ${shopId} / ${productId} (was: ${result.productUrl})`);
-    }
-    if (lost.length > 10) {
-      console.log(colors.gray + `  ... and ${lost.length - 10} more` + colors.reset);
     }
     console.log('');
   }
 
   if (gained.length > 0) {
     console.log(colors.green + `✅ GAINED (${gained.length}):` + colors.reset);
-    for (const { key, result } of gained.slice(0, 10)) {
+    for (const { key, result } of gained) {
       const [shopId, productId] = key.split(':');
       console.log(`  ${shopId} / ${productId} (${result.productUrl})`);
-    }
-    if (gained.length > 10) {
-      console.log(colors.gray + `  ... and ${gained.length - 10} more` + colors.reset);
     }
     console.log('');
   }
@@ -774,29 +754,48 @@ async function main() {
 
     console.log(`📦 Loaded ${products.length} products from watchlist\n`);
 
-    // Load product sets for grouping
-    const productSetDocs = await ProductSetModel.find().select('id name series').lean();
+    // Load product types and sets from DB
+    const [productTypeDocs, productSetDocs] = await Promise.all([
+      ProductTypeModel.find().select('id name matchingProfile').lean(),
+      ProductSetModel.find().select('id name series').lean(),
+    ]);
+
+    const productTypes: MatchableProductType[] = productTypeDocs.map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      matchingProfile: {
+        required: doc.matchingProfile?.required ?? [],
+        forbidden: doc.matchingProfile?.forbidden ?? [],
+      },
+    }));
+
+    const productSets: MatchableProductSet[] = productSetDocs.map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      series: doc.series,
+    }));
+
     const setMap = new Map<string, { name: string; series: string }>();
     for (const doc of productSetDocs) {
       setMap.set(doc.id, { name: doc.name, series: doc.series });
     }
 
-    console.log(`🎴 Loaded ${setMap.size} product sets\n`);
-
-    // Resolve search config for each product (merge with ProductType + set name)
-    const { resolved: resolvedProducts } = await loadAndResolveProducts(products, setMap, logger);
-    const unresolvedCount = products.length - resolvedProducts.length;
-    if (unresolvedCount > 0) {
-      console.log(`⚠️  Skipped ${unresolvedCount} products with no resolvable search config\n`);
-    }
-
-    console.log(`🔍 Resolved search config for ${resolvedProducts.length} products\n`);
+    console.log(
+      `🎴 Loaded ${productSets.length} product sets, ${productTypes.length} product types\n`,
+    );
 
     // Disconnect from MongoDB (no longer needed)
     await disconnectDB();
 
     // Run scraping
-    const scrapingResult = await runScraping(shops, resolvedProducts, setMap, logger);
+    const scrapingResult = await runScraping(
+      shops,
+      products,
+      productTypes,
+      productSets,
+      setMap,
+      logger,
+    );
 
     if (check) {
       // Check mode: compare against baseline

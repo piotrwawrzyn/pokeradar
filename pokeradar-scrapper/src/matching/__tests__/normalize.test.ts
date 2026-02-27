@@ -67,6 +67,16 @@ describe('normalizeTitle', () => {
   it('handles empty string', () => {
     expect(normalizeTitle('')).toBe('');
   });
+
+  it('strips parentheses and their contents from titles', () => {
+    expect(normalizeTitle('Booster Box(36boosterów)')).toBe('booster box 36boosterow');
+  });
+
+  it('handles real title with parenthesized count', () => {
+    expect(
+      normalizeTitle('Pokémon TCG: Mega Evolution Phantasmal Flames - Booster Box(36boosterów)'),
+    ).toBe('pokemon tcg mega evolution phantasmal flames booster box 36boosterow');
+  });
 });
 
 describe('NormalizeLayer', () => {

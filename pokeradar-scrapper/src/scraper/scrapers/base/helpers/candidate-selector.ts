@@ -12,7 +12,18 @@
  * so selection falls back to score — matching the previous behavior.
  */
 
-import { ProductCandidate } from '../product-matcher';
+/**
+ * Product candidate from search results.
+ */
+export interface ProductCandidate {
+  title: string;
+  url: string;
+  score: number;
+  searchPageData?: {
+    price: number | null;
+    isAvailable: boolean;
+  };
+}
 
 /** Availability tiers: lower = better */
 enum AvailabilityTier {

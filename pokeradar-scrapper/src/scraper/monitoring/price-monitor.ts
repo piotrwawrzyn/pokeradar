@@ -3,14 +3,14 @@
  * Designed for single-run cron execution with multi-user notification support.
  */
 
-import { ShopConfig, WatchlistProductInternal, ResolvedWatchlistProduct } from '../../shared/types';
+import { ShopConfig, WatchlistProductInternal } from '../../shared/types';
 import { MultiUserNotificationDispatcher } from '../../shared/notification';
 import { NotificationStateService } from '../../shared/notification';
 import { ResultBuffer, IProductResultRepository } from './result-buffer';
 import { ScanCycleRunner, IScraperFactory, IScanLogger } from './scan-cycle-runner';
 import { groupProductsBySet, SetGroup } from '../../shared/utils/product-utils';
-import { loadAndResolveProducts } from '../../shared/utils/search-resolver';
-import { ProductSetModel } from '../../infrastructure/database/models';
+import { ProductSetModel, ProductTypeModel } from '../../infrastructure/database/models';
+import { ProductMatchingPipeline, MatchableProductType, MatchableProductSet } from '../../matching';
 
 /**
  * Repository interfaces.
@@ -45,9 +45,9 @@ export interface PriceMonitorConfig {
  */
 export class PriceMonitor {
   private shops: ShopConfig[] = [];
-  private products: ResolvedWatchlistProduct[] = [];
+  private products: WatchlistProductInternal[] = [];
   private setGroups: SetGroup[] = [];
-  private ungroupedProducts: ResolvedWatchlistProduct[] = [];
+  private ungroupedProducts: WatchlistProductInternal[] = [];
   private resultBuffer: ResultBuffer;
   private cycleRunner: ScanCycleRunner;
 
@@ -87,40 +87,62 @@ export class PriceMonitor {
     // Load notification states for subscribed products only (1 DB query)
     await this.config.stateManager.loadFromRepository(allProductIds);
 
-    // Load product sets for set-based search grouping
-    const productSetDocs = await ProductSetModel.find().select('id name series').lean();
+    // Load product types and sets from DB
+    const [productTypeDocs, productSetDocs] = await Promise.all([
+      ProductTypeModel.find().select('id name matchingProfile').lean(),
+      ProductSetModel.find().select('id name series').lean(),
+    ]);
+
+    const productTypes: MatchableProductType[] = productTypeDocs.map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      matchingProfile: {
+        required: doc.matchingProfile?.required ?? [],
+        forbidden: doc.matchingProfile?.forbidden ?? [],
+      },
+    }));
+
+    const productSets: MatchableProductSet[] = productSetDocs.map((doc) => ({
+      id: doc.id,
+      name: doc.name,
+      series: doc.series,
+    }));
+
+    // Build pipeline (precomputed once, reused for every title match)
+    const pipeline = new ProductMatchingPipeline({ productTypes, productSets });
+
+    // Build watchlist index: typeId|setId → products[]
+    const watchlistIndex = new Map<string, WatchlistProductInternal[]>();
+    for (const product of allProducts) {
+      const key = `${product.productTypeId}|${product.productSetId}`;
+      const existing = watchlistIndex.get(key) ?? [];
+      existing.push(product);
+      watchlistIndex.set(key, existing);
+    }
+
+    // Build setMap for SetGroup construction (search phrase = set name)
     const setMap = new Map<string, { name: string; series: string }>();
     for (const doc of productSetDocs) {
       setMap.set(doc.id, { name: doc.name, series: doc.series });
     }
 
-    // Resolve search config for each product (merge with ProductType + set name)
-    const { resolved: resolvedProducts, productTypeCount } = await loadAndResolveProducts(
-      allProducts,
-      setMap,
-      this.config.logger,
-    );
+    this.products = allProducts;
 
-    const unresolvedCount = allProducts.length - resolvedProducts.length;
-    if (unresolvedCount > 0) {
-      this.config.logger.info('Products with no resolvable search config skipped', {
-        skipped: unresolvedCount,
-      });
-    }
-
-    this.products = resolvedProducts;
-
-    // Group products by set for optimized searching
-    const { setGroups, ungrouped } = groupProductsBySet(this.products, setMap);
+    // Group products by set for search URL construction
+    const { setGroups, ungrouped } = groupProductsBySet(allProducts, setMap);
     this.setGroups = setGroups;
     this.ungroupedProducts = ungrouped;
 
+    // Pass pipeline + watchlistIndex to runner
+    this.cycleRunner.setPipelineConfig(pipeline, watchlistIndex);
+
     this.config.logger.info('Price Monitor initialized', {
       shops: this.shops.length,
-      products: this.products.length,
-      productTypes: productTypeCount,
+      products: allProducts.length,
+      productTypes: productTypes.length,
+      productSets: productSets.length,
       setGroups: setGroups.length,
-      productsInSets: this.products.length - ungrouped.length,
+      productsInSets: allProducts.length - ungrouped.length,
       ungrouped: ungrouped.length,
     });
   }
