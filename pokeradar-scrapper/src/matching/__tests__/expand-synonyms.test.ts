@@ -98,6 +98,18 @@ describe('ExpandSynonymsLayer', () => {
       ).toBe('mega evolution ascended heroes mini tin display szt');
     });
 
+    it('expands "mini tin komplet 5 sztuk" to "mini tin bundle"', () => {
+      expect(layer.execute(input('ascended heroes mini tin komplet 5 sztuk')).normalized).toBe(
+        'ascended heroes mini tin bundle sztuk',
+      );
+    });
+
+    it('expands "mini tin zestaw 5 wzorow" to "mini tin bundle"', () => {
+      expect(layer.execute(input('ascended heroes mini tin zestaw 5 wzorow')).normalized).toBe(
+        'ascended heroes mini tin bundle wzorow',
+      );
+    });
+
     it('does not expand ETB when it is a substring of another word', () => {
       expect(layer.execute(input('etbx product')).normalized).toBe('etbx product');
     });

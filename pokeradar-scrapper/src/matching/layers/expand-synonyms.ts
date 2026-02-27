@@ -60,6 +60,12 @@ const PRODUCT_TYPE_SYNONYM_RULES: SynonymRule[] = [
   // After normalization: "mini tin box 10 ..." / "mini tin 10 szt ..." → "mini tin display ..."
   // Replaces "mini tin" + optional "box" + the quantity "10", leaving any trailing tokens intact.
   { pattern: /\bmini\s+tin(?:\s+box)?\s+10\b/g, replacement: 'mini tin display' },
+
+  // "Mini Tin Komplet 5 sztuk" / "Mini Tin Zestaw (5 wzorów)" — a bundle of 5 mini tins.
+  // After normalization: "mini tin komplet 5 sztuk" / "mini tin zestaw 5 wzorow"
+  // Covers Polish phrasing: komplet/zestaw (set/collection) + quantity 5.
+  // Must come after the "mini tin ... 10" rule above (more specific first).
+  { pattern: /\bmini\s+tin\s+(?:komplet|zestaw)\s+5\b/g, replacement: 'mini tin bundle' },
 ];
 
 // ── Layer implementation ──
