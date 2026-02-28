@@ -52,7 +52,7 @@ describe('Users API', () => {
 
       // Verify it's stored in DB
       const user = await UserModel.findById(userId).lean();
-      expect(user!.telegram.linkToken).toBe(res.body.linkToken);
+      expect(user!.telegram?.linkToken).toBe(res.body.linkToken);
     });
 
     it('should overwrite previous token on second call', async () => {
@@ -67,7 +67,7 @@ describe('Users API', () => {
       expect(res1.body.linkToken).not.toBe(res2.body.linkToken);
 
       const user = await UserModel.findById(userId).lean();
-      expect(user!.telegram.linkToken).toBe(res2.body.linkToken);
+      expect(user!.telegram?.linkToken).toBe(res2.body.linkToken);
     });
   });
 
@@ -85,8 +85,8 @@ describe('Users API', () => {
       expect(res.status).toBe(204);
 
       const user = await UserModel.findById(userId).lean();
-      expect(user!.telegram.channelId).toBeNull();
-      expect(user!.telegram.linkToken).toBeNull();
+      expect(user!.telegram?.channelId).toBeNull();
+      expect(user!.telegram?.linkToken).toBeNull();
     });
 
     it('should return 204 even when already unlinked', async () => {

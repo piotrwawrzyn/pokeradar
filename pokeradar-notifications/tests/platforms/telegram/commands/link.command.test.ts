@@ -41,8 +41,8 @@ describe('LinkCommand', () => {
 
     // Verify user was updated
     const updatedUser = await UserModel.findById(user._id);
-    expect(updatedUser?.telegram.channelId).toBe('99999');
-    expect(updatedUser?.telegram.linkToken).toBeFalsy();
+    expect(updatedUser?.telegram?.channelId).toBe('99999');
+    expect(updatedUser?.telegram?.linkToken).toBeFalsy();
 
     // Verify success message
     expect(mockBot.sendMessage).toHaveBeenCalledTimes(1);
@@ -81,8 +81,8 @@ describe('LinkCommand', () => {
     await command.execute(msg, 'new-token-456');
 
     const updatedUser = await UserModel.findById(user._id);
-    expect(updatedUser?.telegram.channelId).toBe('22222');
-    expect(updatedUser?.telegram.linkToken).toBeFalsy();
+    expect(updatedUser?.telegram?.channelId).toBe('22222');
+    expect(updatedUser?.telegram?.linkToken).toBeFalsy();
 
     const message = mockBot.sendMessage.mock.calls[0][1] as string;
     expect(message).toContain('Konto połączone');
