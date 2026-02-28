@@ -27,7 +27,7 @@ vi.mock('@clerk/clerk-react', () => ({
 }));
 
 // Provide window.Clerk.session.getToken for the axios interceptor
-(window as any).Clerk = {
+(window as unknown as { Clerk: { session: { getToken: () => Promise<string> } } }).Clerk = {
   session: { getToken: () => Promise.resolve('test-token') },
 };
 

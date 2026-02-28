@@ -1,15 +1,45 @@
 npx lint-staged
 
+# Determine which workspaces have staged TypeScript files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+TYPECHECK_FAILED=0
+
+check_workspace() {
+  local prefix="$1"
+  local workspace="$2"
+
+  if echo "$STAGED_FILES" | grep -q "^${prefix}/.*\.tsx\?$"; then
+    echo "Typechecking ${workspace}..."
+    npm run typecheck -w "$workspace"
+    if [ $? -ne 0 ]; then
+      TYPECHECK_FAILED=1
+    fi
+  fi
+}
+
+check_workspace "packages/shared" "@pokeradar/shared"
+check_workspace "pokeradar-api" "pokeradar-api"
+check_workspace "pokeradar-client" "pokeradar-client"
+check_workspace "pokeradar-scrapper" "pokeradar-scrapper"
+check_workspace "pokeradar-notifications" "pokeradar-notifications"
+
+if [ $TYPECHECK_FAILED -ne 0 ]; then
+  echo ""
+  echo "TypeScript type checking failed. Fix the errors above before committing."
+  exit 1
+fi
+
 # Check if any scrapper files are being committed
-SCRAPPER_FILES=$(git diff --cached --name-only | grep "^pokeradar-scrapper/" || true)
+SCRAPPER_FILES=$(echo "$STAGED_FILES" | grep "^pokeradar-scrapper/" || true)
 
 if [ -n "$SCRAPPER_FILES" ]; then
-  echo "🔍 Scrapper files changed - running baseline:check..."
+  echo "Scrapper files changed - running baseline:check..."
   echo ""
 
   # Check if baseline file exists
   if [ ! -f "pokeradar-scrapper/scripts/baseline/fixtures/_baseline.json" ]; then
-    echo "⚠️  Warning: No baseline found. Run 'npm run baseline:record -w pokeradar-scrapper' first."
+    echo "Warning: No baseline found. Run 'npm run baseline:record -w pokeradar-scrapper' first."
     echo "Skipping baseline check..."
     exit 0
   fi
@@ -19,7 +49,7 @@ if [ -n "$SCRAPPER_FILES" ]; then
 
   if [ $? -ne 0 ]; then
     echo ""
-    echo "❌ Baseline check failed! Your changes broke the scrapper."
+    echo "Baseline check failed! Your changes broke the scrapper."
     echo ""
     echo "Options:"
     echo "  1. Fix the regressions in your code"
@@ -31,6 +61,6 @@ if [ -n "$SCRAPPER_FILES" ]; then
   fi
 
   echo ""
-  echo "✅ Baseline check passed!"
+  echo "Baseline check passed!"
   echo ""
 fi

@@ -1,14 +1,25 @@
+interface ApiErrorResponse {
+  response?: {
+    data?: {
+      error?: string;
+      details?: Array<{ path?: string[]; message: string }>;
+    };
+  };
+  message?: string;
+}
+
 /**
  * Extracts a user-friendly error message from an API error response.
  * Includes validation details if available.
  */
-export function getErrorMessage(error: any, fallbackMessage: string): string {
-  let message = error?.response?.data?.error || error?.message || fallbackMessage;
+export function getErrorMessage(error: unknown, fallbackMessage: string): string {
+  const apiError = error as ApiErrorResponse;
+  let message = apiError?.response?.data?.error || apiError?.message || fallbackMessage;
 
   // If there are validation details, append them
-  if (error?.response?.data?.details) {
-    const details = error.response.data.details
-      .map((d: any) => `${d.path?.join('.') || 'field'}: ${d.message}`)
+  if (apiError?.response?.data?.details) {
+    const details = apiError.response.data.details
+      .map((d) => `${d.path?.join('.') || 'field'}: ${d.message}`)
       .join(', ');
     message = `${message}: ${details}`;
   }

@@ -5,14 +5,14 @@
 import { NotificationState } from '../../types';
 import { INotificationStateRepository } from '../interfaces';
 import { NotificationStateModel } from '../../../infrastructure/database/models';
-import { toNotificationState, getStateKey } from './mappers';
+import { toNotificationState, getStateKey, INotificationStateDoc } from './mappers';
 
 export class MongoNotificationStateRepository implements INotificationStateRepository {
   async get(userId: string, productId: string, shopId: string): Promise<NotificationState | null> {
     const key = getStateKey(userId, productId, shopId);
     const doc = await NotificationStateModel.findOne({ key }).lean();
     if (!doc) return null;
-    return toNotificationState(doc as any);
+    return toNotificationState(doc as INotificationStateDoc);
   }
 
   async set(state: NotificationState): Promise<void> {
@@ -81,6 +81,6 @@ export class MongoNotificationStateRepository implements INotificationStateRepos
   async getAll(productIds?: string[]): Promise<NotificationState[]> {
     const filter = productIds ? { productId: { $in: productIds } } : {};
     const docs = await NotificationStateModel.find(filter).lean();
-    return docs.map((doc) => toNotificationState(doc as any));
+    return docs.map((doc) => toNotificationState(doc as INotificationStateDoc));
   }
 }

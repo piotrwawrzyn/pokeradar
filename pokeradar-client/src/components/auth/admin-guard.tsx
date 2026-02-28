@@ -11,7 +11,7 @@ export function AdminGuard({ children }: { children: ReactNode }) {
     return null;
   }
 
-  const isAdmin = (user?.publicMetadata as any)?.isAdmin === true;
+  const isAdmin = (user?.publicMetadata as Record<string, unknown>)?.isAdmin === true;
 
   if (!isAuthenticated || !isAdmin) {
     return <Navigate to="/" replace />;

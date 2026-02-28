@@ -7,6 +7,7 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 
 type WatchlistState = 'loading' | 'not-logged-in' | 'no-notifications' | 'ready';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useWatchlistState(): WatchlistState {
   const { isAuthenticated, isLoading } = useAuth();
   const { data: profile, isLoading: isProfileLoading } = useUserProfile();

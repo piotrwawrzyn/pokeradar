@@ -17,6 +17,7 @@ export interface AuthContextValue {
   login: (token: string) => void;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       : null,
     logout,
-    login: (_token: string) => {},
+    login: () => {},
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

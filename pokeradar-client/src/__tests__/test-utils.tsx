@@ -18,6 +18,7 @@ function createTestQueryClient() {
   });
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 function AllProviders({ children }: { children: ReactNode }) {
   const queryClient = createTestQueryClient();
   return (
@@ -29,6 +30,7 @@ function AllProviders({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 function ProvidersNoAuth({ children }: { children: ReactNode }) {
   const queryClient = createTestQueryClient();
   return (

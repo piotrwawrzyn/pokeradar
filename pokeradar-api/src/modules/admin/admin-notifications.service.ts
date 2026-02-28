@@ -60,7 +60,6 @@ export class AdminNotificationsService {
     const dbUsers = await UserModel.find({ _id: { $in: userIds } })
       .select('_id clerkId')
       .lean();
-    const mongoIdToClerkId = new Map(dbUsers.map((u) => [u._id.toString(), u.clerkId]));
     const clerkIds = dbUsers.map((u) => u.clerkId).filter(Boolean);
     const { data: clerkUsers } =
       clerkIds.length > 0

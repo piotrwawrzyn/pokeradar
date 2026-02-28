@@ -23,6 +23,16 @@ import { toast } from 'sonner';
 import type { ProductSet } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 
+interface ProductSetPayload {
+  id?: string;
+  name: string;
+  series: string;
+  releaseDate?: string;
+  setNumber: string;
+  setAbbreviation: string;
+  imageUrl?: string;
+}
+
 export function ProductSetsTab() {
   const { data: sets, isLoading } = useAdminProductSets();
   const { data: products } = useAdminProducts();
@@ -65,7 +75,7 @@ export function ProductSetsTab() {
       return;
     }
 
-    const payload: any = {
+    const payload: ProductSetPayload = {
       name: formData.name,
       series: formData.series,
       releaseDate: formData.releaseDate || undefined,
@@ -83,7 +93,7 @@ export function ProductSetsTab() {
         if (image.imageFile) {
           try {
             await uploadImage.mutateAsync({ id: dialog.selected.id, file: image.imageFile });
-          } catch (imageError: any) {
+          } catch (imageError: unknown) {
             toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
             return;
           }
@@ -95,7 +105,7 @@ export function ProductSetsTab() {
           try {
             const uploadResult = await uploadSetImageOnly.mutateAsync({ file: image.imageFile });
             imageUrl = uploadResult.imageUrl;
-          } catch (imageError: any) {
+          } catch (imageError: unknown) {
             toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
             return;
           }
@@ -105,7 +115,7 @@ export function ProductSetsTab() {
         toast.success('Set utworzony');
       }
       dialog.closeEdit();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Nie udało się zapisać setu'));
     }
   };
@@ -116,7 +126,7 @@ export function ProductSetsTab() {
       await deleteSet.mutateAsync(dialog.selected.id);
       toast.success('Set usunięty');
       dialog.closeDelete();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Nie udało się usunąć setu'));
     }
   };

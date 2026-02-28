@@ -160,7 +160,9 @@ export class AdminShopsService {
         : [];
     const setMap = new Map(sets.map((s) => [s.id, s]));
 
-    const availableCount = latestResults.filter((r: any) => r.isAvailable).length;
+    const availableCount = latestResults.filter(
+      (r: Record<string, unknown>) => r.isAvailable,
+    ).length;
     const totalCount = latestResults.length;
 
     return {
@@ -172,20 +174,21 @@ export class AdminShopsService {
       availableCount,
       totalCount,
       hasWarning: !shop.disabled && hourlyCount === 0,
-      products: latestResults.map((r: any) => {
-        const product = productMap.get(r.productId);
+      products: latestResults.map((r: Record<string, unknown>) => {
+        const productId = r.productId as string;
+        const product = productMap.get(productId);
         const setId = product?.productSetId;
         const releaseDate = setId ? setMap.get(setId)?.releaseDate : null;
         return {
-          productId: r.productId,
-          productName: product?.name ?? r.productId,
+          productId,
+          productName: product?.name ?? productId,
           productImageUrl: product?.imageUrl ?? '',
           productSetId: setId ?? null,
           setReleaseDate: releaseDate ? releaseDate.toISOString() : null,
-          price: r.price,
-          isAvailable: r.isAvailable,
-          productUrl: r.productUrl,
-          lastSeen: r.lastSeen,
+          price: r.price as number | null,
+          isAvailable: r.isAvailable as boolean,
+          productUrl: r.productUrl as string,
+          lastSeen: r.lastSeen as Date,
         };
       }),
     };

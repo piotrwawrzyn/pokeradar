@@ -3,6 +3,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getApiBaseUrl } from '@/lib/utils';
 
+declare global {
+  interface Window {
+    Clerk?: { session?: { getToken: () => Promise<string> } };
+  }
+}
+
 export function useLinkStatusStream(token: string | null, successMessage: string): void {
   const queryClient = useQueryClient();
 
@@ -11,7 +17,7 @@ export function useLinkStatusStream(token: string | null, successMessage: string
     let cancelled = false;
 
     const connect = async () => {
-      const authToken = await (window as any).Clerk?.session?.getToken();
+      const authToken = await window.Clerk?.session?.getToken();
       const baseUrl = getApiBaseUrl();
       const response = await fetch(`${baseUrl}/users/me/link-status/stream`, {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -41,5 +47,5 @@ export function useLinkStatusStream(token: string | null, successMessage: string
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, queryClient, successMessage]);
 }

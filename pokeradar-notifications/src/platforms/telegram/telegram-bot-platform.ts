@@ -70,7 +70,7 @@ export class TelegramBotPlatform implements IBotPlatform {
 
   private registerCommands(): void {
     for (const command of this.commands) {
-      const pattern = new RegExp(`^\/${command.command}(?:\\s+(.*))?$`);
+      const pattern = new RegExp(`^/${command.command}(?:\\s+(.*))?$`);
 
       this.bot.onText(pattern, async (msg, match) => {
         const args = match?.[1] ?? '';

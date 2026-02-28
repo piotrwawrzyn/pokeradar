@@ -6,7 +6,7 @@ import { adminApi } from '@/api/admin.api';
 export function useIsAdmin() {
   const { user, isLoaded } = useUser();
   return {
-    data: (user?.publicMetadata as any)?.isAdmin === true,
+    data: (user?.publicMetadata as Record<string, unknown>)?.isAdmin === true,
     isLoading: !isLoaded,
   };
 }

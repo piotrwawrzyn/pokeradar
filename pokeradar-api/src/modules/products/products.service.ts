@@ -84,7 +84,7 @@ export class ProductsService {
     const docs = await ProductResultModel.aggregate(pipeline);
 
     return new Map(
-      docs.map((d: any) => [
+      docs.map((d: { productId: string; price: number; shopId: string; productUrl: string }) => [
         d.productId,
         { bestPrice: d.price, shopId: d.shopId, productUrl: d.productUrl },
       ]),

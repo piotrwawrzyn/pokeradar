@@ -41,7 +41,6 @@ function getArg(name: string, fallback: number): number {
 const USER_COUNT = getArg('users', 10);
 const PER_USER = getArg('per-user', 5);
 const TIMEOUT_S = getArg('timeout', 300);
-const TOTAL = USER_COUNT * PER_USER;
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 

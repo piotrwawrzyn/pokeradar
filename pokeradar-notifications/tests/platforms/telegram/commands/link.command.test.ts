@@ -11,6 +11,7 @@ jest.mock('node-telegram-bot-api', () => {
 import TelegramBot from 'node-telegram-bot-api';
 import { UserModel } from '@pokeradar/shared';
 import { LinkCommand } from '../../../../src/platforms/telegram/commands/link.command';
+import { ILogger } from '../../../../src/shared/logger';
 
 const mockLogger = {
   info: jest.fn(),
@@ -27,7 +28,7 @@ describe('LinkCommand', () => {
     jest.clearAllMocks();
     const bot = new TelegramBot('test-token', { polling: false });
     mockBot = bot as unknown as { sendMessage: jest.Mock };
-    command = new LinkCommand(bot, 'https://pokeradar.app', mockLogger as any);
+    command = new LinkCommand(bot, 'https://pokeradar.app', mockLogger as ILogger);
   });
 
   it('links account when a valid token is provided', async () => {

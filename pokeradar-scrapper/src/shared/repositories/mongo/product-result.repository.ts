@@ -5,7 +5,7 @@
 import { ProductResult } from '../../types';
 import { IProductResultRepository } from '../interfaces';
 import { ProductResultModel } from '../../../infrastructure/database/models';
-import { toProductResult, toProductResultArray, getHourBucket } from './mappers';
+import { toProductResult, toProductResultArray, getHourBucket, IProductResultDoc } from './mappers';
 import { getFreshnessCutoff, buildBestPriceAggregation } from '@pokeradar/shared';
 
 export class MongoProductResultRepository implements IProductResultRepository {
@@ -79,7 +79,7 @@ export class MongoProductResultRepository implements IProductResultRepository {
       .sort({ timestamp: -1 })
       .limit(limit)
       .lean();
-    return toProductResultArray(docs as any[]);
+    return toProductResultArray(docs as IProductResultDoc[]);
   }
 
   async getCurrentBestOffer(productId: string): Promise<ProductResult | null> {
@@ -132,6 +132,6 @@ export class MongoProductResultRepository implements IProductResultRepository {
 
   async getRecent(limit = 100): Promise<ProductResult[]> {
     const docs = await ProductResultModel.find().sort({ timestamp: -1 }).limit(limit).lean();
-    return toProductResultArray(docs as any[]);
+    return toProductResultArray(docs as IProductResultDoc[]);
   }
 }

@@ -44,6 +44,14 @@ import type { AdminProduct } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 import { formatPLN } from '@/lib/format';
 
+interface ProductPayload {
+  id?: string;
+  name: string;
+  productSetId: string;
+  productTypeId: string;
+  imageUrl?: string;
+}
+
 export interface ProductsTabHandle {
   openCreate: () => void;
 }
@@ -115,7 +123,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
 
     setFormError(null);
 
-    const payload: any = {
+    const payload: ProductPayload = {
       name: formData.name,
       productSetId: formData.productSetId,
       productTypeId: formData.productTypeId,
@@ -131,7 +139,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
         if (image.imageFile) {
           try {
             await uploadImage.mutateAsync({ id: dialog.selected.id, file: image.imageFile });
-          } catch (imageError: any) {
+          } catch (imageError: unknown) {
             toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
             return;
           }
@@ -143,7 +151,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
           try {
             const uploadResult = await uploadImageOnly.mutateAsync({ file: image.imageFile });
             imageUrl = uploadResult.imageUrl;
-          } catch (imageError: any) {
+          } catch (imageError: unknown) {
             toast.error(getErrorMessage(imageError, 'Nie udało się przesłać obrazka'));
             return;
           }
@@ -153,7 +161,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
         toast.success('Produkt utworzony');
       }
       dialog.closeEdit();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Nie udało się zapisać produktu'));
     }
   };
@@ -164,7 +172,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
       await deleteProduct.mutateAsync(dialog.selected.id);
       toast.success('Produkt usunięty');
       dialog.closeDelete();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Nie udało się usunąć produktu'));
     }
   };

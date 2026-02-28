@@ -26,7 +26,7 @@ export function errorMiddleware(
   err: Error,
   _req: Request,
   res: Response,
-  _next: NextFunction,
+  _next: NextFunction, // eslint-disable-line @typescript-eslint/no-unused-vars
 ): void {
   if (err instanceof AppError) {
     res.status(err.statusCode).json({ error: err.message });
@@ -34,7 +34,7 @@ export function errorMiddleware(
   }
 
   // Mongoose duplicate key error
-  if ((err as any).code === 11000) {
+  if ((err as Record<string, unknown>).code === 11000) {
     res.status(409).json({ error: 'Resource already exists' });
     return;
   }

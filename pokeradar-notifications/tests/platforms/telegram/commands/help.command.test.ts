@@ -10,6 +10,7 @@ jest.mock('node-telegram-bot-api', () => {
 import TelegramBot from 'node-telegram-bot-api';
 import { HelpCommand } from '../../../../src/platforms/telegram/commands/help.command';
 import { ITelegramCommand } from '../../../../src/platforms/telegram/commands/command.interface';
+import { ILogger } from '../../../../src/shared/logger';
 
 const mockLogger = {
   info: jest.fn(),
@@ -32,7 +33,7 @@ describe('HelpCommand', () => {
     jest.clearAllMocks();
     const bot = new TelegramBot('test-token', { polling: false });
     mockBot = bot as unknown as { sendMessage: jest.Mock };
-    command = new HelpCommand(bot, 'https://pokeradar.app', fakeCommands, mockLogger as any);
+    command = new HelpCommand(bot, 'https://pokeradar.app', fakeCommands, mockLogger as ILogger);
   });
 
   it('sends a help message listing all commands', async () => {

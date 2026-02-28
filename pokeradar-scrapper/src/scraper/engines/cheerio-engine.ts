@@ -18,6 +18,7 @@ import { findByTextInsensitive } from './selector-utils';
  */
 interface ILogger {
   debug(message: string, meta?: Record<string, unknown>): void;
+  warn?(message: string, meta?: Record<string, unknown>): void;
 }
 
 /**
@@ -147,16 +148,14 @@ export class CheerioEngine implements IEngine {
         const waitMs = attempt === 1 ? 2000 : 5000;
 
         // Use warn level for retries - this is important operational info
-        if (this.logger && 'warn' in this.logger) {
-          (this.logger as any).warn('Request failed, retrying with backoff', {
-            shop: this.shop.id,
-            attempt,
-            maxAttempts,
-            waitMs,
-            retryable: true,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
+        this.logger?.warn?.('Request failed, retrying with backoff', {
+          shop: this.shop.id,
+          attempt,
+          maxAttempts,
+          waitMs,
+          retryable: true,
+          error: error instanceof Error ? error.message : String(error),
+        });
 
         await new Promise((resolve) => setTimeout(resolve, waitMs));
       }

@@ -49,6 +49,7 @@ export class UsersController {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async streamLinkStatus(req: Request, res: Response, _next: NextFunction): Promise<void> {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');

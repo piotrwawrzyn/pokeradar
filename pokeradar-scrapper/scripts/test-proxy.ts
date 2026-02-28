@@ -22,8 +22,8 @@ async function testAxios() {
       timeout: 15000,
     });
     console.log('IP:', res.data);
-  } catch (err: any) {
-    console.error('FAILED:', err.message);
+  } catch (err: unknown) {
+    console.error('FAILED:', err instanceof Error ? err.message : String(err));
   }
 }
 
@@ -62,8 +62,8 @@ async function testShopPlaywright() {
       const firstTitle = await page.locator('li.product h2').first().textContent();
       console.log('First product:', firstTitle?.trim());
     }
-  } catch (err: any) {
-    console.error('FAILED:', err.message);
+  } catch (err: unknown) {
+    console.error('FAILED:', err instanceof Error ? err.message : String(err));
   } finally {
     await browser?.close();
   }
@@ -87,8 +87,8 @@ async function testShopDirect() {
       const firstTitle = await page.locator('li.product h2').first().textContent();
       console.log('First product:', firstTitle?.trim());
     }
-  } catch (err: any) {
-    console.error('FAILED:', err.message);
+  } catch (err: unknown) {
+    console.error('FAILED:', err instanceof Error ? err.message : String(err));
   } finally {
     await browser?.close();
   }

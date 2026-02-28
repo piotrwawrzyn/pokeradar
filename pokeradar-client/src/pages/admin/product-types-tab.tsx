@@ -29,6 +29,13 @@ import { ChevronDown, X } from 'lucide-react';
 import type { ProductType } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 
+interface ProductTypePayload {
+  id?: string;
+  name: string;
+  matchingProfile: { required: string[]; forbidden: string[] };
+  contains: string[];
+}
+
 export function ProductTypesTab() {
   const { data: types, isLoading } = useAdminProductTypes();
   const { data: products } = useAdminProducts();
@@ -61,7 +68,7 @@ export function ProductTypesTab() {
   };
 
   const handleSave = async () => {
-    const payload: any = {
+    const payload: ProductTypePayload = {
       name: formData.name,
       matchingProfile: {
         required: formData.matchingRequired
@@ -87,7 +94,7 @@ export function ProductTypesTab() {
         toast.success('Typ produktu utworzony');
       }
       dialog.closeEdit();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Nie udało się zapisać typu produktu'));
     }
   };
@@ -98,7 +105,7 @@ export function ProductTypesTab() {
       await deleteType.mutateAsync(dialog.selected.id);
       toast.success('Typ produktu usunięty');
       dialog.closeDelete();
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(getErrorMessage(error, 'Nie udało się usunąć typu produktu'));
     }
   };

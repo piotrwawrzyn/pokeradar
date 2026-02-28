@@ -24,19 +24,25 @@ export function MaxPriceInput({
   const debouncedValue = useDebounce(value, 500);
   const updateEntry = useUpdateWatchEntry();
   const mutateRef = useRef(updateEntry.mutate);
-  mutateRef.current = updateEntry.mutate;
+  useEffect(() => {
+    mutateRef.current = updateEntry.mutate;
+  });
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Track values we saved ourselves to avoid reacting to our own mutations
   const lastSavedRef = useRef(currentMaxPrice);
 
+  // Compute slider max once on mount so it stays consistent during the session
+  const [max] = useState(() =>
+    currentBestPrice !== null ? Math.max(currentBestPrice, currentMaxPrice) : Infinity,
+  );
+
   // Sync only truly external changes (e.g. another device updated the entry)
-  useEffect(() => {
-    if (currentMaxPrice !== lastSavedRef.current) {
-      lastSavedRef.current = currentMaxPrice;
-      setValue(currentMaxPrice);
-    }
-  }, [currentMaxPrice]);
+  // Using "set state during render" pattern to avoid useEffect + setState combo
+  if (currentMaxPrice !== lastSavedRef.current) {
+    lastSavedRef.current = currentMaxPrice;
+    setValue(currentMaxPrice);
+  }
 
   // Auto-save on debounced value change
   useEffect(() => {
@@ -61,12 +67,6 @@ export function MaxPriceInput({
     setInputValue(String(value));
     setIsEditing(true);
   };
-
-  // Compute slider max once on mount so it stays consistent during the session
-  const maxRef = useRef(
-    currentBestPrice !== null ? Math.max(currentBestPrice, currentMaxPrice) : Infinity,
-  );
-  const max = maxRef.current;
 
   const handleConfirmEdit = () => {
     const parsed = parseFloat(inputValue);

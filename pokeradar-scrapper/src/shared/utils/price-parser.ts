@@ -57,7 +57,7 @@ export class PriceParser {
     // 4 899,00 → 4899.00
     // 1299,99 → 1299.99
     const numberStr = match[1]
-      .replace(/[\.\s]/g, '') // Remove thousands separators (dots and spaces)
+      .replace(/[.\s]/g, '') // Remove thousands separators (dots and spaces)
       .replace(',', '.'); // Replace decimal comma with dot
 
     const parsed = parseFloat(numberStr);

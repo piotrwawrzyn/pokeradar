@@ -13,6 +13,7 @@ export class StartCommand implements ITelegramCommand {
     private logger: ILogger,
   ) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async execute(msg: TelegramBot.Message, _args: string): Promise<void> {
     const chatId = msg.chat.id;
     const messages = getTelegramMessages(this.appUrl);

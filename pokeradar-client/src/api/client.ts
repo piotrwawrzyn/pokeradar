@@ -9,7 +9,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use(async (config) => {
-  const token = await (window as any).Clerk?.session?.getToken();
+  const token = await (window as unknown as { Clerk?: { session?: { getToken?: () => Promise<string> } } }).Clerk?.session?.getToken?.();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

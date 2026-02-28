@@ -67,7 +67,7 @@ export class AdminUsersService {
         clerkId: cu.id,
         email: cu.emailAddresses[0]?.emailAddress ?? '',
         displayName: cu.fullName ?? '',
-        isAdmin: (cu.publicMetadata as any)?.isAdmin === true,
+        isAdmin: (cu.publicMetadata as Record<string, unknown>)?.isAdmin === true,
         telegramLinked: (dbUser?.telegram?.channelId ?? null) !== null,
         discordLinked: (dbUser?.discord?.channelId ?? null) !== null,
       };
@@ -95,7 +95,7 @@ export class AdminUsersService {
       mongoId ? UserWatchEntryModel.countDocuments({ userId: mongoId }) : 0,
     ]);
 
-    const productIds = (watchEntries as any[]).map((e) => e.productId);
+    const productIds = watchEntries.map((e) => e.productId);
     const products = productIds.length
       ? await WatchlistProductModel.find({ id: { $in: productIds } })
           .select('id name')
@@ -107,7 +107,7 @@ export class AdminUsersService {
       clerkId,
       email: clerkUser.emailAddresses[0]?.emailAddress ?? '',
       displayName: clerkUser.fullName ?? '',
-      isAdmin: (clerkUser.publicMetadata as any)?.isAdmin === true,
+      isAdmin: (clerkUser.publicMetadata as Record<string, unknown>)?.isAdmin === true,
       telegramLinked: (dbUser?.telegram?.channelId ?? null) !== null,
       telegramChannelId: dbUser?.telegram?.channelId ?? null,
       discordLinked: (dbUser?.discord?.channelId ?? null) !== null,
@@ -115,13 +115,13 @@ export class AdminUsersService {
       lastLogin: clerkUser.lastSignInAt ? new Date(clerkUser.lastSignInAt) : null,
       createdAt: new Date(clerkUser.createdAt),
       watchlistCount,
-      watchlistEntries: (watchEntries as any[]).map((e) => ({
+      watchlistEntries: watchEntries.map((e) => ({
         productId: e.productId,
         productName: productNameMap.get(e.productId) ?? e.productId,
         maxPrice: e.maxPrice,
         isActive: e.isActive,
       })),
-      notifications: (notifications as any[]).map((n) => ({
+      notifications: notifications.map((n) => ({
         id: n._id.toString(),
         status: n.status,
         payload: {

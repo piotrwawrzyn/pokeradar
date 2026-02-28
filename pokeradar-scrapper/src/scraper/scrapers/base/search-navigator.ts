@@ -38,7 +38,6 @@ export class SearchNavigator {
    */
   async extractSearchCandidates(
     searchPhrase: string,
-    maxArticles: number = 20,
   ): Promise<ProductCandidate[]> {
     const searchUrl = buildSearchUrl(this.config.baseUrl, this.config.searchUrl, searchPhrase);
 

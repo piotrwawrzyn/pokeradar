@@ -46,7 +46,7 @@ export class ChangeStreamWatcher {
 
     this.changeStream = NotificationModel.watch(pipeline, { fullDocument: 'updateLookup' });
 
-    this.changeStream.on('change', (change: any) => {
+    this.changeStream.on('change', (change: mongoose.mongo.ChangeStreamInsertDocument<INotificationDoc>) => {
       if (change.fullDocument) {
         this.logger.debug('Change stream received notification', {
           id: change.fullDocument._id?.toString(),

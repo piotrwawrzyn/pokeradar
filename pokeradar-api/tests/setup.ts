@@ -14,9 +14,9 @@ process.env.NODE_ENV = 'test';
 // requireAuth extracts the Bearer token and uses it as the Clerk userId —
 // this allows multi-user tests to simulate different users by using different tokens.
 jest.mock('@clerk/express', () => ({
-  clerkMiddleware: () => (_req: any, _res: any, next: any) => next(),
-  requireAuth: () => (req: any, res: any, next: any) => {
-    const authHeader = req.headers['authorization'] as string | undefined;
+  clerkMiddleware: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+  requireAuth: () => (req: { headers: Record<string, string | undefined>; auth?: unknown }, res: { status: (code: number) => { json: (body: unknown) => void } }, next: () => void) => {
+    const authHeader = req.headers['authorization'];
     if (!authHeader?.startsWith('Bearer ')) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
@@ -26,7 +26,7 @@ jest.mock('@clerk/express', () => ({
     next();
   },
   // getAuth reads the auth object set by requireAuth above
-  getAuth: (req: any) => req.auth ?? { userId: null, sessionClaims: {} },
+  getAuth: (req: { auth?: unknown }) => req.auth ?? { userId: null, sessionClaims: {} },
   clerkClient: {
     users: {
       getUser: jest.fn().mockImplementation((clerkId: string) =>

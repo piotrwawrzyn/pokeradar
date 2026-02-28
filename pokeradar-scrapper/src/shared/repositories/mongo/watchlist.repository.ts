@@ -6,17 +6,18 @@ import { WatchlistProductInternal } from '../../types';
 import { IWatchlistRepository } from '../interfaces';
 import { WatchlistProductModel } from '../../../infrastructure/database/models';
 import { toWatchlistProduct } from './mappers';
+import { IWatchlistProductDoc } from '@pokeradar/shared';
 
 export class MongoWatchlistRepository implements IWatchlistRepository {
   async getAll(): Promise<WatchlistProductInternal[]> {
     const docs = await WatchlistProductModel.find({ disabled: { $ne: true } }).lean();
-    return docs.map((doc) => toWatchlistProduct(doc as any));
+    return docs.map((doc) => toWatchlistProduct(doc as IWatchlistProductDoc));
   }
 
   async getById(id: string): Promise<WatchlistProductInternal | null> {
     const doc = await WatchlistProductModel.findOne({ id }).lean();
     if (!doc) return null;
-    return toWatchlistProduct(doc as any);
+    return toWatchlistProduct(doc as IWatchlistProductDoc);
   }
 
   async add(product: WatchlistProductInternal): Promise<void> {

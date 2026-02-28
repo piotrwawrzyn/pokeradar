@@ -29,7 +29,7 @@ describe('Products API', () => {
       const res = await request(app).get('/products');
 
       expect(res.status).toBe(200);
-      const product = res.body.find((p: any) => p.id === 'pokemon-151-booster-box');
+      const product = res.body.find((p: { id: string }) => p.id === 'pokemon-151-booster-box');
       expect(product.currentBestPrice).toBeNull();
       expect(product.currentBestShop).toBeNull();
       expect(product.currentBestUrl).toBeNull();
@@ -41,7 +41,7 @@ describe('Products API', () => {
       const res = await request(app).get('/products');
 
       expect(res.status).toBe(200);
-      const product = res.body.find((p: any) => p.id === 'pokemon-151-booster-box');
+      const product = res.body.find((p: { id: string }) => p.id === 'pokemon-151-booster-box');
       // shop-a has 179.99 (available), shop-b has 199.99 (available), shop-c has 159.99 (unavailable)
       // Best available price should be 179.99 from shop-a
       expect(product.currentBestPrice).toBe(179.99);

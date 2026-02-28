@@ -31,13 +31,19 @@ import {
   ScanCycleRunner,
   IScraperFactory,
   IMultiUserDispatcher,
+  IScanLogger,
 } from '../src/scraper/monitoring/scan-cycle-runner';
 import { ResultBuffer } from '../src/scraper/monitoring/result-buffer';
 import { ScraperFactory } from '../src/scraper/scrapers/scraper-factory';
-import { WatchlistProductInternal, ProductResult, ShopConfig } from '../src/shared/types';
-import { IEngine } from '../src/scraper/engines/engine.interface';
+import { WatchlistProductInternal, ProductResult, ShopConfig, Selector } from '../src/shared/types';
+import { IEngine, IElement } from '../src/scraper/engines/engine.interface';
 import { IScraper } from '../src/scraper/scrapers/base/base-scraper';
+import { SearchNavigator } from '../src/scraper/scrapers/base/search-navigator';
+import { ProductCandidate } from '../src/scraper/scrapers/base/helpers/candidate-selector';
 import { Browser } from 'patchright';
+import { CheerioEngine } from '../src/scraper/engines/cheerio-engine';
+import { PlaywrightEngine } from '../src/scraper/engines/playwright-engine';
+import { DefaultScraper } from '../src/scraper/scrapers/default-scraper';
 
 dotenv.config();
 
@@ -150,15 +156,15 @@ class RequestCountingEngine implements IEngine {
     return this.wrapped.getCurrentUrl();
   }
 
-  async extract(selector: any): Promise<string | null> {
+  async extract(selector: Selector): Promise<string | null> {
     return this.wrapped.extract(selector);
   }
 
-  async extractAll(selector: any): Promise<any[]> {
+  async extractAll(selector: Selector): Promise<IElement[]> {
     return this.wrapped.extractAll(selector);
   }
 
-  async exists(selector: any): Promise<boolean> {
+  async exists(selector: Selector): Promise<boolean> {
     return this.wrapped.exists(selector);
   }
 
@@ -172,12 +178,12 @@ class RequestCountingEngine implements IEngine {
  */
 class TimedNavigator {
   constructor(
-    private wrapped: any,
+    private wrapped: SearchNavigator,
     private shopId: string,
     private timingTracker: TimingTracker,
   ) {}
 
-  async extractSearchCandidates(searchPhrase: string): Promise<any[]> {
+  async extractSearchCandidates(searchPhrase: string): Promise<ProductCandidate[]> {
     this.timingTracker.start(this.shopId);
     try {
       return await this.wrapped.extractSearchCandidates(searchPhrase);
@@ -217,13 +223,13 @@ class TimedScraper implements IScraper {
   createResultFromSearchData(
     product: WatchlistProductInternal,
     url: string,
-    searchPageData: any,
+    searchPageData: { price: number | null; isAvailable: boolean },
   ): ProductResult {
     return this.wrapped.createResultFromSearchData(product, url, searchPageData);
   }
 
-  getNavigator(): any {
-    return this.timedNavigator;
+  getNavigator(): SearchNavigator {
+    return this.timedNavigator as unknown as SearchNavigator;
   }
 
   async close(): Promise<void> {
@@ -240,11 +246,8 @@ class InstrumentedScraperFactory {
     private timingTracker: TimingTracker,
   ) {}
 
-  create(shop: ShopConfig, logger?: any, browser?: Browser): IScraper {
-    // Import the engine types to wrap them
-    const { CheerioEngine } = require('../src/scraper/engines/cheerio-engine');
-    const { PlaywrightEngine } = require('../src/scraper/engines/playwright-engine');
-    const { DefaultScraper } = require('../src/scraper/scrapers/default-scraper');
+  create(shop: ShopConfig, logger?: IScanLogger, browser?: Browser): IScraper {
+    // Use top-level imports (CheerioEngine, PlaywrightEngine, DefaultScraper)
 
     // Create the appropriate engine
     let engine: IEngine;

@@ -4,6 +4,7 @@ import { ChangeStreamWatcher } from '../../src/notifications/change-stream-watch
 import { NotificationModel } from '@pokeradar/shared';
 import { ILogger } from '../../src/shared/logger';
 import { INotificationPayload } from '../../src/shared/types';
+import { INotificationDoc } from '@pokeradar/shared';
 
 const mockLogger: ILogger = {
   info: jest.fn(),
@@ -74,7 +75,7 @@ describe('ChangeStreamWatcher', () => {
   it('detects newly inserted notifications', async () => {
     if (!replSetAvailable) return;
 
-    const receivedDocs: any[] = [];
+    const receivedDocs: INotificationDoc[] = [];
     watcher = new ChangeStreamWatcher(mockLogger);
 
     watcher.start((doc) => {
@@ -112,7 +113,7 @@ describe('ChangeStreamWatcher', () => {
   it('stops receiving events after stop()', async () => {
     if (!replSetAvailable) return;
 
-    const receivedDocs: any[] = [];
+    const receivedDocs: INotificationDoc[] = [];
     watcher = new ChangeStreamWatcher(mockLogger);
 
     watcher.start((doc) => {

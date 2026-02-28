@@ -15,6 +15,7 @@ import { safeClose } from '../../shared/utils/safe-close';
  */
 interface ILogger {
   debug(message: string, meta?: Record<string, unknown>): void;
+  warn?(message: string, meta?: Record<string, unknown>): void;
 }
 
 /**
@@ -116,15 +117,13 @@ export class PlaywrightEngine implements IEngine {
         const waitMs = attempt === 1 ? 2000 : 5000;
 
         // Use warn level for retries - this is important operational info
-        if (this.logger && 'warn' in this.logger) {
-          (this.logger as any).warn('Navigation failed, retrying with backoff', {
-            shop: this.shop.id,
-            attempt,
-            maxAttempts,
-            waitMs,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
+        this.logger?.warn?.('Navigation failed, retrying with backoff', {
+          shop: this.shop.id,
+          attempt,
+          maxAttempts,
+          waitMs,
+          error: error instanceof Error ? error.message : String(error),
+        });
 
         await new Promise((resolve) => setTimeout(resolve, waitMs));
       }
@@ -172,7 +171,6 @@ export class PlaywrightEngine implements IEngine {
   }
 
   async extractAll(selector: Selector): Promise<IElement[]> {
-    const startTime = Date.now();
     if (!this.page) {
       throw new Error('No page loaded. Call goto() first.');
     }
@@ -181,13 +179,10 @@ export class PlaywrightEngine implements IEngine {
 
     for (const selectorValue of selectors) {
       try {
-        const countStart = Date.now();
         const locator = this.createLocator(selector.type, selectorValue);
 
         // Use all() which returns immediately without waiting
         const rawElements = await locator.all();
-
-        const countTime = Date.now() - countStart;
 
         if (rawElements.length === 0) continue;
 
@@ -389,18 +384,20 @@ export class PlaywrightEngine implements IEngine {
       switch (extractType) {
         case 'href':
           return await locator.getAttribute('href');
-        case 'text':
+        case 'text': {
           const text = await locator.textContent();
           return text?.trim() || null;
+        }
         case 'innerHTML':
           return await locator.innerHTML();
         case 'ownText': {
           const html = await locator.innerHTML();
           return html.replace(/<[^>]+>[\s\S]*?<\/[^>]+>/g, '').trim() || null;
         }
-        default:
+        default: {
           const defaultText = await locator.textContent();
           return defaultText?.trim() || null;
+        }
       }
     } catch (error) {
       this.logger?.debug('PlaywrightEngine.extractValue failed', {
