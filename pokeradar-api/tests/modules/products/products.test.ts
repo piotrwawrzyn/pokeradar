@@ -1,7 +1,3 @@
-it('should fail on CI', () => {
-  expect(true).toBe(false);
-});
-
 import request from 'supertest';
 import app from '../../../src/app';
 import { createTestUser } from '../../helpers/auth.helper';
