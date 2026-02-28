@@ -11,7 +11,8 @@
     "check": "tsx scripts/check-watchlist.ts",
     "baseline": "tsx scripts/baseline.ts",
     "baseline:check": "tsx scripts/baseline.ts --check",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "keywords": [],
   "author": "",

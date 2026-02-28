@@ -28,6 +28,10 @@
     "dev:notifications": "npm run dev -w pokeradar-notifications",
     "dev": "concurrently -n api,client,notif -c blue,green,yellow \"npm run dev:api\" \"npm run dev:client\" \"npm run dev:notifications\"",
     "test": "npm run test --workspaces --if-present",
+    "test:api": "npm run test -w pokeradar-api",
+    "test:client": "npm run test -w pokeradar-client",
+    "test:scrapper": "npm run test -w pokeradar-scrapper",
+    "test:notifications": "npm run test -w pokeradar-notifications",
     "prepare": "husky"
   },
   "lint-staged": {

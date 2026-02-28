@@ -7,7 +7,8 @@
     "build": "tsc",
     "start": "node dist/app/index.js",
     "dev": "ts-node src/app/index.ts",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "keywords": [],
   "author": "",
