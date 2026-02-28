@@ -44,6 +44,23 @@ export class SearchNavigator {
 
     await this.engine.goto(searchUrl);
 
+    // Detect direct hit: search redirected straight to a product page
+    const currentUrl = this.engine.getCurrentUrl();
+    const isDirectHit = !!(
+      this.config.directHitPattern &&
+      currentUrl &&
+      new RegExp(this.config.directHitPattern).test(currentUrl)
+    );
+
+    if (isDirectHit) {
+      this.logger?.debug('Direct hit detected in set search', {
+        shop: this.config.id,
+        phrase: searchPhrase,
+        url: currentUrl,
+      });
+      return this.extractDirectHitCandidate(currentUrl!);
+    }
+
     const articles = await this.engine.extractAll(this.config.selectors.searchPage.article);
 
     if (articles.length === 0) {
@@ -194,6 +211,69 @@ export class SearchNavigator {
     // Price can be null even on success (element not found or parse failure)
     // This is consistent with productPage behavior
     return { price, isAvailable };
+  }
+
+  /**
+   * Handles a "direct hit" — when a search URL redirects straight to a product page
+   * instead of showing search results. Extracts product data from the current page
+   * and returns it as a single candidate with searchPageData pre-filled so the
+   * downstream flow skips a redundant product page visit.
+   */
+  private async extractDirectHitCandidate(productUrl: string): Promise<ProductCandidate[]> {
+    const pageSelectors = this.config.selectors.productPage;
+
+    // Extract title
+    let title: string | null = null;
+
+    if (pageSelectors.title) {
+      title = await this.engine.extract(pageSelectors.title);
+    }
+
+    if (!title) {
+      title = extractTitleFromUrl(productUrl);
+    }
+
+    if (!title) {
+      this.logger?.debug('Direct hit: could not extract title, skipping', {
+        shop: this.config.id,
+        url: productUrl,
+      });
+      return [];
+    }
+
+    // Extract price
+    let price: number | null = null;
+    const priceText = await this.engine.extract(pageSelectors.price);
+    if (priceText) {
+      const format = pageSelectors.price.format || 'european';
+      try {
+        price = this.priceParser.parse(priceText, format);
+      } catch {
+        // Price stays null — consistent with normal flow
+      }
+    }
+
+    // Check availability
+    const availSelectors = Array.isArray(pageSelectors.available)
+      ? pageSelectors.available
+      : [pageSelectors.available];
+
+    let isAvailable = false;
+    for (const selector of availSelectors) {
+      if (await this.engine.exists(selector)) {
+        isAvailable = true;
+        break;
+      }
+    }
+
+    const candidate: ProductCandidate = {
+      title,
+      url: productUrl,
+      score: 0,
+      searchPageData: { price, isAvailable },
+    };
+
+    return [candidate];
   }
 
   /**
