@@ -1,11 +1,18 @@
 /**
- * Token bucket rate limiter for notification channels.
+ * Token bucket rate limiter with continuous refill for notification channels.
  * Ensures we stay within channel-specific rate limits (e.g., Telegram's 30 msgs/sec).
+ *
+ * Tokens regenerate continuously (one every `refillIntervalMs / maxTokens` ms)
+ * instead of refilling all at once. Concurrent callers are serialized via a
+ * promise-based waiter queue — JS single-threaded event loop guarantees no races.
  */
 
 export class RateLimiter {
   private tokens: number;
   private lastRefill: number;
+  private readonly msPerToken: number;
+  private waiters: Array<() => void> = [];
+  private timerActive = false;
 
   constructor(
     private maxTokens: number,
@@ -13,6 +20,7 @@ export class RateLimiter {
   ) {
     this.tokens = maxTokens;
     this.lastRefill = Date.now();
+    this.msPerToken = refillIntervalMs / maxTokens;
   }
 
   /**
@@ -21,28 +29,52 @@ export class RateLimiter {
   async acquire(): Promise<void> {
     this.refill();
 
-    if (this.tokens > 0) {
+    if (this.tokens >= 1) {
       this.tokens--;
       return;
     }
 
-    // Wait for next refill
-    const waitTime = this.refillIntervalMs - (Date.now() - this.lastRefill);
-    if (waitTime > 0) {
-      await new Promise((resolve) => setTimeout(resolve, waitTime));
-    }
-
-    this.refill();
-    this.tokens--;
+    // No tokens available — queue the caller
+    return new Promise<void>((resolve) => {
+      this.waiters.push(resolve);
+      this.ensureTimer();
+    });
   }
 
   private refill(): void {
     const now = Date.now();
     const elapsed = now - this.lastRefill;
+    const newTokens = Math.floor(elapsed / this.msPerToken);
 
-    if (elapsed >= this.refillIntervalMs) {
-      this.tokens = this.maxTokens;
-      this.lastRefill = now;
+    if (newTokens > 0) {
+      this.tokens = Math.min(this.maxTokens, this.tokens + newTokens);
+      // Advance lastRefill by exactly the consumed time to avoid drift
+      this.lastRefill += newTokens * this.msPerToken;
     }
+  }
+
+  private ensureTimer(): void {
+    if (this.timerActive) return;
+    this.timerActive = true;
+    this.scheduleRefill();
+  }
+
+  private scheduleRefill(): void {
+    setTimeout(() => {
+      this.refill();
+
+      // Drain as many waiters as we have tokens
+      while (this.tokens >= 1 && this.waiters.length > 0) {
+        this.tokens--;
+        const next = this.waiters.shift()!;
+        next();
+      }
+
+      if (this.waiters.length > 0) {
+        this.scheduleRefill();
+      } else {
+        this.timerActive = false;
+      }
+    }, Math.ceil(this.msPerToken));
   }
 }

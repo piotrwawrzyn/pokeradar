@@ -49,16 +49,16 @@ export function loadConfig(): AppConfig {
     discordBotToken,
     appUrl,
     logLevel: (process.env.LOG_LEVEL as 'info' | 'debug') || 'info',
-    processingConcurrency: parseInt(process.env.PROCESSING_CONCURRENCY || '15', 10),
+    processingConcurrency: parseInt(process.env.PROCESSING_CONCURRENCY || '50', 10),
     retry: {
       maxAttempts: 5,
       initialDelayMs: 1000,
       maxDelayMs: 300_000,
     },
     rateLimiting: {
-      telegramBatchSize: 25,
-      telegramBatchIntervalMs: 1100,
-      discordBatchSize: 10,
+      telegramBatchSize: 27,
+      telegramBatchIntervalMs: 1000,
+      discordBatchSize: 45,
       discordBatchIntervalMs: 1000,
     },
   };

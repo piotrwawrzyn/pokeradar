@@ -30,6 +30,8 @@ export class NotificationProcessor {
   private queue: INotificationDoc[] = [];
   private processedIds = new Set<string>();
   private drainResolve: (() => void) | null = null;
+  private userDeliveryCache = new Map<string, { deliveries: IDelivery[]; cachedAt: number }>();
+  private static readonly USER_CACHE_TTL_MS = 60_000;
 
   constructor(
     private retryConfig: RetryConfig,
@@ -197,15 +199,22 @@ export class NotificationProcessor {
 
   /**
    * Looks up a user's linked channels and builds the initial deliveries array.
+   * Results are cached for USER_CACHE_TTL_MS to avoid redundant DB queries
+   * when the same user has multiple notifications in a burst.
    */
   private async buildDeliveries(userId: string): Promise<IDelivery[]> {
+    const cached = this.userDeliveryCache.get(userId);
+    if (cached && Date.now() - cached.cachedAt < NotificationProcessor.USER_CACHE_TTL_MS) {
+      return cached.deliveries.map((d) => ({ ...d }));
+    }
+
     const user = await UserModel.findById(userId).select('telegram discord').lean();
     if (!user) return [];
 
-    const deliveries: IDelivery[] = [];
+    const template: IDelivery[] = [];
 
     if (user.telegram?.channelId) {
-      deliveries.push({
+      template.push({
         channel: 'telegram' as NotificationChannel,
         channelTarget: user.telegram.channelId,
         status: 'pending',
@@ -216,7 +225,7 @@ export class NotificationProcessor {
     }
 
     if (user.discord?.channelId) {
-      deliveries.push({
+      template.push({
         channel: 'discord' as NotificationChannel,
         channelTarget: user.discord.channelId,
         status: 'pending',
@@ -226,7 +235,8 @@ export class NotificationProcessor {
       });
     }
 
-    return deliveries;
+    this.userDeliveryCache.set(userId, { deliveries: template, cachedAt: Date.now() });
+    return template.map((d) => ({ ...d }));
   }
 
   /**

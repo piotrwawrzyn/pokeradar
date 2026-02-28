@@ -9,7 +9,7 @@ export class DiscordNotificationAdapter implements INotificationChannel {
   constructor(private client: Client) {}
 
   async send(target: string, payload: INotificationPayload): Promise<void> {
-    const user = await this.client.users.fetch(target);
+    const user = this.client.users.cache.get(target) ?? (await this.client.users.fetch(target));
     await user.send(formatDiscordNotification(payload));
   }
 }
