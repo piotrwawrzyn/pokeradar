@@ -33,6 +33,7 @@ import {
 } from '@/hooks/use-admin';
 import { useCrudDialog } from '@/hooks/use-crud-dialog';
 import { useImageUpload } from '@/hooks/use-image-upload';
+import { useExpandedRows } from '@/hooks/use-expanded-rows';
 import { toast } from 'sonner';
 import { PageLoader } from '@/components/ui/page-loader';
 import { EmptyTableRow } from '@/components/ui/empty-table-row';
@@ -59,7 +60,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
 
   const dialog = useCrudDialog<AdminProduct>();
   const image = useImageUpload();
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const { toggleRow, isExpanded } = useExpandedRows();
   const [formError, setFormError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -67,18 +68,6 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
     productSetId: '',
     productTypeId: '',
   });
-
-  const toggleRow = (id: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
 
   // Auto-fill product name as "{set} {type}" when both are selected and name is still empty (create mode only)
   const tryAutoFillName = (updated: typeof formData) => {
@@ -276,7 +265,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                     </TableRow>
 
                     {setProducts.map((product) => {
-                      const isExpanded = expandedRows.has(product.id);
+                      const expanded = isExpanded(product.id);
                       const isUnavailable = product.disabled || !product.bestPrice;
                       const type = types?.find((t) => t.id === product.productTypeId);
 
@@ -292,7 +281,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                                 toggleRow(product.id);
                               }}
                             >
-                              {isExpanded ? (
+                              {expanded ? (
                                 <ChevronUp className="h-4 w-4" />
                               ) : (
                                 <ChevronDown className="h-4 w-4" />
@@ -333,7 +322,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                               <DeleteRowButton onClick={() => dialog.openDelete(product)} />
                             </TableCell>
                           </TableRow>
-                          {isExpanded && (
+                          {expanded && (
                             <TableRow>
                               <TableCell colSpan={9} className="bg-muted/30">
                                 <div className="p-4">

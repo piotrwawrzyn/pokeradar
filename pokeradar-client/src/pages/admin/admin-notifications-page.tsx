@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useExpandedRows } from '@/hooks/use-expanded-rows';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,7 @@ export function AdminNotificationsPage() {
   const [limit] = useState(50);
   const [status, setStatus] = useState<string>('');
   const [userSearch, setUserSearch] = useState('');
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const { toggleRow, isExpanded } = useExpandedRows();
 
   const { data, isLoading } = useAdminNotifications({
     page,
@@ -38,18 +39,6 @@ export function AdminNotificationsPage() {
     status: status || undefined,
     userId: userSearch || undefined,
   });
-
-  const toggleRow = (id: string) => {
-    setExpandedRows((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
 
   const handleStatusChange = (value: string) => {
     setStatus(value === 'all' ? '' : value);
@@ -126,13 +115,13 @@ export function AdminNotificationsPage() {
                 <EmptyTableRow colSpan={9} message="Brak powiadomień" />
               ) : (
                 data.data.map((notif) => {
-                  const isExpanded = expandedRows.has(notif.id);
+                  const expanded = isExpanded(notif.id);
                   const firstSentAt = notif.deliveries.find((d) => d.sentAt)?.sentAt ?? null;
                   return (
                     <>
                       <TableRow key={notif.id} className="cursor-pointer hover:bg-muted/50">
                         <TableCell onClick={() => toggleRow(notif.id)}>
-                          {isExpanded ? (
+                          {expanded ? (
                             <ChevronUp className="h-4 w-4" />
                           ) : (
                             <ChevronDown className="h-4 w-4" />
@@ -158,7 +147,7 @@ export function AdminNotificationsPage() {
                           {firstSentAt ? formatDateTime(firstSentAt) : '-'}
                         </TableCell>
                       </TableRow>
-                      {isExpanded && (
+                      {expanded && (
                         <TableRow>
                           <TableCell colSpan={9} className="bg-muted/30">
                             <div className="p-4 space-y-3">

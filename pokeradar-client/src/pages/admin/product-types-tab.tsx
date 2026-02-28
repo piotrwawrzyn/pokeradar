@@ -24,6 +24,7 @@ import {
 import { useCrudDialog } from '@/hooks/use-crud-dialog';
 import { toast } from 'sonner';
 import { DeleteRowButton } from '@/components/admin/delete-row-button';
+import { AffectedProductsList } from '@/components/admin/affected-products-list';
 import { ChevronDown, X } from 'lucide-react';
 import type { ProductType } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
@@ -271,19 +272,7 @@ export function ProductTypesTab() {
         onConfirm={handleDelete}
         loading={deleteType.isPending}
       >
-        {affectedProducts.length > 0 && (
-          <div className="text-sm mt-2">
-            <p className="font-medium mb-1">Następujące produkty zostaną usunięte:</p>
-            <ul className="list-disc pl-5 space-y-0.5 text-muted-foreground">
-              {affectedProducts.map((p) => (
-                <li key={p.id}>{p.name}</li>
-              ))}
-            </ul>
-            <p className="text-muted-foreground mt-2">
-              Usunięte zostaną również wszystkie powiązane wpisy watchlisty, powiadomienia i wyniki.
-            </p>
-          </div>
-        )}
+        <AffectedProductsList products={affectedProducts} />
       </ConfirmDialog>
     </>
   );
