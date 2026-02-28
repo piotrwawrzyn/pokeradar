@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TableCell, TableRow } from '@/components/ui/table';
@@ -18,8 +17,8 @@ import {
 } from '@/hooks/use-admin';
 import { useCrudDialog } from '@/hooks/use-crud-dialog';
 import { useImageUpload } from '@/hooks/use-image-upload';
+import { DeleteRowButton } from '@/components/admin/delete-row-button';
 import { toast } from 'sonner';
-import { Trash2 } from 'lucide-react';
 import type { ProductSet } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 
@@ -179,16 +178,7 @@ export function ProductSetsTab() {
                 : '-'}
             </TableCell>
             <TableCell>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dialog.openDelete(set);
-                }}
-              >
-                <Trash2 className="h-4 w-4 text-red-500" />
-              </Button>
+              <DeleteRowButton onClick={() => dialog.openDelete(set)} />
             </TableCell>
           </TableRow>
         ))}

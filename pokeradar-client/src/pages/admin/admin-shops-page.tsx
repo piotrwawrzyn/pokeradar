@@ -11,18 +11,15 @@ import {
 import { StatusBadge } from '@/components/admin/status-badge';
 import { StatCard } from '@/components/admin/stat-card';
 import { useAdminShops } from '@/hooks/use-admin';
-import { AlertTriangle, CheckCircle, Loader2, Package, Store } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
+import { AlertTriangle, CheckCircle, Package, Store } from 'lucide-react';
 
 export function AdminShopsPage() {
   const { data: shops, isLoading } = useAdminShops();
   const navigate = useNavigate();
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   const activeShops = (shops || []).filter((s) => !s.disabled && s.findsLastHour > 0).length;

@@ -1,6 +1,5 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -9,16 +8,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { PageLoader } from '@/components/ui/page-loader';
+import { EmptyTableRow } from '@/components/ui/empty-table-row';
+import { ExternalLink } from '@/components/ui/external-link';
+import { BackButton } from '@/components/ui/back-button';
+import { NotFound } from '@/components/admin/not-found';
 import { StatCard } from '@/components/admin/stat-card';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminShopDetail } from '@/hooks/use-admin';
 import {
-  ArrowLeft,
   Package,
   CheckCircle,
   AlertTriangle,
-  ExternalLink,
-  Loader2,
+  ExternalLink as ExternalLinkIcon,
 } from 'lucide-react';
 import { formatDateTime, formatPLN } from '@/lib/format';
 
@@ -27,36 +29,17 @@ export function AdminShopDetailPage() {
   const { data: shop, isLoading } = useAdminShopDetail(shopId!);
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!shop) {
-    return (
-      <div>
-        <h1 className="text-2xl font-bold mb-4">Sklep nie znaleziony</h1>
-        <Link to="/admin/shops">
-          <Button variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Powrót
-          </Button>
-        </Link>
-      </div>
-    );
+    return <NotFound message="Sklep nie znaleziony" backTo="/admin/shops" />;
   }
 
   return (
     <div>
       <div className="mb-6">
-        <Link to="/admin/shops">
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Powrót do listy
-          </Button>
-        </Link>
+        <BackButton to="/admin/shops" />
         <h1 className="text-2xl font-bold">{shop.shopName}</h1>
         <p className="text-muted-foreground">{shop.baseUrl}</p>
       </div>
@@ -93,11 +76,7 @@ export function AdminShopDetailPage() {
           </TableHeader>
           <TableBody>
             {shop.products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  Brak wyników z ostatniej godziny
-                </TableCell>
-              </TableRow>
+              <EmptyTableRow colSpan={5} message="Brak wyników z ostatniej godziny" />
             ) : (
               shop.products
                 .sort((a, b) => {
@@ -146,14 +125,12 @@ export function AdminShopDetailPage() {
                     </TableCell>
                     <TableCell>
                       {product.productUrl && (
-                        <a
+                        <ExternalLink
                           href={product.productUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
                           className="text-blue-500 hover:text-blue-600"
                         >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
+                          <ExternalLinkIcon className="h-4 w-4" />
+                        </ExternalLink>
                       )}
                     </TableCell>
                   </TableRow>

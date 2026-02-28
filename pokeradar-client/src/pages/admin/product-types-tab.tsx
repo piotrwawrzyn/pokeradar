@@ -23,7 +23,8 @@ import {
 } from '@/hooks/use-admin';
 import { useCrudDialog } from '@/hooks/use-crud-dialog';
 import { toast } from 'sonner';
-import { ChevronDown, X, Trash2 } from 'lucide-react';
+import { DeleteRowButton } from '@/components/admin/delete-row-button';
+import { ChevronDown, X } from 'lucide-react';
 import type { ProductType } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 
@@ -143,16 +144,7 @@ export function ProductTypesTab() {
                 : '-'}
             </TableCell>
             <TableCell>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dialog.openDelete(type);
-                }}
-              >
-                <Trash2 className="h-4 w-4 text-red-500" />
-              </Button>
+              <DeleteRowButton onClick={() => dialog.openDelete(type)} />
             </TableCell>
           </TableRow>
         ))}

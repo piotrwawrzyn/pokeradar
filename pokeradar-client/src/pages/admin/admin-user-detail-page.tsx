@@ -1,6 +1,5 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -9,9 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { PageLoader } from '@/components/ui/page-loader';
+import { EmptyTableRow } from '@/components/ui/empty-table-row';
+import { BackButton } from '@/components/ui/back-button';
+import { NotFound } from '@/components/admin/not-found';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminUserDetail } from '@/hooks/use-admin';
-import { ArrowLeft, Loader2 } from 'lucide-react';
 import { formatDateTime, formatPLN } from '@/lib/format';
 
 export function AdminUserDetailPage() {
@@ -19,36 +21,17 @@ export function AdminUserDetailPage() {
   const { data: user, isLoading } = useAdminUserDetail(clerkId!);
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!user) {
-    return (
-      <div>
-        <h1 className="text-2xl font-bold mb-4">Użytkownik nie znaleziony</h1>
-        <Link to="/admin/users">
-          <Button variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Powrót
-          </Button>
-        </Link>
-      </div>
-    );
+    return <NotFound message="Użytkownik nie znaleziony" backTo="/admin/users" />;
   }
 
   return (
     <div>
       <div className="mb-6">
-        <Link to="/admin/users">
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Powrót do listy
-          </Button>
-        </Link>
+        <BackButton to="/admin/users" />
         <h1 className="text-2xl font-bold">{user.displayName}</h1>
         <p className="text-muted-foreground">{user.email}</p>
       </div>
@@ -119,11 +102,7 @@ export function AdminUserDetailPage() {
               </TableHeader>
               <TableBody>
                 {user.watchlistEntries.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                      Brak produktów na watchliście
-                    </TableCell>
-                  </TableRow>
+                  <EmptyTableRow colSpan={3} message="Brak produktów na watchliście" />
                 ) : (
                   user.watchlistEntries.map((entry, idx) => (
                     <TableRow key={idx}>
@@ -164,11 +143,7 @@ export function AdminUserDetailPage() {
               </TableHeader>
               <TableBody>
                 {user.notifications.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                      Brak powiadomień
-                    </TableCell>
-                  </TableRow>
+                  <EmptyTableRow colSpan={5} message="Brak powiadomień" />
                 ) : (
                   user.notifications.map((notif) => (
                     <TableRow key={notif.id}>

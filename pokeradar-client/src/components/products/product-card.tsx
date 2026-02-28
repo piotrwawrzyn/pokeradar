@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ExternalLink } from '@/components/ui/external-link';
 import { WatchlistToggle } from '@/components/watchlist/watchlist-toggle';
 import { MaxPriceInput } from '@/components/watchlist/max-price-input';
 import { formatPLN } from '@/lib/format';
@@ -60,14 +61,9 @@ export function ProductCard({ product, entry, watchlistDisabled }: ProductCardPr
           </h3>
           <div className="flex items-center justify-between gap-2">
             {product.currentBestUrl ? (
-              <a
-                href={product.currentBestUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block min-w-0"
-              >
+              <ExternalLink href={product.currentBestUrl} className="block min-w-0">
                 {priceContent}
-              </a>
+              </ExternalLink>
             ) : (
               <div className="min-w-0">{priceContent}</div>
             )}

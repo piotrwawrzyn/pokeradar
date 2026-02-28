@@ -1,14 +1,9 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Loader2, Plus } from 'lucide-react';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PageLoader } from '@/components/ui/page-loader';
+import { EmptyTableRow } from '@/components/ui/empty-table-row';
+import { Plus } from 'lucide-react';
 
 interface TableHeader {
   label: string;
@@ -35,11 +30,7 @@ export function EntityTable({
   children,
 }: EntityTableProps) {
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
@@ -67,18 +58,7 @@ export function EntityTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isEmpty ? (
-              <TableRow>
-                <TableCell
-                  colSpan={headers.length}
-                  className="text-center text-muted-foreground py-8"
-                >
-                  {emptyLabel}
-                </TableCell>
-              </TableRow>
-            ) : (
-              children
-            )}
+            {isEmpty ? <EmptyTableRow colSpan={headers.length} message={emptyLabel} /> : children}
           </TableBody>
         </Table>
       </Card>

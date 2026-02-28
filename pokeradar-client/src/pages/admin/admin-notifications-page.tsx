@@ -19,7 +19,10 @@ import {
 } from '@/components/ui/table';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminNotifications } from '@/hooks/use-admin';
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
+import { EmptyTableRow } from '@/components/ui/empty-table-row';
+import { ExternalLink } from '@/components/ui/external-link';
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDateTime, formatPLN } from '@/lib/format';
 
 export function AdminNotificationsPage() {
@@ -59,11 +62,7 @@ export function AdminNotificationsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
@@ -124,11 +123,7 @@ export function AdminNotificationsPage() {
             </TableHeader>
             <TableBody>
               {!data || data.data.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
-                    Brak powiadomień
-                  </TableCell>
-                </TableRow>
+                <EmptyTableRow colSpan={9} message="Brak powiadomień" />
               ) : (
                 data.data.map((notif) => {
                   const isExpanded = expandedRows.has(notif.id);
@@ -184,14 +179,12 @@ export function AdminNotificationsPage() {
                                   </div>
                                   <div>
                                     <span className="text-muted-foreground">URL produktu:</span>{' '}
-                                    <a
+                                    <ExternalLink
                                       href={notif.payload.productUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
                                       className="text-blue-500 hover:underline"
                                     >
                                       Link
-                                    </a>
+                                    </ExternalLink>
                                   </div>
                                   <div>
                                     <span className="text-muted-foreground">Użytkownik ID:</span>{' '}

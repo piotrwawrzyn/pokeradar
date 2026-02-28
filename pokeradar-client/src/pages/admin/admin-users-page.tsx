@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
+import { PageLoader } from '@/components/ui/page-loader';
+import { SearchInput } from '@/components/ui/search-input';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminUserSearch } from '@/hooks/use-admin';
-import { Loader2, Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 
 export function AdminUsersPage() {
@@ -17,25 +17,18 @@ export function AdminUsersPage() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Wyszukaj użytkownika</h1>
 
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          className="pl-9"
-          placeholder="Wpisz email lub imię..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </div>
+      <SearchInput
+        value={query}
+        onChange={setQuery}
+        placeholder="Wpisz email lub imię..."
+        className="mb-6"
+      />
 
       {!debouncedQuery.trim() && (
         <p className="text-muted-foreground text-sm">Wpisz zapytanie, aby wyszukać użytkowników.</p>
       )}
 
-      {debouncedQuery.trim() && isLoading && (
-        <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      )}
+      {debouncedQuery.trim() && isLoading && <PageLoader />}
 
       {debouncedQuery.trim() && !isLoading && users && users.length === 0 && (
         <p className="text-muted-foreground text-sm">Nie znaleziono użytkowników.</p>

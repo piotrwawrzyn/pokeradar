@@ -1,6 +1,5 @@
 import React, { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -35,7 +34,11 @@ import {
 import { useCrudDialog } from '@/hooks/use-crud-dialog';
 import { useImageUpload } from '@/hooks/use-image-upload';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
+import { PageLoader } from '@/components/ui/page-loader';
+import { EmptyTableRow } from '@/components/ui/empty-table-row';
+import { ExternalLink } from '@/components/ui/external-link';
+import { DeleteRowButton } from '@/components/admin/delete-row-button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { AdminProduct } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
 import { formatPLN } from '@/lib/format';
@@ -225,11 +228,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
     uploadImageOnly.isPending;
 
   if (isLoading) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
@@ -251,11 +250,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
           </TableHeader>
           <TableBody>
             {productsBySet.size === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
-                  Brak produktów
-                </TableCell>
-              </TableRow>
+              <EmptyTableRow colSpan={9} message="Brak produktów" />
             ) : (
               Array.from(productsBySet.entries()).map(([setId, setProducts]) => {
                 const set = sets?.find((s) => s.id === setId);
@@ -335,16 +330,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                               )}
                             </TableCell>
                             <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  dialog.openDelete(product);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
+                              <DeleteRowButton onClick={() => dialog.openDelete(product)} />
                             </TableCell>
                           </TableRow>
                           {isExpanded && (
@@ -415,15 +401,12 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                                                     <span className="text-green-500 font-semibold min-w-[80px] text-right">
                                                       {find.price ? formatPLN(find.price) : '-'}
                                                     </span>
-                                                    <a
+                                                    <ExternalLink
                                                       href={find.productUrl}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
                                                       className="text-blue-500 hover:text-blue-600 hover:underline font-medium"
-                                                      onClick={(e) => e.stopPropagation()}
                                                     >
                                                       Zobacz
-                                                    </a>
+                                                    </ExternalLink>
                                                   </>
                                                 ) : (
                                                   <>
@@ -432,15 +415,12 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                                                         ? `${find.price.toFixed(2)} zł`
                                                         : 'Niedostępny'}
                                                     </span>
-                                                    <a
+                                                    <ExternalLink
                                                       href={find.productUrl}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
                                                       className="text-blue-500 hover:text-blue-600 hover:underline font-medium"
-                                                      onClick={(e) => e.stopPropagation()}
                                                     >
                                                       Zobacz
-                                                    </a>
+                                                    </ExternalLink>
                                                   </>
                                                 )}
                                               </div>
