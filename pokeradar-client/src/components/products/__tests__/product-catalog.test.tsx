@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
-import { renderWithProviders } from '../test-utils';
+import { renderWithProviders } from '../../../__tests__/test-utils';
 import { ProductCatalog } from '@/components/products/product-catalog';
-import { server } from '../mocks/server';
+import { server } from '../../../__tests__/mocks/server';
 import { http, HttpResponse } from 'msw';
-import { mockProducts } from '../mocks/data';
+import { mockProducts } from '../../../__tests__/mocks/data';
 
 describe('ProductCatalog', () => {
   it('shows loading skeletons while data is being fetched', () => {

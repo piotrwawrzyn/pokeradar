@@ -7,8 +7,8 @@ import { AuthContext } from '@/context/auth-context';
 import { TelegramSetup } from '@/components/notifications/telegram/telegram-setup';
 import { TelegramInstructions } from '@/components/notifications/telegram/telegram-instructions';
 import { TelegramStatus } from '@/components/notifications/telegram/telegram-status';
-import { mockUser, mockUserNoTelegram } from '../mocks/data';
-import { server } from '../mocks/server';
+import { mockUser, mockUserNoTelegram } from '../../../__tests__/mocks/data';
+import { server } from '../../../__tests__/mocks/server';
 import { http, HttpResponse } from 'msw';
 import type { ReactNode } from 'react';
 

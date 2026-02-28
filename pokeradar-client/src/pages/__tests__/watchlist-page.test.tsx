@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
-import { renderWithProviders } from '../test-utils';
+import { renderWithProviders } from '../../__tests__/test-utils';
 import { WatchlistPage } from '@/pages/watchlist-page';
 
 describe('WatchlistPage', () => {

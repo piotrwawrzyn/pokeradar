@@ -6,8 +6,8 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthContext } from '@/context/auth-context';
 import { TOKEN_KEY } from '@/api/client';
 import { MaxPriceInput } from '@/components/watchlist/max-price-input';
-import { mockUser } from '../mocks/data';
-import { server } from '../mocks/server';
+import { mockUser } from '../../../__tests__/mocks/data';
+import { server } from '../../../__tests__/mocks/server';
 import { http, HttpResponse } from 'msw';
 import type { ReactNode } from 'react';
 

@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthContext } from '@/context/auth-context';
 import { ProductCard } from '@/components/products/product-card';
-import { mockProducts, mockWatchlist, mockUser } from '../mocks/data';
+import { mockProducts, mockWatchlist, mockUser } from '../../../__tests__/mocks/data';
 import type { ReactNode } from 'react';
 
 function createQueryClient() {

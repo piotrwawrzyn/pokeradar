@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthContext } from '@/context/auth-context';
 import { WatchlistToggle } from '@/components/watchlist/watchlist-toggle';
-import { mockProducts, mockWatchlist, mockUser } from '../mocks/data';
-import { server } from '../mocks/server';
+import { mockProducts, mockWatchlist, mockUser } from '../../../__tests__/mocks/data';
+import { server } from '../../../__tests__/mocks/server';
 import { http, HttpResponse } from 'msw';
 import type { ReactNode } from 'react';
 
