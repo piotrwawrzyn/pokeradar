@@ -7,8 +7,8 @@ export interface IChannelData {
 
 export interface IUserDoc extends Document {
   clerkId: string;
-  telegram: IChannelData;
-  discord: IChannelData;
+  telegram: IChannelData | null;
+  discord: IChannelData | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,8 +24,8 @@ const ChannelSchema = new Schema<IChannelData>(
 const UserSchema = new Schema<IUserDoc>(
   {
     clerkId: { type: String, required: true, unique: true },
-    telegram: { type: ChannelSchema, default: () => ({ channelId: null, linkToken: null }) },
-    discord: { type: ChannelSchema, default: () => ({ channelId: null, linkToken: null }) },
+    telegram: { type: ChannelSchema },
+    discord: { type: ChannelSchema },
   },
   { timestamps: true },
 );
