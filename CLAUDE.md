@@ -113,17 +113,20 @@ pokeradar-scrapper/src/
     pipeline.ts
 ```
 
-**Client** tests live inside `src/__tests__/` mirroring the source tree:
+**Client** tests live co-located in `__tests__/` folders next to the source they test:
 
 ```
-pokeradar-client/src/__tests__/
-  setup.ts                # global setup (Clerk mock, MSW)
-  test-utils.tsx          # renderWithProviders() helper
-  mocks/                  # MSW handlers & mock data
-  components/             # component tests
-  hooks/                  # hook tests
-  lib/                    # utility tests
-  pages/                  # page-level tests
+pokeradar-client/src/
+  components/
+    ui/__tests__/         # UI component tests
+    admin/__tests__/      # admin component tests
+    notifications/__tests__/  # notification component tests
+    products/__tests__/   # product component tests
+    watchlist/__tests__/  # watchlist component tests
+  hooks/__tests__/        # hook tests
+  lib/__tests__/          # utility tests
+  pages/__tests__/        # page-level tests
+  __tests__/              # shared test infra (setup.ts, test-utils.tsx, mocks/)
 ```
 
 ### File naming
