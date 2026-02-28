@@ -67,6 +67,8 @@ export interface ScanCycleConfig {
   resultBuffer: ResultBuffer;
   dispatcher: IMultiUserDispatcher;
   logger: IScanLogger;
+  /** Called after each shop completes scanning (both engines). Used to flush notifications early. */
+  onShopComplete?: () => Promise<void>;
 }
 
 /**
@@ -160,6 +162,7 @@ export class ScanCycleRunner {
 
     const shopTasks = cheerioShops.map((shop) => async () => {
       await this.scanShopConcurrent(shop, setGroups, breaker);
+      await this.config.onShopComplete?.();
     });
 
     await runWithConcurrency(shopTasks, CHEERIO_CONCURRENCY);
@@ -206,6 +209,7 @@ export class ScanCycleRunner {
 
       for (const shop of playwrightShops) {
         await this.scanShopSequential(shop, setGroups, browser, breaker);
+        await this.config.onShopComplete?.();
       }
 
       this.logCycleCompletion('Playwright', startTime, breaker);

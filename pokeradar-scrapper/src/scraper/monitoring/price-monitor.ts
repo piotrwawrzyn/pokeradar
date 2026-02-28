@@ -11,6 +11,7 @@ import { ScanCycleRunner, IScraperFactory, IScanLogger } from './scan-cycle-runn
 import { groupProductsBySet, SetGroup } from '../../shared/utils/product-utils';
 import { ProductSetModel, ProductTypeModel } from '../../infrastructure/database/models';
 import { ProductMatchingPipeline, MatchableProductType, MatchableProductSet } from '../../matching';
+import { AsyncMutex } from '../../shared/utils/async-mutex';
 
 /**
  * Repository interfaces.
@@ -50,6 +51,7 @@ export class PriceMonitor {
   private ungroupedProducts: WatchlistProductInternal[] = [];
   private resultBuffer: ResultBuffer;
   private cycleRunner: ScanCycleRunner;
+  private notificationFlushMutex = new AsyncMutex();
 
   constructor(private config: PriceMonitorConfig) {
     this.resultBuffer = new ResultBuffer(config.productResultRepository, config.logger);
@@ -59,6 +61,7 @@ export class PriceMonitor {
       resultBuffer: this.resultBuffer,
       dispatcher: config.dispatcher,
       logger: config.logger,
+      onShopComplete: () => this.flushNotifications(),
     });
   }
 
@@ -208,19 +211,30 @@ export class PriceMonitor {
   }
 
   /**
+   * Flushes notifications and notification state, protected by mutex
+   * for safe concurrent calls from parallel shop workers.
+   */
+  private async flushNotifications(): Promise<void> {
+    await this.notificationFlushMutex.runExclusive(async () => {
+      await this.config.dispatcher.flushNotifications();
+      await this.config.stateManager.flushChanges();
+    });
+  }
+
+  /**
    * Flushes all buffered changes to MongoDB.
+   * Product results are flushed here (once at end of cycle).
+   * Notifications are flushed per-shop via onShopComplete, but we do a
+   * final sweep here to catch any stragglers.
    */
   private async flushAllChanges(): Promise<void> {
     const resultsCount = this.resultBuffer.size();
 
-    // Flush ProductResults
+    // Flush ProductResults (only done here, once per cycle)
     await this.resultBuffer.flush();
 
-    // Send queued notifications (rate-limited)
-    await this.config.dispatcher.flushNotifications();
-
-    // Flush NotificationState changes (1 bulkWrite)
-    await this.config.stateManager.flushChanges();
+    // Final sweep for any remaining notifications
+    await this.flushNotifications();
 
     this.config.logger.info('Flushed all changes to database', {
       productResults: resultsCount,
