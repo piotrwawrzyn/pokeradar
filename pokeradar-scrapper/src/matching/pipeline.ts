@@ -33,7 +33,7 @@ export class ProductMatchingPipeline {
   constructor(config: PipelineConfig, logger?: PipelineLogger) {
     this.expandSetNumbersLayer = new ExpandSetNumbersLayer(config.productSets, logger);
     this.normalizeLayer = new NormalizeLayer();
-    this.filterNonEnglishLayer = new FilterNonEnglishLayer();
+    this.filterNonEnglishLayer = new FilterNonEnglishLayer(logger);
     this.expandSynonymsLayer = new ExpandSynonymsLayer();
     this.matchTypeLayer = new MatchProductTypeLayer(config.productTypes, logger);
     this.matchSetLayer = new MatchProductSetLayer(config.productSets, logger);
