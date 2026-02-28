@@ -148,9 +148,3 @@ pokeradar-client/src/__tests__/
 6. **Keep tests independent.** Each test should set up its own data and not depend on other tests' state. Use `beforeEach` for setup, `afterEach` for cleanup.
 7. **Use existing helpers.** Reuse `createTestUser()`, `seedProducts()`, `renderWithProviders()`, and MSW handlers instead of reinventing setup in each test.
 8. **Create test helpers to reduce boilerplate.** When you notice repeated setup or assertion patterns across tests, extract them into shared helpers (e.g., in `tests/helpers/` or `src/__tests__/test-utils.tsx`).
-
-## Important gotchas
-
-- **WooCommerce variable products:** The add-to-cart button is always present in raw HTML; JS-added classes like `wc-variation-selection-needed` are invisible to Cheerio. Use `form.cart:not(.variations_form)` to scope to simple products, and `json-attribute` on `data-product_variations` for variable ones. See [docs/shop-config.md](docs/shop-config.md) for the full pattern.
-- **`disabled: true`** in a shop config silently excludes it from all runs — check this first when a shop produces no results.
-- **`fetchingTier`** is filtered by the `FETCHING_TIER` env var in cron jobs. Running locally without this var processes all tiers.
