@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { getApiBaseUrl } from '@/lib/utils';
 
 export function useLinkStatusStream(token: string | null, successMessage: string): void {
   const queryClient = useQueryClient();
@@ -11,7 +12,7 @@ export function useLinkStatusStream(token: string | null, successMessage: string
 
     const connect = async () => {
       const authToken = await (window as any).Clerk?.session?.getToken();
-      const baseUrl = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000';
+      const baseUrl = getApiBaseUrl();
       const response = await fetch(`${baseUrl}/users/me/link-status/stream`, {
         headers: { Authorization: `Bearer ${authToken}` },
       });

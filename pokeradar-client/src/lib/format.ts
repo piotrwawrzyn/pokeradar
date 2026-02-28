@@ -15,3 +15,8 @@ export function formatDate(isoString: string | undefined): string {
     month: 'long',
   });
 }
+
+export function formatDateTime(isoString: string | null | undefined): string {
+  if (!isoString) return '—';
+  return new Date(isoString).toLocaleString('pl-PL');
+}

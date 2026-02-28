@@ -38,6 +38,7 @@ import { toast } from 'sonner';
 import { ChevronDown, ChevronUp, Trash2, Loader2 } from 'lucide-react';
 import type { AdminProduct } from '@/api/admin.api';
 import { getErrorMessage, generateIdFromName } from '@/lib/error-utils';
+import { formatPLN } from '@/lib/format';
 
 export interface ProductsTabHandle {
   openCreate: () => void;
@@ -319,7 +320,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                               {type?.name || '-'}
                             </TableCell>
                             <TableCell className="text-right">
-                              {product.bestPrice ? `${product.bestPrice.toFixed(2)} zł` : '-'}
+                              {product.bestPrice ? formatPLN(product.bestPrice) : '-'}
                             </TableCell>
                             <TableCell className="text-center">
                               {product.shopFinds.length}
@@ -412,9 +413,7 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                                                 {find.isAvailable ? (
                                                   <>
                                                     <span className="text-green-500 font-semibold min-w-[80px] text-right">
-                                                      {find.price
-                                                        ? `${find.price.toFixed(2)} zł`
-                                                        : '-'}
+                                                      {find.price ? formatPLN(find.price) : '-'}
                                                     </span>
                                                     <a
                                                       href={find.productUrl}

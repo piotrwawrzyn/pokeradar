@@ -20,6 +20,7 @@ import {
   ExternalLink,
   Loader2,
 } from 'lucide-react';
+import { formatDateTime, formatPLN } from '@/lib/format';
 
 export function AdminShopDetailPage() {
   const { shopId } = useParams<{ shopId: string }>();
@@ -138,10 +139,10 @@ export function AdminShopDetailPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-right">
-                      {product.price ? `${product.price.toFixed(2)} zł` : '-'}
+                      {product.price ? formatPLN(product.price) : '-'}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {new Date(product.lastSeen).toLocaleString('pl-PL')}
+                      {formatDateTime(product.lastSeen)}
                     </TableCell>
                     <TableCell>
                       {product.productUrl && (

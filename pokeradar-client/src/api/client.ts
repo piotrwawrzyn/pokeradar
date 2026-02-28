@@ -1,9 +1,10 @@
 import axios from 'axios';
+import { getApiBaseUrl } from '@/lib/utils';
 
 export const TOKEN_KEY = ''; // kept for import compat, unused
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: getApiBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
 });
 

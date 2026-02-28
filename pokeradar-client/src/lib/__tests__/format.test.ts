@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatPLN, formatDate } from '@/lib/format';
+import { formatPLN, formatDate, formatDateTime } from '@/lib/format';
 
 describe('formatPLN', () => {
   it('formats a positive number as PLN currency', () => {
@@ -34,5 +34,22 @@ describe('formatDate', () => {
 
   it('returns em dash for empty string', () => {
     expect(formatDate('')).toBe('—');
+  });
+});
+
+describe('formatDateTime', () => {
+  it('formats an ISO datetime string in Polish locale', () => {
+    const result = formatDateTime('2024-01-15T14:30:00Z');
+    expect(result).toContain('2024');
+    // Should contain time components
+    expect(result).toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it('returns em dash for null', () => {
+    expect(formatDateTime(null)).toBe('—');
+  });
+
+  it('returns em dash for undefined', () => {
+    expect(formatDateTime(undefined)).toBe('—');
   });
 });

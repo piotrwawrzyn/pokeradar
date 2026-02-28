@@ -20,6 +20,7 @@ import {
 import { StatusBadge } from '@/components/admin/status-badge';
 import { useAdminNotifications } from '@/hooks/use-admin';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { formatDateTime, formatPLN } from '@/lib/format';
 
 export function AdminNotificationsPage() {
   const [page, setPage] = useState(1);
@@ -153,13 +154,13 @@ export function AdminNotificationsPage() {
                           {notif.status === 'expired' && <StatusBadge status="expired" />}
                         </TableCell>
                         <TableCell className="text-right">
-                          {notif.payload.price.toFixed(2)} zł
+                          {formatPLN(notif.payload.price)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {new Date(notif.createdAt).toLocaleString('pl-PL')}
+                          {formatDateTime(notif.createdAt)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
-                          {firstSentAt ? new Date(firstSentAt).toLocaleString('pl-PL') : '-'}
+                          {firstSentAt ? formatDateTime(firstSentAt) : '-'}
                         </TableCell>
                       </TableRow>
                       {isExpanded && (
@@ -179,7 +180,7 @@ export function AdminNotificationsPage() {
                                   </div>
                                   <div>
                                     <span className="text-muted-foreground">Maksymalna cena:</span>{' '}
-                                    {notif.payload.maxPrice.toFixed(2)} zł
+                                    {formatPLN(notif.payload.maxPrice)}
                                   </div>
                                   <div>
                                     <span className="text-muted-foreground">URL produktu:</span>{' '}
