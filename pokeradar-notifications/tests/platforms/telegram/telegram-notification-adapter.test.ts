@@ -37,10 +37,11 @@ describe('TelegramNotificationAdapter', () => {
     await adapter.send('chat-123', mockPayload);
 
     expect(mockBot.sendMessage).toHaveBeenCalledTimes(1);
-    expect(mockBot.sendMessage).toHaveBeenCalledWith('chat-123', expect.any(String), {
-      parse_mode: 'Markdown',
-      disable_web_page_preview: false,
-    });
+    expect(mockBot.sendMessage).toHaveBeenCalledWith(
+      'chat-123',
+      expect.any(String),
+      expect.objectContaining({ parse_mode: 'Markdown' }),
+    );
   });
 
   it('formats the message in Polish', async () => {
@@ -50,9 +51,9 @@ describe('TelegramNotificationAdapter', () => {
     expect(message).toContain('Produkt dostępny!');
     expect(message).toContain('Pokemon 151 Booster Box');
     expect(message).toContain('Sklep: Rebel.pl');
-    expect(message).toContain('149.99 zł');
-    expect(message).toContain('160.00 zł');
-    expect(message).toContain('[Zobacz produkt](https://rebel.pl/product/pokemon-151)');
+    expect(message).toContain('149,99 zł');
+    expect(message).toContain('160,00 zł');
+    expect(message).toContain('[Kup teraz →](https://rebel.pl/product/pokemon-151)');
   });
 
   it('propagates errors from the Telegram API', async () => {

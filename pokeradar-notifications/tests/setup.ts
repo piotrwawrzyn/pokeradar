@@ -1,24 +1,27 @@
-import { MongoMemoryReplSet } from 'mongodb-memory-server';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 
-let replSet: MongoMemoryReplSet;
+let mongoServer: MongoMemoryServer;
 
 beforeAll(async () => {
-  replSet = await MongoMemoryReplSet.create({
-    replSet: { count: 1, storageEngine: 'wiredTiger' },
-  });
-  const uri = replSet.getUri();
+  mongoServer = await MongoMemoryServer.create();
+  const uri = mongoServer.getUri();
   await mongoose.connect(uri);
 });
 
 afterAll(async () => {
   await mongoose.disconnect();
-  await replSet.stop();
+  await mongoServer.stop();
 });
 
 afterEach(async () => {
   const collections = mongoose.connection.collections;
   for (const key of Object.keys(collections)) {
     await collections[key].deleteMany({});
+  }
+  // Drop and recreate the users collection to reset sparse unique indexes
+  // that treat explicit null channelId values as duplicates.
+  if (collections['users']) {
+    await collections['users'].drop().catch(() => {});
   }
 });

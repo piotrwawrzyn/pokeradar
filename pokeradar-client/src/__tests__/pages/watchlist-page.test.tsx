@@ -6,12 +6,12 @@ import { WatchlistPage } from '@/pages/watchlist-page';
 describe('WatchlistPage', () => {
   it('renders the page heading', () => {
     renderWithProviders(<WatchlistPage />);
-    expect(screen.getByText('Katalog produktow')).toBeInTheDocument();
+    expect(screen.getByText(/Nie przegap żadnej okazji/)).toBeInTheDocument();
   });
 
-  it('renders the page description', () => {
+  it('renders the hero description', () => {
     renderWithProviders(<WatchlistPage />);
-    expect(screen.getByText(/Przegladaj produkty Pokemon TCG/)).toBeInTheDocument();
+    expect(screen.getByText(/Monitorujemy ceny/)).toBeInTheDocument();
   });
 
   it('renders the product catalog', async () => {
@@ -22,12 +22,10 @@ describe('WatchlistPage', () => {
     });
   });
 
-  it('shows login prompt for unauthenticated users', async () => {
+  it('renders step-by-step instructions', () => {
     renderWithProviders(<WatchlistPage />);
-
-    await waitFor(() => {
-      // AuthProvider without a token = not logged in
-      expect(screen.getByText(/Zaloguj sie/)).toBeInTheDocument();
-    });
+    expect(screen.getByText('Wybierz produkty')).toBeInTheDocument();
+    expect(screen.getByText('Ustaw alert cenowy')).toBeInTheDocument();
+    expect(screen.getByText('Otrzymuj powiadomienia')).toBeInTheDocument();
   });
 });

@@ -5,7 +5,6 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthContext } from '@/context/auth-context';
 import { SettingsPage } from '@/pages/settings-page';
 import { mockUser } from '../mocks/data';
-import { renderWithProviders } from '../test-utils';
 import type { ReactNode } from 'react';
 
 function createQueryClient() {
@@ -14,36 +13,38 @@ function createQueryClient() {
   });
 }
 
-function AuthenticatedWrapper({ children }: { children: ReactNode }) {
+function makeWrapper(authenticated: boolean) {
   const authValue = {
-    token: 'test',
-    user: mockUser,
-    isAuthenticated: true,
+    user: authenticated
+      ? { id: mockUser.id, email: mockUser.email, displayName: mockUser.displayName }
+      : null,
+    isAuthenticated: authenticated,
     isLoading: false,
     login: () => {},
     logout: async () => {},
   };
-  return (
-    <QueryClientProvider client={createQueryClient()}>
-      <AuthContext.Provider value={authValue}>
-        <BrowserRouter>{children}</BrowserRouter>
-      </AuthContext.Provider>
-    </QueryClientProvider>
-  );
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={createQueryClient()}>
+        <AuthContext.Provider value={authValue}>
+          <BrowserRouter>{children}</BrowserRouter>
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    );
+  };
 }
 
 describe('SettingsPage', () => {
   it('shows auth guard for unauthenticated users', async () => {
-    renderWithProviders(<SettingsPage />);
+    render(<SettingsPage />, { wrapper: makeWrapper(false) });
 
     await waitFor(() => {
-      // AuthGuard renders a login prompt
-      expect(screen.getByText(/Zaloguj/)).toBeInTheDocument();
+      expect(screen.getByText(/Wymagane logowanie/)).toBeInTheDocument();
     });
   });
 
   it('shows settings content for authenticated users', async () => {
-    render(<SettingsPage />, { wrapper: AuthenticatedWrapper });
+    render(<SettingsPage />, { wrapper: makeWrapper(true) });
 
     await waitFor(() => {
       expect(screen.getByText('Ustawienia')).toBeInTheDocument();
@@ -53,7 +54,7 @@ describe('SettingsPage', () => {
   });
 
   it('shows user profile info', async () => {
-    render(<SettingsPage />, { wrapper: AuthenticatedWrapper });
+    render(<SettingsPage />, { wrapper: makeWrapper(true) });
 
     await waitFor(() => {
       expect(screen.getByText('Test User')).toBeInTheDocument();
@@ -62,7 +63,7 @@ describe('SettingsPage', () => {
   });
 
   it('shows notification channels section', async () => {
-    render(<SettingsPage />, { wrapper: AuthenticatedWrapper });
+    render(<SettingsPage />, { wrapper: makeWrapper(true) });
 
     await waitFor(() => {
       expect(screen.getByText('Telegram')).toBeInTheDocument();

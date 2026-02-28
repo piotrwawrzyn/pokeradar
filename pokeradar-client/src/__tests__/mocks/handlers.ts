@@ -70,6 +70,11 @@ export const handlers = [
     return HttpResponse.json(mockUser);
   }),
 
+  // Link status stream (SSE)
+  http.get(`${API}/users/me/link-status/stream`, () => {
+    return new HttpResponse(null, { status: 200 });
+  }),
+
   // Telegram
   http.post(`${API}/users/me/telegram/link-token`, ({ request }) => {
     const auth = request.headers.get('Authorization');

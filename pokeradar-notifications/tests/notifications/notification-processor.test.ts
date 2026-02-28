@@ -1,7 +1,7 @@
 import { NotificationProcessor } from '../../src/notifications/notification-processor';
 import { RateLimiter } from '../../src/notifications/rate-limiter';
 import { INotificationChannel } from '../../src/notifications/channels';
-import { NotificationModel } from '@pokeradar/shared';
+import { NotificationModel, UserModel } from '@pokeradar/shared';
 import { INotificationPayload } from '../../src/shared/types';
 import { ILogger } from '../../src/shared/logger';
 
@@ -30,6 +30,8 @@ function createMockChannel(overrides: Partial<INotificationChannel> = {}): INoti
   };
 }
 
+let testUserId: string;
+
 describe('NotificationProcessor', () => {
   const retryConfig = {
     maxAttempts: 3,
@@ -41,24 +43,27 @@ describe('NotificationProcessor', () => {
   let channel: INotificationChannel;
   let rateLimiter: RateLimiter;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     processor = new NotificationProcessor(retryConfig, mockLogger);
     channel = createMockChannel();
     rateLimiter = new RateLimiter(100, 100); // generous limits for tests
     processor.registerChannel(channel, rateLimiter);
+
+    // Create a user with a linked telegram channel so the processor can build deliveries
+    const user = await UserModel.create({
+      clerkId: `clerk-${Date.now()}`,
+      telegram: { channelId: 'chat-123', linkToken: null },
+    });
+    testUserId = user._id.toString();
   });
 
   async function createPendingNotification() {
     const doc = await NotificationModel.create({
-      userId: 'user-1',
-      channel: 'telegram',
-      channelTarget: 'chat-123',
+      userId: testUserId,
       status: 'pending',
       payload: mockPayload,
-      attempts: 0,
-      error: null,
-      sentAt: null,
+      deliveries: [],
     });
     return doc;
   }
@@ -79,7 +84,8 @@ describe('NotificationProcessor', () => {
 
       const updated = await NotificationModel.findById(doc._id).lean();
       expect(updated!.status).toBe('sent');
-      expect(updated!.sentAt).toBeDefined();
+      expect(updated!.deliveries[0].status).toBe('sent');
+      expect(updated!.deliveries[0].sentAt).toBeDefined();
     });
 
     it('processes multiple notifications in order', async () => {
@@ -118,6 +124,7 @@ describe('NotificationProcessor', () => {
 
       const updated = await NotificationModel.findById(doc._id).lean();
       expect(updated!.status).toBe('sent');
+      expect(updated!.deliveries[0].status).toBe('sent');
     });
 
     it('marks as failed after exhausting all retries', async () => {
@@ -134,35 +141,35 @@ describe('NotificationProcessor', () => {
       expect(failingChannel.send).toHaveBeenCalledTimes(3); // maxAttempts
 
       const updated = await NotificationModel.findById(doc._id).lean();
-      expect(updated!.status).toBe('failed');
-      expect(updated!.attempts).toBe(3);
-      expect(updated!.error).toBe('Persistent error');
+      // Overall status is still 'sent' (processing complete), but delivery is 'failed'
+      expect(updated!.deliveries[0].status).toBe('failed');
+      expect(updated!.deliveries[0].attempts).toBe(3);
+      expect(updated!.deliveries[0].error).toBe('Persistent error');
     });
   });
 
-  describe('unknown channel', () => {
-    it('marks notification as failed for unknown channel', async () => {
-      // Bypass Mongoose enum validation by inserting directly via the driver
-      const result = await NotificationModel.collection.insertOne({
-        userId: 'user-1',
-        channel: 'email',
-        channelTarget: 'user@example.com',
-        status: 'pending',
-        payload: mockPayload,
-        attempts: 0,
-        error: null,
-        sentAt: null,
-        createdAt: new Date(),
+  describe('no channels configured', () => {
+    it('marks notification as sent when user has no channels', async () => {
+      // Create a user with no linked channels
+      const noChannelUser = await UserModel.create({
+        clerkId: `clerk-nochannel-${Date.now()}`,
+        telegram: { channelId: null, linkToken: null },
       });
 
-      const doc = await NotificationModel.findById(result.insertedId);
+      const doc = await NotificationModel.create({
+        userId: noChannelUser._id.toString(),
+        status: 'pending',
+        payload: mockPayload,
+        deliveries: [],
+      });
 
-      processor.enqueue(doc!);
+      processor.enqueue(doc);
       await processor.drain();
 
-      const updated = await NotificationModel.findById(result.insertedId).lean();
-      expect(updated!.status).toBe('failed');
-      expect(updated!.error).toContain('Unknown channel');
+      expect(channel.send).not.toHaveBeenCalled();
+
+      const updated = await NotificationModel.findById(doc._id).lean();
+      expect(updated!.status).toBe('sent');
     });
   });
 
@@ -172,14 +179,19 @@ describe('NotificationProcessor', () => {
       await createPendingNotification();
       // Create a sent one that should NOT be recovered
       await NotificationModel.create({
-        userId: 'user-1',
-        channel: 'telegram',
-        channelTarget: 'chat-123',
+        userId: testUserId,
         status: 'sent',
         payload: mockPayload,
-        attempts: 0,
-        error: null,
-        sentAt: new Date(),
+        deliveries: [
+          {
+            channel: 'telegram',
+            channelTarget: 'chat-123',
+            status: 'sent',
+            attempts: 1,
+            error: null,
+            sentAt: new Date(),
+          },
+        ],
       });
 
       const count = await processor.recoverPending();

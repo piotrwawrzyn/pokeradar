@@ -15,9 +15,13 @@ process.env.NODE_ENV = 'test';
 // this allows multi-user tests to simulate different users by using different tokens.
 jest.mock('@clerk/express', () => ({
   clerkMiddleware: () => (_req: any, _res: any, next: any) => next(),
-  requireAuth: () => (req: any, _res: any, next: any) => {
+  requireAuth: () => (req: any, res: any, next: any) => {
     const authHeader = req.headers['authorization'] as string | undefined;
-    const clerkId = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : 'clerk_anonymous';
+    if (!authHeader?.startsWith('Bearer ')) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+    const clerkId = authHeader.slice(7);
     req.auth = { userId: clerkId, sessionClaims: { metadata: {} } };
     next();
   },
@@ -25,7 +29,13 @@ jest.mock('@clerk/express', () => ({
   getAuth: (req: any) => req.auth ?? { userId: null, sessionClaims: {} },
   clerkClient: {
     users: {
-      getUser: jest.fn(),
+      getUser: jest.fn().mockImplementation((clerkId: string) =>
+        Promise.resolve({
+          id: clerkId,
+          emailAddresses: [{ emailAddress: 'test@example.com' }],
+          fullName: 'Test User',
+        }),
+      ),
       getUserList: jest.fn(),
     },
     instance: {
@@ -51,5 +61,10 @@ afterEach(async () => {
   const collections = mongoose.connection.collections;
   for (const key of Object.keys(collections)) {
     await collections[key].deleteMany({});
+  }
+  // Drop and recreate the users collection to reset sparse unique indexes
+  // that treat explicit null channelId values as duplicates.
+  if (collections['users']) {
+    await collections['users'].drop().catch(() => {});
   }
 });

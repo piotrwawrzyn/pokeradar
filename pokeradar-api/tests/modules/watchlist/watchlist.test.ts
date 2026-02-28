@@ -182,8 +182,6 @@ describe('Watchlist API', () => {
       // Create notification for this user+product
       await NotificationModel.create({
         userId,
-        channel: 'telegram',
-        channelTarget: '123456',
         status: 'pending',
         payload: {
           productName: 'Pokemon 151 Booster Box',
@@ -194,6 +192,9 @@ describe('Watchlist API', () => {
           maxPrice: 180,
           productUrl: 'https://example.com/product',
         },
+        deliveries: [
+          { channel: 'telegram', channelTarget: '123456', status: 'pending', attempts: 0 },
+        ],
       });
 
       // Create notification state for this user+product+shop
@@ -246,8 +247,6 @@ describe('Watchlist API', () => {
       // Create notifications for both users for the same product
       await NotificationModel.create({
         userId,
-        channel: 'telegram',
-        channelTarget: '123456',
         status: 'pending',
         payload: {
           productName: 'Pokemon 151 Booster Box',
@@ -258,12 +257,13 @@ describe('Watchlist API', () => {
           maxPrice: 180,
           productUrl: 'https://example.com/product',
         },
+        deliveries: [
+          { channel: 'telegram', channelTarget: '123456', status: 'pending', attempts: 0 },
+        ],
       });
 
       await NotificationModel.create({
         userId: otherUserId,
-        channel: 'telegram',
-        channelTarget: '654321',
         status: 'pending',
         payload: {
           productName: 'Pokemon 151 Booster Box',
@@ -274,6 +274,9 @@ describe('Watchlist API', () => {
           maxPrice: 190,
           productUrl: 'https://example.com/product',
         },
+        deliveries: [
+          { channel: 'telegram', channelTarget: '654321', status: 'pending', attempts: 0 },
+        ],
       });
 
       // Create notification states for both users

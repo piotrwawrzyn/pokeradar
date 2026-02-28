@@ -2,6 +2,8 @@ jest.mock('node-telegram-bot-api', () => {
   return jest.fn().mockImplementation(() => ({
     sendMessage: jest.fn().mockResolvedValue({}),
     onText: jest.fn(),
+    on: jest.fn(),
+    setMyCommands: jest.fn().mockResolvedValue(undefined),
     startPolling: jest.fn().mockResolvedValue(undefined),
     stopPolling: jest.fn().mockResolvedValue(undefined),
   }));

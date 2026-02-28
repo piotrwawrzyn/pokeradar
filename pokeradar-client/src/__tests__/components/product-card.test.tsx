@@ -14,8 +14,7 @@ function createQueryClient() {
 }
 
 const authValue = {
-  token: 'test',
-  user: mockUser,
+  user: { id: mockUser.id, email: mockUser.email, displayName: mockUser.displayName },
   isAuthenticated: true,
   isLoading: false,
   login: () => {},
@@ -82,7 +81,7 @@ describe('ProductCard', () => {
         <ProductCard product={disabledProduct} entry={undefined} watchlistDisabled={false} />
       </Wrapper>,
     );
-    expect(screen.getByText('Niedostepny')).toBeInTheDocument();
+    expect(screen.getByText('Niedostępny')).toBeInTheDocument();
   });
 
   it('shows MaxPriceInput when product is watched', () => {
@@ -103,14 +102,13 @@ describe('ProductCard', () => {
     expect(screen.queryByLabelText('Maksymalna cena')).not.toBeInTheDocument();
   });
 
-  it('shows offer link when product is watched and has URL', () => {
+  it('links price to product URL when available', () => {
     render(
       <Wrapper>
         <ProductCard product={product} entry={entry} watchlistDisabled={false} />
       </Wrapper>,
     );
-    const link = screen.getByText('Zobacz oferte');
-    expect(link).toBeInTheDocument();
+    const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', 'https://shop-a.com/pikachu');
   });
 
@@ -120,6 +118,6 @@ describe('ProductCard', () => {
         <ProductCard product={product} entry={undefined} watchlistDisabled={false} />
       </Wrapper>,
     );
-    expect(screen.getByRole('switch', { name: /Obserwuj Pikachu VMAX/ })).toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: /Dodaj Pikachu VMAX/ })).toBeInTheDocument();
   });
 });

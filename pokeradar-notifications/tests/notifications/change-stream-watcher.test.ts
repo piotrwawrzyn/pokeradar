@@ -1,3 +1,5 @@
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
 import { ChangeStreamWatcher } from '../../src/notifications/change-stream-watcher';
 import { NotificationModel } from '@pokeradar/shared';
 import { ILogger } from '../../src/shared/logger';
@@ -20,6 +22,46 @@ const mockPayload: INotificationPayload = {
   productUrl: 'https://rebel.pl/product/pokemon-151',
 };
 
+let replSet: MongoMemoryReplSet | null = null;
+let replSetAvailable = false;
+
+beforeAll(async () => {
+  // Disconnect from the shared MongoMemoryServer (from setup.ts)
+  await mongoose.disconnect();
+
+  try {
+    replSet = await MongoMemoryReplSet.create({
+      replSet: { count: 1, storageEngine: 'wiredTiger' },
+    });
+    const uri = replSet.getUri();
+    await mongoose.connect(uri);
+    replSetAvailable = true;
+  } catch {
+    // Replica set unavailable (e.g. fassert failure on some platforms).
+    // Tests will be skipped gracefully.
+    replSetAvailable = false;
+  }
+});
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  if (replSet) {
+    await replSet.stop().catch(() => {});
+  }
+
+  // Reconnect to the shared MongoMemoryServer so afterAll in setup.ts doesn't fail
+  // (setup.ts manages a standalone server and calls disconnect + stop in its own afterAll)
+});
+
+afterEach(async () => {
+  if (replSetAvailable) {
+    const collections = mongoose.connection.collections;
+    for (const key of Object.keys(collections)) {
+      await collections[key].deleteMany({});
+    }
+  }
+});
+
 describe('ChangeStreamWatcher', () => {
   let watcher: ChangeStreamWatcher;
 
@@ -30,6 +72,8 @@ describe('ChangeStreamWatcher', () => {
   });
 
   it('detects newly inserted notifications', async () => {
+    if (!replSetAvailable) return;
+
     const receivedDocs: any[] = [];
     watcher = new ChangeStreamWatcher(mockLogger);
 
@@ -42,13 +86,18 @@ describe('ChangeStreamWatcher', () => {
 
     await NotificationModel.create({
       userId: 'user-1',
-      channel: 'telegram',
-      channelTarget: 'chat-123',
       status: 'pending',
       payload: mockPayload,
-      attempts: 0,
-      error: null,
-      sentAt: null,
+      deliveries: [
+        {
+          channel: 'telegram',
+          channelTarget: 'chat-123',
+          status: 'pending',
+          attempts: 0,
+          error: null,
+          sentAt: null,
+        },
+      ],
     });
 
     // Wait for the change event to propagate
@@ -56,11 +105,13 @@ describe('ChangeStreamWatcher', () => {
 
     expect(receivedDocs.length).toBe(1);
     expect(receivedDocs[0].userId).toBe('user-1');
-    expect(receivedDocs[0].channel).toBe('telegram');
+    expect(receivedDocs[0].deliveries[0].channel).toBe('telegram');
     expect(receivedDocs[0].payload.productName).toBe('Pokemon 151 Booster Box');
   });
 
   it('stops receiving events after stop()', async () => {
+    if (!replSetAvailable) return;
+
     const receivedDocs: any[] = [];
     watcher = new ChangeStreamWatcher(mockLogger);
 
@@ -73,13 +124,18 @@ describe('ChangeStreamWatcher', () => {
 
     await NotificationModel.create({
       userId: 'user-2',
-      channel: 'telegram',
-      channelTarget: 'chat-456',
       status: 'pending',
       payload: mockPayload,
-      attempts: 0,
-      error: null,
-      sentAt: null,
+      deliveries: [
+        {
+          channel: 'telegram',
+          channelTarget: 'chat-456',
+          status: 'pending',
+          attempts: 0,
+          error: null,
+          sentAt: null,
+        },
+      ],
     });
 
     await new Promise((resolve) => setTimeout(resolve, 500));

@@ -1,10 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthContext } from '@/context/auth-context';
-import { TOKEN_KEY } from '@/api/client';
 import { TelegramSetup } from '@/components/notifications/telegram/telegram-setup';
 import { TelegramInstructions } from '@/components/notifications/telegram/telegram-instructions';
 import { TelegramStatus } from '@/components/notifications/telegram/telegram-status';
@@ -19,25 +18,22 @@ function createQueryClient() {
   });
 }
 
-function makeWrapper(user: typeof mockUser) {
-  const authValue = {
-    token: 'test',
-    user,
-    isAuthenticated: true,
-    isLoading: false,
-    login: () => {},
-    logout: async () => {},
-  };
+const authValue = {
+  user: { id: mockUser.id, email: mockUser.email, displayName: mockUser.displayName },
+  isAuthenticated: true,
+  isLoading: false,
+  login: () => {},
+  logout: async () => {},
+};
 
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <QueryClientProvider client={createQueryClient()}>
-        <AuthContext.Provider value={authValue}>
-          <BrowserRouter>{children}</BrowserRouter>
-        </AuthContext.Provider>
-      </QueryClientProvider>
-    );
-  };
+function Wrapper({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider client={createQueryClient()}>
+      <AuthContext.Provider value={authValue}>
+        <BrowserRouter>{children}</BrowserRouter>
+      </AuthContext.Provider>
+    </QueryClientProvider>
+  );
 }
 
 describe('TelegramSetup', () => {
@@ -48,10 +44,10 @@ describe('TelegramSetup', () => {
       }),
     );
 
-    render(<TelegramSetup />, { wrapper: makeWrapper(mockUserNoTelegram) });
+    render(<TelegramSetup />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText(/Jak polaczyc Telegram/)).toBeInTheDocument();
+      expect(screen.getByText(/Jak połączyć Telegram/)).toBeInTheDocument();
     });
   });
 
@@ -62,31 +58,39 @@ describe('TelegramSetup', () => {
       }),
     );
 
-    render(<TelegramSetup />, { wrapper: makeWrapper(mockUser) });
+    render(<TelegramSetup />, { wrapper: Wrapper });
 
     await waitFor(() => {
-      expect(screen.getByText('Polaczony')).toBeInTheDocument();
+      expect(screen.getByText(/połączone z pokeradar/)).toBeInTheDocument();
     });
   });
 });
 
 describe('TelegramInstructions', () => {
-  const Wrapper = makeWrapper(mockUserNoTelegram);
-
-  beforeEach(() => {
-    localStorage.setItem(TOKEN_KEY, 'test-token');
-  });
-
   it('shows step-by-step instructions', () => {
+    server.use(
+      http.get('http://localhost:3000/users/me', () => {
+        return HttpResponse.json(mockUserNoTelegram);
+      }),
+    );
+
     render(<TelegramInstructions />, { wrapper: Wrapper });
 
-    expect(screen.getByText(/Otworz Telegram/)).toBeInTheDocument();
-    expect(screen.getByText(/@poke_radar_bot/)).toBeInTheDocument();
-    expect(screen.getByText(/Wygeneruj token polaczenia/)).toBeInTheDocument();
+    expect(screen.getByText(/Otwórz Telegram/)).toBeInTheDocument();
+    expect(screen.getByText(/Wygeneruj token połączenia/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Wygeneruj token/ })).toBeInTheDocument();
   });
 
-  it('generates a token and shows step 3 with the token', async () => {
+  it('generates a token and shows the token', async () => {
+    server.use(
+      http.get('http://localhost:3000/users/me', () => {
+        return HttpResponse.json(mockUserNoTelegram);
+      }),
+      http.get('http://localhost:3000/users/me/link-status/stream', () => {
+        return new HttpResponse(null, { status: 200 });
+      }),
+    );
+
     render(<TelegramInstructions />, { wrapper: Wrapper });
 
     const generateBtn = screen.getByRole('button', { name: /Wygeneruj token/ });
@@ -97,27 +101,27 @@ describe('TelegramInstructions', () => {
     });
   });
 
-  it('does not show step 3 before token is generated', () => {
+  it('does not show token before it is generated', () => {
+    server.use(
+      http.get('http://localhost:3000/users/me', () => {
+        return HttpResponse.json(mockUserNoTelegram);
+      }),
+    );
+
     render(<TelegramInstructions />, { wrapper: Wrapper });
     expect(screen.queryByText(/\/link/)).not.toBeInTheDocument();
   });
 });
 
 describe('TelegramStatus', () => {
-  const Wrapper = makeWrapper(mockUser);
-
-  beforeEach(() => {
-    localStorage.setItem(TOKEN_KEY, 'test-token');
-  });
-
-  it('shows connected badge', () => {
+  it('shows connected message', () => {
     render(<TelegramStatus />, { wrapper: Wrapper });
-    expect(screen.getByText('Polaczony')).toBeInTheDocument();
+    expect(screen.getByText(/połączone z pokeradar/)).toBeInTheDocument();
   });
 
   it('shows unlink button', () => {
     render(<TelegramStatus />, { wrapper: Wrapper });
-    expect(screen.getByRole('button', { name: /Odlacz/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Odłącz/ })).toBeInTheDocument();
   });
 
   it('calls DELETE when unlink button is clicked', async () => {
@@ -130,7 +134,7 @@ describe('TelegramStatus', () => {
     );
 
     render(<TelegramStatus />, { wrapper: Wrapper });
-    await userEvent.click(screen.getByRole('button', { name: /Odlacz/ }));
+    await userEvent.click(screen.getByRole('button', { name: /Odłącz/ }));
 
     await waitFor(() => {
       expect(deleteCalled).toBe(true);

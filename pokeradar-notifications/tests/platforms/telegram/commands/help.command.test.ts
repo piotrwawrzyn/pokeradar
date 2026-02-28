@@ -44,7 +44,8 @@ describe('HelpCommand', () => {
     const message = mockBot.sendMessage.mock.calls[0][1] as string;
     expect(message).toContain('/start - Uruchom bota');
     expect(message).toContain('/link - Połącz konto');
-    expect(message).toContain('/help - Pomoc');
+    // /help is filtered out from the command list
+    expect(message).not.toContain('/help - Pomoc');
     expect(message).toContain('[pokeradar](https://pokeradar.app)');
   });
 

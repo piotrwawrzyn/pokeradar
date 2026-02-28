@@ -13,6 +13,7 @@ vi.mock('@clerk/clerk-react', () => ({
     isSignedIn: true,
     isLoaded: true,
     signOut: vi.fn().mockResolvedValue(undefined),
+    getToken: vi.fn().mockResolvedValue('test-token'),
   })),
   useUser: vi.fn(() => ({
     user: {
@@ -24,6 +25,11 @@ vi.mock('@clerk/clerk-react', () => ({
     isLoaded: true,
   })),
 }));
+
+// Provide window.Clerk.session.getToken for the axios interceptor
+(window as any).Clerk = {
+  session: { getToken: () => Promise.resolve('test-token') },
+};
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterEach(() => {

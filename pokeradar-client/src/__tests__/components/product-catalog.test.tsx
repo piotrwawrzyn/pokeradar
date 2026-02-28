@@ -54,15 +54,14 @@ describe('ProductCatalog', () => {
     });
 
     const headings = screen
-      .getAllByRole('button')
+      .getAllByRole('heading', { level: 2 })
       .filter((el) => el.textContent?.includes('Scarlet') || el.textContent?.includes('Sword'));
 
     // Scarlet & Violet (2024-01-15) should appear before Sword & Shield (2023-06-01)
-    if (headings.length >= 2) {
-      const svIndex = headings.findIndex((h) => h.textContent?.includes('Scarlet'));
-      const swshIndex = headings.findIndex((h) => h.textContent?.includes('Sword'));
-      expect(svIndex).toBeLessThan(swshIndex);
-    }
+    expect(headings.length).toBeGreaterThanOrEqual(2);
+    const svIndex = headings.findIndex((h) => h.textContent?.includes('Scarlet'));
+    const swshIndex = headings.findIndex((h) => h.textContent?.includes('Sword'));
+    expect(svIndex).toBeLessThan(swshIndex);
   });
 
   it('shows empty state when no products', async () => {
@@ -78,15 +77,7 @@ describe('ProductCatalog', () => {
     renderWithProviders(<ProductCatalog />);
 
     await waitFor(() => {
-      expect(screen.getByText('Brak produktow do wyswietlenia.')).toBeInTheDocument();
-    });
-  });
-
-  it('shows login banner when user is not logged in', async () => {
-    renderWithProviders(<ProductCatalog />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Zaloguj sie/)).toBeInTheDocument();
+      expect(screen.getByText('Brak produktów do wyświetlenia.')).toBeInTheDocument();
     });
   });
 });
