@@ -31,8 +31,8 @@ const UserSchema = new Schema<IUserDoc>(
 );
 
 UserSchema.index({ 'telegram.linkToken': 1 }, { sparse: true });
-UserSchema.index({ 'telegram.channelId': 1 }, { sparse: true });
+UserSchema.index({ 'telegram.channelId': 1 }, { unique: true, sparse: true });
 UserSchema.index({ 'discord.linkToken': 1 }, { sparse: true });
-UserSchema.index({ 'discord.channelId': 1 }, { sparse: true });
+UserSchema.index({ 'discord.channelId': 1 }, { unique: true, sparse: true });
 
 export const UserModel = mongoose.model<IUserDoc>('User', UserSchema);

@@ -29,11 +29,36 @@ export class LinkCommand implements ITelegramCommand {
     });
   }
 
-  private async replyAlreadyLinkedIfNeeded(chatId: number): Promise<boolean> {
+  private isDuplicateKeyError(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code: number }).code === 11000
+    );
+  }
+
+  private async replyAlreadyLinkedIfNeeded(chatId: number, token?: string): Promise<boolean> {
     const messages = getTelegramMessages(this.appUrl);
-    const alreadyLinked = await UserModel.exists({ 'telegram.channelId': chatId.toString() });
-    if (alreadyLinked) {
-      await this.bot.sendMessage(chatId, messages.linkAlreadyLinked, {
+    const existingUser = await UserModel.findOne(
+      { 'telegram.channelId': chatId.toString() },
+      { _id: 1 },
+    ).lean();
+
+    if (existingUser) {
+      let message = messages.linkUsedByAnother;
+
+      if (token) {
+        const tokenOwner = await UserModel.exists({ 'telegram.linkToken': token });
+        if (tokenOwner && existingUser._id.toString() === tokenOwner._id.toString()) {
+          message = messages.linkAlreadyLinked;
+        }
+      } else {
+        // No token to compare — default to the generic "already linked" message
+        message = messages.linkAlreadyLinked;
+      }
+
+      await this.bot.sendMessage(chatId, message, {
         parse_mode: 'Markdown',
         disable_web_page_preview: true,
       });
@@ -88,7 +113,7 @@ export class LinkCommand implements ITelegramCommand {
     const messages = getTelegramMessages(this.appUrl);
 
     try {
-      if (await this.replyAlreadyLinkedIfNeeded(chatId)) return;
+      if (await this.replyAlreadyLinkedIfNeeded(chatId, token)) return;
 
       const user = await UserModel.findOneAndUpdate(
         { 'telegram.linkToken': token },
@@ -117,6 +142,15 @@ export class LinkCommand implements ITelegramCommand {
         disable_web_page_preview: true,
       });
     } catch (error) {
+      // Race condition safety net: unique index prevents duplicate channelId
+      if (this.isDuplicateKeyError(error)) {
+        await this.bot.sendMessage(chatId, messages.linkUsedByAnother, {
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true,
+        });
+        return;
+      }
+
       this.logger.error('Failed to process /link command', { chatId, token, error });
 
       try {

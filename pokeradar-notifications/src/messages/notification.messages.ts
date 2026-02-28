@@ -55,6 +55,7 @@ export interface BotMessages {
   start: string;
   linkSuccess: string;
   linkAlreadyLinked: string;
+  linkUsedByAnother: string;
   linkInvalidToken: string;
   linkUsage: string;
   /** Short prompt shown with force_reply when /link is sent without a token (Telegram). */
@@ -88,6 +89,10 @@ function buildBotMessages(appUrl: string, config: BotPlatformConfig): BotMessage
 
     linkAlreadyLinked: botError(
       `Twoje konto ${config.platformName} jest już połączone z pokeradar.`,
+    ),
+
+    linkUsedByAnother: botError(
+      `To konto ${config.platformName} jest już połączone z innym kontem pokeradar. Każde konto ${config.platformName} może być połączone tylko z jednym kontem pokeradar.`,
     ),
 
     linkInvalidToken: botError(`Nieprawidłowy lub wygasły token. Wygeneruj nowy na ${link}.`),

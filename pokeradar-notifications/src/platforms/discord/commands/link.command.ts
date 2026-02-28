@@ -13,6 +13,15 @@ export class DiscordLinkCommand implements IDiscordCommand {
     private logger: ILogger,
   ) {}
 
+  private isDuplicateKeyError(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code: number }).code === 11000
+    );
+  }
+
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const messages = getDiscordMessages(this.appUrl);
     const token = interaction.options.getString('token');
@@ -30,9 +39,20 @@ export class DiscordLinkCommand implements IDiscordCommand {
     }
 
     try {
-      const alreadyLinked = await UserModel.exists({ 'discord.channelId': interaction.user.id });
-      if (alreadyLinked) {
-        await interaction.reply({ content: messages.linkAlreadyLinked, ephemeral: true });
+      const existingUser = await UserModel.findOne(
+        { 'discord.channelId': interaction.user.id },
+        { 'discord.linkToken': 1 },
+      ).lean();
+
+      if (existingUser) {
+        // Check if this Discord ID is linked to the same user who owns the token
+        const tokenOwner = await UserModel.exists({ 'discord.linkToken': token });
+        const isSameUser = tokenOwner && existingUser._id.toString() === tokenOwner._id.toString();
+
+        await interaction.reply({
+          content: isSameUser ? messages.linkAlreadyLinked : messages.linkUsedByAnother,
+          ephemeral: true,
+        });
         return;
       }
 
@@ -57,6 +77,12 @@ export class DiscordLinkCommand implements IDiscordCommand {
 
       await interaction.reply({ content: messages.linkSuccess, ephemeral: true });
     } catch (error) {
+      // Race condition safety net: unique index prevents duplicate channelId
+      if (this.isDuplicateKeyError(error)) {
+        await interaction.reply({ content: messages.linkUsedByAnother, ephemeral: true });
+        return;
+      }
+
       this.logger.error('Failed to process /link command', {
         userId: interaction.user.id,
         token,
