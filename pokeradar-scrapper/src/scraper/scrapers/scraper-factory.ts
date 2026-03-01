@@ -4,8 +4,8 @@
 
 import { Browser } from 'playwright';
 import { ShopConfig } from '@pokeradar/shared';
-import { CheerioEngine } from '../engines/cheerio-engine';
-import { PlaywrightEngine } from '../engines/playwright-engine';
+import { CheerioEngine } from '../engines/cheerio';
+import { PlaywrightEngine } from '../engines/playwright';
 import { DefaultScraper } from './default-scraper';
 import { IScraper, IScraperLogger } from './base/base-scraper';
 

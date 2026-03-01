@@ -3,8 +3,6 @@
  */
 
 export { IEngine, IElement } from './engine.interface';
-export { CheerioEngine } from './cheerio-engine';
-export { PlaywrightEngine } from './playwright-engine';
-export { CheerioElement } from './element/cheerio-element';
-export { PlaywrightElement } from './element/playwright-element';
+export { CheerioEngine, CheerioElement } from './cheerio';
+export { PlaywrightEngine, PlaywrightElement } from './playwright';
 export * from './selector-utils';

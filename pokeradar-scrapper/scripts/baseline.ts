@@ -41,8 +41,8 @@ import { IScraper } from '../src/scraper/scrapers/base/base-scraper';
 import { SearchNavigator } from '../src/scraper/scrapers/base/search-navigator';
 import { ProductCandidate } from '../src/scraper/scrapers/base/helpers/candidate-selector';
 import { Browser } from 'patchright';
-import { CheerioEngine } from '../src/scraper/engines/cheerio-engine';
-import { PlaywrightEngine } from '../src/scraper/engines/playwright-engine';
+import { CheerioEngine } from '../src/scraper/engines/cheerio';
+import { PlaywrightEngine } from '../src/scraper/engines/playwright';
 import { DefaultScraper } from '../src/scraper/scrapers/default-scraper';
 
 dotenv.config();
