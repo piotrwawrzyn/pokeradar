@@ -34,13 +34,6 @@
     "test:notifications": "npm run test -w pokeradar-notifications",
     "prepare": "husky"
   },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --no-warn-ignored",
-      "prettier --write"
-    ],
-    "*.{js,jsx,json,md}": "prettier --write"
-  },
   "devDependencies": {
     "concurrently": "^9.1.2",
     "husky": "^9.1.7",

@@ -1,8 +1,20 @@
-npx lint-staged
-
-# Determine which workspaces have staged TypeScript files
+# Run lint-staged per workspace so each uses its own eslint.config.js
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
+run_lint_staged() {
+  local dir="$1"
+  if echo "$STAGED_FILES" | grep -q "^${dir}/"; then
+    (cd "$dir" && npx lint-staged --relative)
+  fi
+}
+
+run_lint_staged "pokeradar-client"
+run_lint_staged "pokeradar-api"
+run_lint_staged "pokeradar-scrapper"
+run_lint_staged "pokeradar-notifications"
+run_lint_staged "packages/shared"
+
+# Determine which workspaces have staged TypeScript files
 TYPECHECK_FAILED=0
 
 check_workspace() {

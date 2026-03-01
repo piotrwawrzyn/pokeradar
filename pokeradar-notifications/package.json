@@ -37,5 +37,12 @@
     "dotenv": "^17.2.3",
     "mongoose": "^9.1.5",
     "node-telegram-bot-api": "^0.67.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --no-warn-ignored",
+      "prettier --write"
+    ],
+    "*.{js,jsx,json,md}": "prettier --write"
   }
 }
