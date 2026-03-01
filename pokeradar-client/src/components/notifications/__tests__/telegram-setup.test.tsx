@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthContext } from '@/context/auth-context';
+import { AuthContext } from '@/context/auth-context-value';
 import { TelegramSetup } from '@/components/notifications/telegram/telegram-setup';
 import { TelegramInstructions } from '@/components/notifications/telegram/telegram-instructions';
 import { TelegramStatus } from '@/components/notifications/telegram/telegram-status';

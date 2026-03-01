@@ -2,21 +2,7 @@ import { Link } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Info, Bell } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { useUserProfile } from '@/hooks/use-user-profile';
-
-type WatchlistState = 'loading' | 'not-logged-in' | 'no-notifications' | 'ready';
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useWatchlistState(): WatchlistState {
-  const { isAuthenticated, isLoading } = useAuth();
-  const { data: profile, isLoading: isProfileLoading } = useUserProfile();
-
-  if (isLoading || (isAuthenticated && isProfileLoading)) return 'loading';
-  if (!isAuthenticated) return 'not-logged-in';
-  if (!profile?.telegram.linked && !profile?.discord.linked) return 'no-notifications';
-  return 'ready';
-}
+import { useWatchlistState } from '@/hooks/use-watchlist-state';
 
 export function WatchlistBanner() {
   const state = useWatchlistState();

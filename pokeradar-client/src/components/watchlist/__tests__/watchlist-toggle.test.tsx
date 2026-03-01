@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthContext } from '@/context/auth-context';
+import { AuthContext } from '@/context/auth-context-value';
 import { WatchlistToggle } from '@/components/watchlist/watchlist-toggle';
 import { mockProducts, mockWatchlist, mockUser } from '../../../__tests__/mocks/data';
 import { server } from '../../../__tests__/mocks/server';

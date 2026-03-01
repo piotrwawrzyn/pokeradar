@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthContext } from '@/context/auth-context';
+import { AuthContext } from '@/context/auth-context-value';
 import { ProductCard } from '@/components/products/product-card';
 import { mockProducts, mockWatchlist, mockUser } from '../../../__tests__/mocks/data';
 import type { ReactNode } from 'react';

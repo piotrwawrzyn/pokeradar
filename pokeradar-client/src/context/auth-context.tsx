@@ -1,24 +1,8 @@
-import { createContext, useCallback, useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, type ReactNode } from 'react';
 import { useAuth as useClerkAuth, useUser } from '@clerk/clerk-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usersApi } from '@/api/users.api';
-
-export interface AuthUser {
-  id: string;
-  email: string;
-  displayName: string;
-}
-
-export interface AuthContextValue {
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  user: AuthUser | null;
-  logout: () => Promise<void>;
-  login: (token: string) => void;
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext, type AuthContextValue } from './auth-context-value';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded, signOut, getToken } = useClerkAuth();

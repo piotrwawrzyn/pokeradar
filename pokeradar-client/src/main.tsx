@@ -4,31 +4,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { plPL } from '@clerk/localizations';
 import { AuthProvider } from '@/context/auth-context';
-import { useAuth } from '@/hooks/use-auth';
+import { AuthLoadingGate } from '@/components/auth-loading-gate';
 import App from './App';
 import './index.css';
 import { theme } from './theme';
-
-// eslint-disable-next-line react-refresh/only-export-components
-function AuthLoadingGate({ children }: { children: React.ReactNode }) {
-  const { isLoading } = useAuth();
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 bg-background flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-border border-t-primary" />
-      </div>
-    );
-  }
-  return <>{children}</>;
-}
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 2, // 2 minutes
       retry: (failureCount, error: Error) => {
-        const status = (error as Error & { response?: { status?: number }; status?: number })
-          ?.response?.status ?? (error as Error & { status?: number })?.status;
+        const status =
+          (error as Error & { response?: { status?: number }; status?: number })?.response
+            ?.status ?? (error as Error & { status?: number })?.status;
         if (status === 429 || status === 401 || status === 403) return false;
         return failureCount < 1;
       },

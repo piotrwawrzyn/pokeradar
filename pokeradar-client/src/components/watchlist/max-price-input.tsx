@@ -38,33 +38,29 @@ export function MaxPriceInput({
   // Used to detect external updates so we can reset the slider.
   const [serverPrice, setServerPrice] = useState(currentMaxPrice);
 
-  // pendingPrice tracks what we've already sent to the server, to avoid
-  // duplicate mutations when the debounced value matches a pending save.
-  const pendingPriceRef = useRef(currentMaxPrice);
-
-  // Derived state: when the prop changes and it differs from what the server
-  // last confirmed, an external update arrived — reset the slider to match it.
+  // serverPrice tracks the last value the server confirmed (prop value).
+  // When the prop changes, reset local state to follow the external update.
   // This is the React-recommended "get derived state from props" pattern.
   if (currentMaxPrice !== serverPrice) {
     setServerPrice(currentMaxPrice);
-    // Only reset local value if it's not a response to our own pending mutation
-    if (currentMaxPrice !== pendingPriceRef.current) {
-      setValue(currentMaxPrice);
-    }
+    setValue(currentMaxPrice);
   }
+
+  // lastSentPrice tracks the last value fired to the server, to deduplicate
+  // within a single effect run (read only inside the effect, never during render).
+  const lastSentPriceRef = useRef(currentMaxPrice);
 
   // Auto-save on debounced value change
   useEffect(() => {
-    if (debouncedValue <= 0 || debouncedValue === pendingPriceRef.current) return;
+    if (debouncedValue <= 0 || debouncedValue === lastSentPriceRef.current) return;
 
-    pendingPriceRef.current = debouncedValue;
+    lastSentPriceRef.current = debouncedValue;
     mutateRef.current(
       { id: entryId, data: { maxPrice: debouncedValue } },
       {
         onError: () => toast.error('Nie udało się zapisać ceny'),
       },
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedValue, entryId]);
 
   // Auto-focus & select when entering edit mode

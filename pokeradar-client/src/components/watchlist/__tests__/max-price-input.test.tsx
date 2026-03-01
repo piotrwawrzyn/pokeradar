@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthContext } from '@/context/auth-context';
+import { AuthContext } from '@/context/auth-context-value';
 import { MaxPriceInput } from '@/components/watchlist/max-price-input';
 import { mockUser } from '../../../__tests__/mocks/data';
 import { server } from '../../../__tests__/mocks/server';
