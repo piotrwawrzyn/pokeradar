@@ -29,32 +29,36 @@ export function MaxPriceInput({
   });
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Track values we saved ourselves to avoid reacting to our own mutations
-  const lastSavedRef = useRef(currentMaxPrice);
-
   // Compute slider max once on mount so it stays consistent during the session
   const [max] = useState(() =>
     currentBestPrice !== null ? Math.max(currentBestPrice, currentMaxPrice) : Infinity,
   );
 
-  // Sync only truly external changes (e.g. another device updated the entry)
-  // Using "set state during render" pattern to avoid useEffect + setState combo
-  if (currentMaxPrice !== lastSavedRef.current) {
-    lastSavedRef.current = currentMaxPrice;
+  // committedPrice tracks the last value we persisted (either saved by us, or
+  // received from an external update). Used to distinguish our own mutations
+  // from external changes so we don't reset the slider mid-interaction.
+  const [committedPrice, setCommittedPrice] = useState(currentMaxPrice);
+
+  // Derived state: when the prop changes and it differs from what we last
+  // committed, an external update arrived — reset the slider to match it.
+  // This is the React-recommended "get derived state from props" pattern.
+  if (currentMaxPrice !== committedPrice) {
+    setCommittedPrice(currentMaxPrice);
     setValue(currentMaxPrice);
   }
 
   // Auto-save on debounced value change
   useEffect(() => {
-    if (debouncedValue <= 0 || debouncedValue === lastSavedRef.current) return;
+    if (debouncedValue <= 0 || debouncedValue === committedPrice) return;
 
-    lastSavedRef.current = debouncedValue;
+    setCommittedPrice(debouncedValue);
     mutateRef.current(
       { id: entryId, data: { maxPrice: debouncedValue } },
       {
         onError: () => toast.error('Nie udało się zapisać ceny'),
       },
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedValue, entryId]);
 
   // Auto-focus & select when entering edit mode

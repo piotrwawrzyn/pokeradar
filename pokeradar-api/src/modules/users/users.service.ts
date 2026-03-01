@@ -1,5 +1,6 @@
 import crypto from 'crypto';
-import { Types, ChangeStreamUpdateDocument } from 'mongoose';
+import { Types } from 'mongoose';
+import type { ChangeStreamUpdateDocument } from 'mongodb';
 import { clerkClient } from '@clerk/express';
 import { UserModel } from '../../infrastructure/database/models';
 import { UserProfileResponse, LinkTokenResponse } from '../../shared/types';
