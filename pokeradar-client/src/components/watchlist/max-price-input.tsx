@@ -34,24 +34,30 @@ export function MaxPriceInput({
     currentBestPrice !== null ? Math.max(currentBestPrice, currentMaxPrice) : Infinity,
   );
 
-  // committedPrice tracks the last value we persisted (either saved by us, or
-  // received from an external update). Used to distinguish our own mutations
-  // from external changes so we don't reset the slider mid-interaction.
-  const [committedPrice, setCommittedPrice] = useState(currentMaxPrice);
+  // serverPrice tracks the last value the server confirmed (prop value).
+  // Used to detect external updates so we can reset the slider.
+  const [serverPrice, setServerPrice] = useState(currentMaxPrice);
 
-  // Derived state: when the prop changes and it differs from what we last
-  // committed, an external update arrived — reset the slider to match it.
+  // pendingPrice tracks what we've already sent to the server, to avoid
+  // duplicate mutations when the debounced value matches a pending save.
+  const pendingPriceRef = useRef(currentMaxPrice);
+
+  // Derived state: when the prop changes and it differs from what the server
+  // last confirmed, an external update arrived — reset the slider to match it.
   // This is the React-recommended "get derived state from props" pattern.
-  if (currentMaxPrice !== committedPrice) {
-    setCommittedPrice(currentMaxPrice);
-    setValue(currentMaxPrice);
+  if (currentMaxPrice !== serverPrice) {
+    setServerPrice(currentMaxPrice);
+    // Only reset local value if it's not a response to our own pending mutation
+    if (currentMaxPrice !== pendingPriceRef.current) {
+      setValue(currentMaxPrice);
+    }
   }
 
   // Auto-save on debounced value change
   useEffect(() => {
-    if (debouncedValue <= 0 || debouncedValue === committedPrice) return;
+    if (debouncedValue <= 0 || debouncedValue === pendingPriceRef.current) return;
 
-    setCommittedPrice(debouncedValue);
+    pendingPriceRef.current = debouncedValue;
     mutateRef.current(
       { id: entryId, data: { maxPrice: debouncedValue } },
       {
@@ -75,7 +81,8 @@ export function MaxPriceInput({
   const handleConfirmEdit = () => {
     const parsed = parseFloat(inputValue);
     if (!Number.isNaN(parsed) && parsed >= 1) {
-      setValue(Math.min(Math.round(parsed * 100) / 100, max));
+      const next = Math.min(Math.round(parsed * 100) / 100, max);
+      setValue(next);
     }
     setIsEditing(false);
   };
