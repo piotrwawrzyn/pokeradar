@@ -10,7 +10,7 @@ jest.mock('node-telegram-bot-api', () => {
 import TelegramBot from 'node-telegram-bot-api';
 import { HelpCommand } from '../../../../src/platforms/telegram/commands/help.command';
 import { ITelegramCommand } from '../../../../src/platforms/telegram/commands/command.interface';
-import { ILogger } from '../../../../src/shared/logger';
+import { ILogger } from '@pokeradar/shared';
 
 const mockLogger = {
   info: jest.fn(),

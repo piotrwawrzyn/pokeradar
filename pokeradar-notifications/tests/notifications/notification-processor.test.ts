@@ -2,8 +2,7 @@ import { NotificationProcessor } from '../../src/notifications/notification-proc
 import { RateLimiter } from '../../src/notifications/rate-limiter';
 import { INotificationChannel } from '../../src/notifications/channels';
 import { NotificationModel, UserModel } from '@pokeradar/shared';
-import { INotificationPayload } from '../../src/shared/types';
-import { ILogger } from '../../src/shared/logger';
+import { INotificationPayload, ILogger } from '@pokeradar/shared';
 
 const mockLogger: ILogger = {
   info: jest.fn(),

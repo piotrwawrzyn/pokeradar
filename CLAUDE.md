@@ -207,6 +207,7 @@ Write code as if the next person reading it has never seen the codebase before.
 - **Comments only where necessary** — explain *why*, not *what*; delete comments that just restate the code; never add block comments for obvious operations
 - **No over-engineering** — don't add abstractions, generics, or configuration for hypothetical future needs; solve the problem at hand
 - **Consistent style** — follow the patterns already in the file you are editing; match naming conventions, file structure, and module organization
+- **No re-export proxies** — never create a file whose sole purpose is to re-export from `@pokeradar/shared`. Import directly from `@pokeradar/shared` instead. Re-export files add indirection with no benefit.
 
 ---
 

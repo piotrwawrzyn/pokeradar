@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 import { getShopConfigDir } from '@pokeradar/shared';
-import { ShopConfig, WatchlistProductInternal, ProductResult } from '../src/shared/types';
+import { ShopConfig, ProductResult, Logger } from '@pokeradar/shared';
+import { WatchlistProductInternal } from '../src/shared/types';
 import { ScraperFactory } from '../src/scraper/scrapers';
-import { Logger } from '../src/shared/logger';
 import { FileShopRepository, MongoWatchlistRepository } from '../src/shared/repositories';
 import { connectDB, disconnectDB } from '../src/infrastructure/database';
 

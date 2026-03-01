@@ -3,7 +3,7 @@
  * Implement this for each delivery channel (Telegram, email, Discord, etc.).
  */
 
-import { INotificationPayload } from '../../shared/types';
+import { INotificationPayload } from '@pokeradar/shared';
 
 export interface INotificationChannel {
   readonly name: string;

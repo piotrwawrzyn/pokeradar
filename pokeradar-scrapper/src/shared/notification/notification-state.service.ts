@@ -3,8 +3,8 @@
  * Manages per-user state to prevent notification spam and handle reset conditions.
  */
 
-import { NotificationState, ProductResult } from '../types';
-import { ILogger } from '../logger';
+import { ProductResult, ILogger } from '@pokeradar/shared';
+import { NotificationState } from '../types';
 
 /**
  * Repository interface for notification state persistence.

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import app from '../../src/app';
-import { UserModel } from '../../src/infrastructure/database/models';
+import { UserModel } from '@pokeradar/shared';
 
 // The @clerk/express mock in setup.ts extracts the Bearer token value and uses
 // it as req.auth.userId. So 'Bearer my-clerk-id' → req.auth.userId = 'my-clerk-id'.

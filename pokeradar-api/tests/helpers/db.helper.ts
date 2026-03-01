@@ -1,7 +1,4 @@
-import {
-  WatchlistProductModel,
-  ProductResultModel,
-} from '../../src/infrastructure/database/models';
+import { WatchlistProductModel, ProductResultModel } from '@pokeradar/shared';
 
 export async function seedProducts() {
   await WatchlistProductModel.create([

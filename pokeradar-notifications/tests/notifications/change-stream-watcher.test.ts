@@ -2,8 +2,7 @@ import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import mongoose from 'mongoose';
 import { ChangeStreamWatcher } from '../../src/notifications/change-stream-watcher';
 import { NotificationModel } from '@pokeradar/shared';
-import { ILogger } from '../../src/shared/logger';
-import { INotificationPayload } from '../../src/shared/types';
+import { ILogger, INotificationPayload } from '@pokeradar/shared';
 import { INotificationDoc } from '@pokeradar/shared';
 
 const mockLogger: ILogger = {

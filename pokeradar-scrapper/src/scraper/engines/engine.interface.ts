@@ -3,7 +3,7 @@
  * Both CheerioEngine and PlaywrightEngine implement this interface.
  */
 
-import { Selector } from '../../shared/types';
+import { Selector } from '@pokeradar/shared';
 
 /**
  * Abstraction over a DOM element, supporting both Cheerio and Playwright.

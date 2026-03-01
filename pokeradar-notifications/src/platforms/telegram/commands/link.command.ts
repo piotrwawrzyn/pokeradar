@@ -1,7 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { UserModel } from '@pokeradar/shared';
 import { ITelegramCommand } from './command.interface';
-import { ILogger } from '../../../shared/logger';
+import { ILogger } from '@pokeradar/shared';
 import { getTelegramMessages, botError } from '../../../messages/notification.messages';
 
 export class LinkCommand implements ITelegramCommand {

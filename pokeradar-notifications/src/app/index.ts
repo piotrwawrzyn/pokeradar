@@ -15,7 +15,7 @@ dotenv.config();
 import { connectDB, disconnectDB } from '@pokeradar/shared';
 import { TelegramBotPlatform, DiscordBotPlatform, IBotPlatform } from '../platforms';
 import { NotificationProcessor, ChangeStreamWatcher, RateLimiter } from '../notifications';
-import { Logger } from '../shared/logger';
+import { Logger } from '@pokeradar/shared';
 import { loadConfig } from '../config';
 
 async function main() {

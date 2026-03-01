@@ -2,10 +2,7 @@ import request from 'supertest';
 import app from '../../../src/app';
 import { createTestUser } from '../../helpers/auth.helper';
 import { seedProducts } from '../../helpers/db.helper';
-import {
-  NotificationModel,
-  NotificationStateModel,
-} from '../../../src/infrastructure/database/models';
+import { NotificationModel, NotificationStateModel } from '@pokeradar/shared';
 
 describe('Watchlist API', () => {
   let token: string;

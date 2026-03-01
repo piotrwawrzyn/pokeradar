@@ -2,7 +2,7 @@
  * Search and navigation logic for product scraping.
  */
 
-import { ShopConfig, Selector } from '../../../shared/types';
+import { ShopConfig, Selector } from '@pokeradar/shared';
 import { IEngine, IElement } from '../../engines/engine.interface';
 import {
   normalizeUrl,
@@ -36,9 +36,7 @@ export class SearchNavigator {
    * Performs a set-level search and extracts all article candidates (title + URL).
    * Does NOT do product-specific matching — pipeline identifies what each candidate is.
    */
-  async extractSearchCandidates(
-    searchPhrase: string,
-  ): Promise<ProductCandidate[]> {
+  async extractSearchCandidates(searchPhrase: string): Promise<ProductCandidate[]> {
     const searchUrl = buildSearchUrl(this.config.baseUrl, this.config.searchUrl, searchPhrase);
 
     await this.engine.goto(searchUrl);

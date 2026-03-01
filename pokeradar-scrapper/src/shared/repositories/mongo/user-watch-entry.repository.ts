@@ -2,7 +2,7 @@
  * MongoDB repository for UserWatchEntry (read-only).
  */
 
-import { UserWatchEntryModel } from '../../../infrastructure/database/models';
+import { UserWatchEntryModel } from '@pokeradar/shared';
 
 /**
  * Simplified watch entry for notification processing.

@@ -4,7 +4,7 @@
 
 import type * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
-import { Selector } from '../../../shared/types';
+import { Selector } from '@pokeradar/shared';
 import { IElement } from '../engine.interface';
 import { findByTextInsensitive } from '../selector-utils';
 

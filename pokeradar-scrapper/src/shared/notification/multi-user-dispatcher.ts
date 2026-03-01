@@ -10,7 +10,8 @@
  * - Total DB queries per cycle: 4 (3 preloads + 1 state flush) + 1 batch insert for notifications
  */
 
-import { WatchlistProductInternal, ProductResult, ShopConfig } from '../types';
+import { ProductResult, ShopConfig } from '@pokeradar/shared';
+import { WatchlistProductInternal } from '../types';
 import { NotificationStateService } from './notification-state.service';
 import { MongoUserRepository, UserNotificationTarget } from '../repositories/mongo/user.repository';
 import {
@@ -21,7 +22,7 @@ import {
   MongoNotificationRepository,
   NotificationInsert,
 } from '../repositories/mongo/notification.repository';
-import { ILogger } from '../logger';
+import { ILogger } from '@pokeradar/shared';
 
 interface QueuedNotification {
   product: WatchlistProductInternal;

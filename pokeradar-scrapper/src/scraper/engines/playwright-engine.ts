@@ -4,7 +4,7 @@
  */
 
 import { Browser, Page, Locator, BrowserContext, chromium } from 'playwright';
-import { Selector, ExtractType, ShopConfig } from '../../shared/types';
+import { Selector, ExtractType, ShopConfig } from '@pokeradar/shared';
 import { getProxyConfig, ProxyConfig } from '../../shared/utils';
 import { IEngine, IElement } from './engine.interface';
 import { PlaywrightElement } from './element/playwright-element';

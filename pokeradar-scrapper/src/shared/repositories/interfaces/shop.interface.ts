@@ -2,7 +2,7 @@
  * Shop repository interface.
  */
 
-import { ShopConfig } from '../../types';
+import { ShopConfig } from '@pokeradar/shared';
 import { ICollectionRepository } from './collection.interface';
 
 /**

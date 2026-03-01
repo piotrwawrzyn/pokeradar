@@ -11,7 +11,7 @@ jest.mock('node-telegram-bot-api', () => {
 
 import TelegramBot from 'node-telegram-bot-api';
 import { TelegramBotPlatform } from '../../../src/platforms/telegram/telegram-bot-platform';
-import { ILogger } from '../../../src/shared/logger';
+import { ILogger } from '@pokeradar/shared';
 
 const mockLogger = {
   info: jest.fn(),
@@ -31,7 +31,11 @@ describe('TelegramBotPlatform', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    platform = new TelegramBotPlatform('test-token', 'https://pokeradar.app', mockLogger as ILogger);
+    platform = new TelegramBotPlatform(
+      'test-token',
+      'https://pokeradar.app',
+      mockLogger as ILogger,
+    );
     mockBot = (TelegramBot as unknown as jest.Mock).mock.results[0].value;
   });
 
@@ -88,7 +92,9 @@ describe('TelegramBotPlatform', () => {
     // onText should be called for each command
     expect(mockBot.onText).toHaveBeenCalledTimes(3);
 
-    const patterns = mockBot.onText.mock.calls.map((call: [RegExp, ...unknown[]]) => call[0].toString());
+    const patterns = mockBot.onText.mock.calls.map((call: [RegExp, ...unknown[]]) =>
+      call[0].toString(),
+    );
     expect(patterns.some((p: string) => p.includes('start'))).toBe(true);
     expect(patterns.some((p: string) => p.includes('link'))).toBe(true);
     expect(patterns.some((p: string) => p.includes('help'))).toBe(true);

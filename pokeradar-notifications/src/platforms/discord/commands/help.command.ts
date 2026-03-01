@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import { IDiscordCommand } from './command.interface';
-import { ILogger } from '../../../shared/logger';
+import { ILogger } from '@pokeradar/shared';
 import { getDiscordMessages } from '../../../messages/notification.messages';
 
 export class DiscordHelpCommand implements IDiscordCommand {

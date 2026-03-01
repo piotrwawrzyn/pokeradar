@@ -1,5 +1,6 @@
-import { loadShopInfos, ShopInfo } from '@pokeradar/shared';
 import {
+  loadShopInfos,
+  ShopInfo,
   WatchlistProductModel,
   ProductResultModel,
   ProductSetModel,
@@ -7,7 +8,7 @@ import {
   UserWatchEntryModel,
   NotificationStateModel,
   NotificationModel,
-} from '../../infrastructure/database/models';
+} from '@pokeradar/shared';
 import { NotFoundError, ConflictError } from '../../shared/middleware';
 import { ImageService } from '../../shared/services/image.service';
 

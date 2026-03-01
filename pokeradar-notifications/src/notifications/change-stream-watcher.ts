@@ -6,7 +6,7 @@
 
 import mongoose from 'mongoose';
 import { NotificationModel, INotificationDoc } from '@pokeradar/shared';
-import { ILogger } from '../shared/logger';
+import { ILogger } from '@pokeradar/shared';
 
 export type NotificationHandler = (doc: INotificationDoc) => void;
 
@@ -46,14 +46,17 @@ export class ChangeStreamWatcher {
 
     this.changeStream = NotificationModel.watch(pipeline, { fullDocument: 'updateLookup' });
 
-    this.changeStream.on('change', (change: mongoose.mongo.ChangeStreamInsertDocument<INotificationDoc>) => {
-      if (change.fullDocument) {
-        this.logger.debug('Change stream received notification', {
-          id: change.fullDocument._id?.toString(),
-        });
-        onNotification(change.fullDocument as INotificationDoc);
-      }
-    });
+    this.changeStream.on(
+      'change',
+      (change: mongoose.mongo.ChangeStreamInsertDocument<INotificationDoc>) => {
+        if (change.fullDocument) {
+          this.logger.debug('Change stream received notification', {
+            id: change.fullDocument._id?.toString(),
+          });
+          onNotification(change.fullDocument as INotificationDoc);
+        }
+      },
+    );
 
     this.changeStream.on('error', (error) => {
       this.logger.error('Change stream error', error);

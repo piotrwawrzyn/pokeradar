@@ -4,7 +4,8 @@
  * Engine-agnostic - works with both Cheerio and Playwright engines.
  */
 
-import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../../shared/types';
+import { ShopConfig, ProductResult } from '@pokeradar/shared';
+import { WatchlistProductInternal } from '../../../shared/types';
 import { IEngine } from '../../engines/engine.interface';
 import { PriceParser } from '../../../shared/utils/price-parser';
 import { SearchNavigator } from './search-navigator';

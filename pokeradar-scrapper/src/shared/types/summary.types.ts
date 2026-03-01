@@ -2,7 +2,8 @@
  * Summary type definitions.
  */
 
-import { WatchlistProductInternal, ProductResult } from './product.types';
+import { ProductResult } from '@pokeradar/shared';
+import { WatchlistProductInternal } from './product.types';
 
 /**
  * Unified best price offer for summary display.

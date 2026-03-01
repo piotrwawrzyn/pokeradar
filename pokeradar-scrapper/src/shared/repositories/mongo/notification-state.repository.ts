@@ -4,7 +4,7 @@
 
 import { NotificationState } from '../../types';
 import { INotificationStateRepository } from '../interfaces';
-import { NotificationStateModel } from '../../../infrastructure/database/models';
+import { NotificationStateModel } from '@pokeradar/shared';
 import { toNotificationState, getStateKey, INotificationStateDoc } from './mappers';
 
 export class MongoNotificationStateRepository implements INotificationStateRepository {

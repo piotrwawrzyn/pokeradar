@@ -2,7 +2,7 @@
  * Buffer for scan results with batch write capability.
  */
 
-import { ProductResult } from '../../shared/types';
+import { ProductResult } from '@pokeradar/shared';
 
 /**
  * Repository interface for product results.

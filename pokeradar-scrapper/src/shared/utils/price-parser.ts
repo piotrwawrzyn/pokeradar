@@ -2,7 +2,7 @@
  * Price parsing utilities for various formats.
  */
 
-import { PriceFormat } from '../types';
+import { PriceFormat } from '@pokeradar/shared';
 
 /**
  * Parses prices from various string formats.

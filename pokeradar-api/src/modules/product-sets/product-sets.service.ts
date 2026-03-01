@@ -1,4 +1,4 @@
-import { ProductSetModel } from '../../infrastructure/database/models';
+import { ProductSetModel } from '@pokeradar/shared';
 import { ProductSet } from '../../shared/types';
 
 export class ProductSetsService {

@@ -2,7 +2,7 @@
  * Mapper for ProductResult document to domain model conversion.
  */
 
-import { ProductResult } from '../../../types';
+import { ProductResult } from '@pokeradar/shared';
 
 /**
  * ProductResult document interface (from MongoDB).

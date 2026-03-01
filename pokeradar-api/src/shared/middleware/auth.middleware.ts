@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { requireAuth, getAuth } from '@clerk/express';
-import { UserModel } from '../../infrastructure/database/models';
+import { UserModel } from '@pokeradar/shared';
 
 // Augment express-serve-static-core so req.user is typed throughout the app.
 // Placed here (rather than a standalone .d.ts) so ts-node-dev picks it up

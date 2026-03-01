@@ -4,7 +4,7 @@ import {
   UserWatchEntryModel,
   NotificationModel,
   WatchlistProductModel,
-} from '../../infrastructure/database/models';
+} from '@pokeradar/shared';
 import { NotFoundError } from '../../shared/middleware';
 
 export interface AdminUserSearchItem {

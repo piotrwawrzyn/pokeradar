@@ -1,9 +1,10 @@
-import { loadShopInfos, ShopInfo } from '@pokeradar/shared';
 import {
+  loadShopInfos,
+  ShopInfo,
   ProductResultModel,
   WatchlistProductModel,
   ProductSetModel,
-} from '../../infrastructure/database/models';
+} from '@pokeradar/shared';
 
 export interface AdminShopSummary {
   shopId: string;

@@ -1,6 +1,10 @@
-import { WatchlistProductModel, ProductResultModel } from '../../infrastructure/database/models';
+import {
+  WatchlistProductModel,
+  ProductResultModel,
+  getFreshnessCutoff,
+  buildBestPriceAggregation,
+} from '@pokeradar/shared';
 import { Product, ProductWithPrice, ProductPriceResponse } from '../../shared/types';
-import { getFreshnessCutoff, buildBestPriceAggregation } from '@pokeradar/shared';
 
 export class ProductsService {
   async listAll(): Promise<ProductWithPrice[]> {

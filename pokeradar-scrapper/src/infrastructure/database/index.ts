@@ -6,6 +6,3 @@ export {
   getConnectionState,
   isConnected,
 } from '@pokeradar/shared';
-
-// Re-export all models
-export * from './models';

@@ -7,7 +7,7 @@ import {
   UserWatchEntryModel,
   NotificationStateModel,
   NotificationModel,
-} from '../../infrastructure/database/models';
+} from '@pokeradar/shared';
 import { UserProfileResponse, LinkTokenResponse } from '../../shared/types';
 import { NotFoundError } from '../../shared/middleware';
 

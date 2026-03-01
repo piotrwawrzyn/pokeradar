@@ -2,7 +2,7 @@
  * MongoDB repository for User (read-only).
  */
 
-import { UserModel } from '../../../infrastructure/database/models';
+import { UserModel } from '@pokeradar/shared';
 
 /**
  * Notification target for a user: true when at least one channel is configured.

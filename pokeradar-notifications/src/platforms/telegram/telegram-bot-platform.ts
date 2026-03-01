@@ -8,7 +8,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { IBotPlatform } from '../bot-platform.interface';
 import { INotificationChannel } from '../../notifications/channels/channel.interface';
 import { TelegramNotificationAdapter } from './telegram-notification-adapter';
-import { ILogger } from '../../shared/logger';
+import { ILogger } from '@pokeradar/shared';
 import { ITelegramCommand } from './commands/command.interface';
 import { LinkCommand } from './commands/link.command';
 import { HelpCommand } from './commands/help.command';

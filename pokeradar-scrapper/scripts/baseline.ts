@@ -17,10 +17,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { getShopConfigDir } from '@pokeradar/shared';
 import { connectDB, disconnectDB } from '../src/infrastructure/database';
-import { ProductSetModel, ProductTypeModel } from '../src/infrastructure/database/models';
+import { ProductSetModel, ProductTypeModel, Logger } from '@pokeradar/shared';
 import { FileShopRepository } from '../src/shared/repositories/file/file-shop.repository';
 import { MongoWatchlistRepository } from '../src/shared/repositories/mongo/watchlist.repository';
-import { Logger } from '../src/shared/logger';
 import { groupProductsBySet } from '../src/shared/utils/product-utils';
 import {
   ProductMatchingPipeline,
@@ -35,7 +34,8 @@ import {
 } from '../src/scraper/monitoring/scan-cycle-runner';
 import { ResultBuffer } from '../src/scraper/monitoring/result-buffer';
 import { ScraperFactory } from '../src/scraper/scrapers/scraper-factory';
-import { WatchlistProductInternal, ProductResult, ShopConfig, Selector } from '../src/shared/types';
+import { WatchlistProductInternal } from '../src/shared/types';
+import { ShopConfig, Selector, ProductResult } from '@pokeradar/shared';
 import { IEngine, IElement } from '../src/scraper/engines/engine.interface';
 import { IScraper } from '../src/scraper/scrapers/base/base-scraper';
 import { SearchNavigator } from '../src/scraper/scrapers/base/search-navigator';

@@ -2,7 +2,7 @@
  * Product result repository interface.
  */
 
-import { ProductResult } from '../../types';
+import { ProductResult } from '@pokeradar/shared';
 
 /**
  * Repository interface for product result history.

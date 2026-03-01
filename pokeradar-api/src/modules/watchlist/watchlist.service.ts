@@ -4,7 +4,7 @@ import {
   WatchlistProductModel,
   NotificationModel,
   NotificationStateModel,
-} from '../../infrastructure/database/models';
+} from '@pokeradar/shared';
 import { NotFoundError } from '../../shared/middleware';
 import { WatchlistEntryResponse } from '../../shared/types';
 

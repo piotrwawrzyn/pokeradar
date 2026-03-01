@@ -3,7 +3,7 @@
  */
 
 import { Locator } from 'playwright';
-import { Selector } from '../../../shared/types';
+import { Selector } from '@pokeradar/shared';
 import { IElement } from '../engine.interface';
 
 /**

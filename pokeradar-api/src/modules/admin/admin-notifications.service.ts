@@ -1,5 +1,5 @@
 import { clerkClient } from '@clerk/express';
-import { NotificationModel, UserModel } from '../../infrastructure/database/models';
+import { NotificationModel, UserModel } from '@pokeradar/shared';
 
 export interface AdminNotificationItem {
   id: string;

@@ -7,7 +7,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import { Selector, ExtractType, ShopConfig } from '../../shared/types';
+import { Selector, ExtractType, ShopConfig } from '@pokeradar/shared';
 import { getProxyConfig } from '../../shared/utils';
 import { IEngine, IElement } from './engine.interface';
 import { CheerioElement } from './element/cheerio-element';

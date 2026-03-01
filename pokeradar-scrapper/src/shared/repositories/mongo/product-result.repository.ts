@@ -2,11 +2,14 @@
  * MongoDB implementation of product result repository.
  */
 
-import { ProductResult } from '../../types';
 import { IProductResultRepository } from '../interfaces';
-import { ProductResultModel } from '../../../infrastructure/database/models';
+import {
+  ProductResult,
+  ProductResultModel,
+  getFreshnessCutoff,
+  buildBestPriceAggregation,
+} from '@pokeradar/shared';
 import { toProductResult, toProductResultArray, getHourBucket, IProductResultDoc } from './mappers';
-import { getFreshnessCutoff, buildBestPriceAggregation } from '@pokeradar/shared';
 
 export class MongoProductResultRepository implements IProductResultRepository {
   async save(result: ProductResult): Promise<void> {

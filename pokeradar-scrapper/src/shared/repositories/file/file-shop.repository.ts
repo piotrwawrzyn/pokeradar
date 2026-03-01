@@ -5,7 +5,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { ShopConfig } from '../../types';
+import { ShopConfig } from '@pokeradar/shared';
 import { IShopRepository } from '../interfaces';
 
 export class FileShopRepository implements IShopRepository {

@@ -5,7 +5,8 @@
  */
 
 import { Browser } from 'playwright';
-import { ShopConfig, WatchlistProductInternal, ProductResult } from '../../shared/types';
+import { ShopConfig, ProductResult } from '@pokeradar/shared';
+import { WatchlistProductInternal } from '../../shared/types';
 import { SetGroup } from '../../shared/utils/product-utils';
 import { ProductCandidate, selectBestCandidate } from '../scrapers/base/helpers/candidate-selector';
 import { IScraper } from '../scrapers/base/base-scraper';

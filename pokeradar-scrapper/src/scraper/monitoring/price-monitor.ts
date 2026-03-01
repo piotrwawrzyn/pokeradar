@@ -3,13 +3,14 @@
  * Designed for single-run cron execution with multi-user notification support.
  */
 
-import { ShopConfig, WatchlistProductInternal } from '../../shared/types';
+import { ShopConfig } from '@pokeradar/shared';
+import { WatchlistProductInternal } from '../../shared/types';
 import { MultiUserNotificationDispatcher } from '../../shared/notification';
 import { NotificationStateService } from '../../shared/notification';
 import { ResultBuffer, IProductResultRepository } from './result-buffer';
 import { ScanCycleRunner, IScraperFactory, IScanLogger } from './scan-cycle-runner';
 import { groupProductsBySet, SetGroup } from '../../shared/utils/product-utils';
-import { ProductSetModel, ProductTypeModel } from '../../infrastructure/database/models';
+import { ProductSetModel, ProductTypeModel } from '@pokeradar/shared';
 import { ProductMatchingPipeline, MatchableProductType, MatchableProductSet } from '../../matching';
 import { AsyncMutex } from '../../shared/utils/async-mutex';
 

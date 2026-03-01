@@ -16,7 +16,7 @@ import {
 } from '@pokeradar/shared';
 import { INotificationChannel } from './channels';
 import { RateLimiter } from './rate-limiter';
-import { ILogger } from '../shared/logger';
+import { ILogger } from '@pokeradar/shared';
 
 interface RetryConfig {
   maxAttempts: number;

@@ -1,5 +1,5 @@
 import { clerkClient } from '@clerk/express';
-import { UserModel } from '../../infrastructure/database/models';
+import { UserModel } from '@pokeradar/shared';
 import { UserProfileResponse } from '../../shared/types';
 
 export class AuthService {

@@ -1,4 +1,4 @@
-import { UserModel } from '../../src/infrastructure/database/models';
+import { UserModel } from '@pokeradar/shared';
 
 export async function createTestUser(overrides: Record<string, unknown> = {}) {
   const uniqueId = Date.now().toString() + Math.random().toString(36).slice(2);

@@ -4,7 +4,7 @@
 
 import { WatchlistProductInternal } from '../../types';
 import { IWatchlistRepository } from '../interfaces';
-import { WatchlistProductModel } from '../../../infrastructure/database/models';
+import { WatchlistProductModel } from '@pokeradar/shared';
 import { toWatchlistProduct } from './mappers';
 import { IWatchlistProductDoc } from '@pokeradar/shared';
 

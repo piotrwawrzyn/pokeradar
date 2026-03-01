@@ -1,6 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { ITelegramCommand } from './command.interface';
-import { ILogger } from '../../../shared/logger';
+import { ILogger } from '@pokeradar/shared';
 import { getTelegramMessages } from '../../../messages/notification.messages';
 
 export class StartCommand implements ITelegramCommand {

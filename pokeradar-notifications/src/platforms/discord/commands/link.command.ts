@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import { UserModel } from '@pokeradar/shared';
 import { IDiscordCommand } from './command.interface';
-import { ILogger } from '../../../shared/logger';
+import { ILogger } from '@pokeradar/shared';
 import { getDiscordMessages, botError } from '../../../messages/notification.messages';
 
 export class DiscordLinkCommand implements IDiscordCommand {

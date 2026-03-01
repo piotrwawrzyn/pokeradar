@@ -18,5 +18,3 @@ export interface WatchlistProduct {
 export interface WatchlistProductInternal extends WatchlistProduct {
   id: string;
 }
-
-export type { ProductResult } from '@pokeradar/shared';

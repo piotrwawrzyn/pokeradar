@@ -6,7 +6,7 @@ jest.mock('node-telegram-bot-api', () => {
 
 import TelegramBot from 'node-telegram-bot-api';
 import { TelegramNotificationAdapter } from '../../../src/platforms/telegram/telegram-notification-adapter';
-import { INotificationPayload } from '../../../src/shared/types';
+import { INotificationPayload } from '@pokeradar/shared';
 
 describe('TelegramNotificationAdapter', () => {
   const mockPayload: INotificationPayload = {

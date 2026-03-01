@@ -7,7 +7,7 @@ import {
   UserWatchEntryModel,
   NotificationStateModel,
   NotificationModel,
-} from '../../../src/infrastructure/database/models';
+} from '@pokeradar/shared';
 
 describe('Users API', () => {
   let token: string;

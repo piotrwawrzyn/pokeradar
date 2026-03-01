@@ -4,10 +4,7 @@
  * The notifications service resolves which channels to deliver to at delivery time.
  */
 
-import {
-  NotificationModel,
-  type INotificationPayload,
-} from '../../../infrastructure/database/models';
+import { NotificationModel, type INotificationPayload } from '@pokeradar/shared';
 
 export interface NotificationInsert {
   userId: string;

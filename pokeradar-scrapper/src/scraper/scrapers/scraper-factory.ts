@@ -3,7 +3,7 @@
  */
 
 import { Browser } from 'playwright';
-import { ShopConfig } from '../../shared/types';
+import { ShopConfig } from '@pokeradar/shared';
 import { CheerioEngine } from '../engines/cheerio-engine';
 import { PlaywrightEngine } from '../engines/playwright-engine';
 import { DefaultScraper } from './default-scraper';

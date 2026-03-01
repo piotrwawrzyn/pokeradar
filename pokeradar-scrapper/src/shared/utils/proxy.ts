@@ -9,7 +9,7 @@
  * while keeping per-shop configs intact.
  */
 
-import { ShopConfig } from '../types';
+import { ShopConfig } from '@pokeradar/shared';
 
 /** Parsed proxy connection details, derived from PROXY_URL env var. */
 export interface ProxyConfig {

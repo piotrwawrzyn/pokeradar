@@ -15,7 +15,7 @@ import * as dotenv from 'dotenv';
 
 // Infrastructure
 import { connectDB, disconnectDB } from '../infrastructure/database';
-import { NotificationStateModel } from '../infrastructure/database/models';
+import { NotificationStateModel } from '@pokeradar/shared';
 
 // Shared
 import {
@@ -29,8 +29,7 @@ import {
   IShopRepository,
   IWatchlistRepository,
 } from '../shared/repositories';
-import { getShopConfigDir, formatError } from '@pokeradar/shared';
-import { Logger } from '../shared/logger';
+import { getShopConfigDir, formatError, Logger } from '@pokeradar/shared';
 import { NotificationStateService, MultiUserNotificationDispatcher } from '../shared/notification';
 
 // Scraper
