@@ -4,7 +4,7 @@ import { ShopConfig, ProductResult, Logger } from '@pokeradar/shared';
 import { WatchlistProductInternal } from '../src/shared/types';
 import { ScraperFactory } from '../src/scraper/scrapers';
 import { FileShopRepository, MongoWatchlistRepository } from '../src/shared/repositories';
-import { connectDB, disconnectDB } from '../src/infrastructure/database';
+import { connectDB, disconnectDB } from '@pokeradar/shared';
 
 dotenv.config();
 

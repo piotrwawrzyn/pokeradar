@@ -14,7 +14,7 @@ console.log('[BOOT] Process starting', {
 import * as dotenv from 'dotenv';
 
 // Infrastructure
-import { connectDB, disconnectDB } from '../infrastructure/database';
+import { connectDB, disconnectDB } from '@pokeradar/shared';
 import { NotificationStateModel } from '@pokeradar/shared';
 
 // Shared

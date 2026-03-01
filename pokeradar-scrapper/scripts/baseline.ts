@@ -16,7 +16,7 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
 import { getShopConfigDir } from '@pokeradar/shared';
-import { connectDB, disconnectDB } from '../src/infrastructure/database';
+import { connectDB, disconnectDB } from '@pokeradar/shared';
 import { ProductSetModel, ProductTypeModel, Logger } from '@pokeradar/shared';
 import { FileShopRepository } from '../src/shared/repositories/file/file-shop.repository';
 import { MongoWatchlistRepository } from '../src/shared/repositories/mongo/watchlist.repository';
