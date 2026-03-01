@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
@@ -39,6 +39,10 @@ function Wrapper({ children }: { children: ReactNode }) {
 describe('MaxPriceInput', () => {
   beforeEach(() => {
     localStorage.setItem(TOKEN_KEY, 'test-token');
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders slider with the current max price displayed', () => {
@@ -117,14 +121,17 @@ describe('MaxPriceInput', () => {
       }),
     );
 
+    vi.useFakeTimers();
     render(
       <Wrapper>
         <MaxPriceInput entryId="watch-1" currentMaxPrice={150} currentBestPrice={179.99} />
       </Wrapper>,
     );
 
-    // Wait for more than the debounce period — value hasn't changed from initial
-    await new Promise((r) => setTimeout(r, 700));
+    // Advance past the debounce — value hasn't changed from initial, so no PATCH
+    await act(async () => {
+      vi.advanceTimersByTime(600);
+    });
     expect(patchCalled).toBe(false);
   });
 });

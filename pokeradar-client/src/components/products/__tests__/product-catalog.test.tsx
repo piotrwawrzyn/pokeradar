@@ -4,20 +4,18 @@ import { renderWithProviders } from '../../../__tests__/test-utils';
 import { ProductCatalog } from '@/components/products/product-catalog';
 import { server } from '../../../__tests__/mocks/server';
 import { http, HttpResponse } from 'msw';
-import { mockProducts } from '../../../__tests__/mocks/data';
 
 describe('ProductCatalog', () => {
   it('shows loading skeletons while data is being fetched', () => {
-    // Delay the response to catch loading state
     server.use(
       http.get('http://localhost:3000/products', async () => {
-        await new Promise((r) => setTimeout(r, 100));
-        return HttpResponse.json(mockProducts);
+        // Never resolves — keeps the component in loading state for the duration of this test
+        await new Promise<never>(() => {});
       }),
     );
 
     const { container } = renderWithProviders(<ProductCatalog />);
-    // Skeleton elements should be present
+    // Skeleton elements should be present immediately while the query is in flight
     const skeletons = container.querySelectorAll('[class*="skeleton"], [data-slot="skeleton"]');
     expect(skeletons.length).toBeGreaterThan(0);
   });

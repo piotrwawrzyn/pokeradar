@@ -50,8 +50,12 @@ function renderInput(props?: Partial<Parameters<typeof MaxPriceInput>[0]>) {
  * NOTE: the new value must be ≤ max (= max(currentBestPrice, currentMaxPrice))
  * because MaxPriceInput clamps the confirmed value with Math.min(parsed, max).
  */
-async function openAndSetValue(fromPrice: number, toValue: string) {
-  await userEvent.click(screen.getByRole('button', { name: new RegExp(String(fromPrice)) }));
+async function openAndSetValue(
+  user: ReturnType<typeof userEvent.setup>,
+  fromPrice: number,
+  toValue: string,
+) {
+  await user.click(screen.getByRole('button', { name: new RegExp(String(fromPrice)) }));
   await act(async () => {
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: toValue } });
   });
@@ -69,36 +73,40 @@ describe('MaxPriceInput', () => {
   });
 
   it('switches to an input field when the button is clicked', async () => {
+    const user = userEvent.setup();
     renderInput();
 
-    await userEvent.click(screen.getByRole('button', { name: /200/ }));
+    await user.click(screen.getByRole('button', { name: /200/ }));
 
     expect(screen.getByRole('spinbutton')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /200/ })).not.toBeInTheDocument();
   });
 
   it('pre-fills the input with the current value when editing starts', async () => {
+    const user = userEvent.setup();
     renderInput({ currentMaxPrice: 200 });
 
-    await userEvent.click(screen.getByRole('button', { name: /200/ }));
+    await user.click(screen.getByRole('button', { name: /200/ }));
 
     expect(screen.getByRole('spinbutton')).toHaveValue(200);
   });
 
   it('reverts to display mode on Escape without changing the value', async () => {
+    const user = userEvent.setup();
     renderInput({ currentMaxPrice: 200 });
 
-    const input = await openAndSetValue(200, '180');
+    const input = await openAndSetValue(user, 200, '180');
     fireEvent.keyDown(input, { key: 'Escape' });
 
     expect(screen.getByRole('button', { name: /200/ })).toBeInTheDocument();
   });
 
   it('confirms the new value on Enter and displays it immediately', async () => {
+    const user = userEvent.setup();
     // max = max(currentBestPrice=150, currentMaxPrice=200) = 200; new value 180 ≤ 200
     renderInput({ currentMaxPrice: 200, currentBestPrice: 150 });
 
-    const input = await openAndSetValue(200, '180');
+    const input = await openAndSetValue(user, 200, '180');
     fireEvent.keyDown(input, { key: 'Enter' });
 
     expect(screen.getByRole('button', { name: /180/ })).toBeInTheDocument();
@@ -114,10 +122,11 @@ describe('MaxPriceInput', () => {
       }),
     );
 
+    const user = userEvent.setup();
     renderInput({ currentMaxPrice: 200, currentBestPrice: 150 });
 
     // Open editor with real timers (userEvent hangs with fake timers in happy-dom)
-    const input = await openAndSetValue(200, '180');
+    const input = await openAndSetValue(user, 200, '180');
 
     // Switch to fake timers before confirming so we can skip the 500ms debounce.
     // Restore real timers before waitFor — waitFor uses setTimeout internally.
@@ -141,9 +150,10 @@ describe('MaxPriceInput', () => {
       }),
     );
 
+    const user = userEvent.setup();
     renderInput({ currentMaxPrice: 200, currentBestPrice: 150 });
 
-    const input = await openAndSetValue(200, '180');
+    const input = await openAndSetValue(user, 200, '180');
 
     vi.useFakeTimers();
     fireEvent.blur(input);
@@ -157,6 +167,7 @@ describe('MaxPriceInput', () => {
   });
 
   it('does not reset the displayed value when the prop briefly reverts to the old pending value (regression)', async () => {
+    const user = userEvent.setup();
     // Bug: after confirming 180, if an in-flight old mutation causes currentMaxPrice
     // to briefly come back as 200, the display must NOT flash back.
     const { rerender } = render(
@@ -165,7 +176,7 @@ describe('MaxPriceInput', () => {
       </Wrapper>,
     );
 
-    const input = await openAndSetValue(200, '180');
+    const input = await openAndSetValue(user, 200, '180');
     fireEvent.keyDown(input, { key: 'Enter' });
 
     expect(screen.getByRole('button', { name: /180/ })).toBeInTheDocument();
@@ -206,9 +217,10 @@ describe('MaxPriceInput', () => {
   });
 
   it('does not enter edit mode when disabled', async () => {
+    const user = userEvent.setup();
     renderInput({ disabled: true });
 
-    await userEvent.click(screen.getByRole('button'));
+    await user.click(screen.getByRole('button'));
 
     expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
   });

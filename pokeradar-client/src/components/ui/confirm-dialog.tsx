@@ -45,16 +45,12 @@ export function ConfirmDialog({
   const isAsync = isPending !== undefined;
   const pending = isPending ?? false;
 
-  // open: whether the user opened the dialog.
-  // confirmed: whether the user clicked confirm (used to detect when async op settles).
   const [open, setOpen] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
-  // Adjusting state based on a prop change during render — React's recommended pattern
-  // for syncing derived state without an effect. See:
+  // Detect pending true → false transition to auto-close after async confirm.
+  // Uses the React-recommended render-time setState pattern for derived state:
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  // React discards the JSX and immediately re-renders when setState is called here,
-  // so this does not cause cascading renders as long as the condition narrows.
   const [prevPending, setPrevPending] = useState(pending);
   if (prevPending !== pending) {
     setPrevPending(pending);

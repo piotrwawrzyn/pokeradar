@@ -54,6 +54,7 @@ describe('LinkedChannelStatus', () => {
   });
 
   it('shows confirmation dialog when isLastChannel and watchlistCount > 0', async () => {
+    const user = userEvent.setup();
     const onUnlink = vi.fn();
     render(
       <LinkedChannelStatus
@@ -64,7 +65,7 @@ describe('LinkedChannelStatus', () => {
         watchlistCount={2}
       />,
     );
-    await userEvent.click(screen.getByRole('button', { name: /Odłącz/ }));
+    await user.click(screen.getByRole('button', { name: /Odłącz/ }));
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     expect(screen.getByText(/To jedyny skonfigurowany kanał/)).toBeInTheDocument();
     expect(screen.getByText(/2/)).toBeInTheDocument();
@@ -72,6 +73,7 @@ describe('LinkedChannelStatus', () => {
   });
 
   it('calls onUnlink when confirmation dialog is confirmed', async () => {
+    const user = userEvent.setup();
     const onUnlink = vi.fn();
     render(
       <LinkedChannelStatus
@@ -82,12 +84,13 @@ describe('LinkedChannelStatus', () => {
         watchlistCount={5}
       />,
     );
-    await userEvent.click(screen.getByRole('button', { name: /Odłącz/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Odłącz i wyczyść/ }));
+    await user.click(screen.getByRole('button', { name: /Odłącz/ }));
+    await user.click(screen.getByRole('button', { name: /Odłącz i wyczyść/ }));
     expect(onUnlink).toHaveBeenCalledOnce();
   });
 
   it('does not call onUnlink when dialog is cancelled', async () => {
+    const user = userEvent.setup();
     const onUnlink = vi.fn();
     render(
       <LinkedChannelStatus
@@ -98,8 +101,8 @@ describe('LinkedChannelStatus', () => {
         watchlistCount={1}
       />,
     );
-    await userEvent.click(screen.getByRole('button', { name: /Odłącz/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Anuluj/ }));
+    await user.click(screen.getByRole('button', { name: /Odłącz/ }));
+    await user.click(screen.getByRole('button', { name: /Anuluj/ }));
     expect(onUnlink).not.toHaveBeenCalled();
   });
 });

@@ -171,13 +171,13 @@ describe('TelegramStatus', () => {
 
     render(<TelegramStatus />, { wrapper: Wrapper });
 
-    // Wait for both queries (profile + watchlist) to settle so that
-    // isLastChannel and watchlistCount are computed before we click.
+    // Wait until both queries have settled: the button must be a dialog trigger
+    // (aria-haspopup="dialog"), which only happens once isLastChannel=true AND
+    // watchlistCount>0 are both computed from their respective query results.
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Odłącz/ })).toBeInTheDocument();
+      const btn = screen.getByRole('button', { name: /Odłącz/ });
+      expect(btn).toHaveAttribute('aria-haspopup', 'dialog');
     });
-    // Give React Query a tick to apply all query results
-    await new Promise((r) => setTimeout(r, 50));
 
     await userEvent.click(screen.getByRole('button', { name: /Odłącz/ }));
 

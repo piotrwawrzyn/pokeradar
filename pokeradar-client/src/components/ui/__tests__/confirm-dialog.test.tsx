@@ -30,31 +30,35 @@ describe('ConfirmDialog', () => {
   });
 
   it('opens the dialog when trigger is clicked', async () => {
+    const user = userEvent.setup();
     renderDialog();
-    await userEvent.click(screen.getByRole('button', { name: /Delete/ }));
+    await user.click(screen.getByRole('button', { name: /Delete/ }));
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     expect(screen.getByText('Delete item?')).toBeInTheDocument();
     expect(screen.getByText('This cannot be undone.')).toBeInTheDocument();
   });
 
   it('calls onConfirm and closes when confirm button is clicked (no async pending)', async () => {
+    const user = userEvent.setup();
     const onConfirm = vi.fn();
     renderDialog(onConfirm);
-    await userEvent.click(screen.getByRole('button', { name: /Delete/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Yes, delete/ }));
+    await user.click(screen.getByRole('button', { name: /Delete/ }));
+    await user.click(screen.getByRole('button', { name: /Yes, delete/ }));
     expect(onConfirm).toHaveBeenCalledOnce();
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
   it('does not call onConfirm when cancelled', async () => {
+    const user = userEvent.setup();
     const onConfirm = vi.fn();
     renderDialog(onConfirm);
-    await userEvent.click(screen.getByRole('button', { name: /Delete/ }));
-    await userEvent.click(screen.getByRole('button', { name: /Anuluj/ }));
+    await user.click(screen.getByRole('button', { name: /Delete/ }));
+    await user.click(screen.getByRole('button', { name: /Anuluj/ }));
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('renders a custom cancel label', async () => {
+    const user = userEvent.setup();
     render(
       <ConfirmDialog
         trigger={<Button>Open</Button>}
@@ -65,11 +69,12 @@ describe('ConfirmDialog', () => {
         onConfirm={vi.fn()}
       />,
     );
-    await userEvent.click(screen.getByRole('button', { name: /Open/ }));
+    await user.click(screen.getByRole('button', { name: /Open/ }));
     expect(screen.getByRole('button', { name: /Nope/ })).toBeInTheDocument();
   });
 
   it('renders the icon when provided', async () => {
+    const user = userEvent.setup();
     render(
       <ConfirmDialog
         trigger={<Button>Open</Button>}
@@ -80,11 +85,12 @@ describe('ConfirmDialog', () => {
         onConfirm={vi.fn()}
       />,
     );
-    await userEvent.click(screen.getByRole('button', { name: /Open/ }));
+    await user.click(screen.getByRole('button', { name: /Open/ }));
     expect(document.querySelector('[data-slot="alert-dialog-media"]')).toBeInTheDocument();
   });
 
   it('shows spinner and disables buttons while isPending is true', async () => {
+    const user = userEvent.setup();
     const { rerender } = render(
       <ConfirmDialog
         trigger={<Button>Open</Button>}
@@ -95,7 +101,7 @@ describe('ConfirmDialog', () => {
         onConfirm={vi.fn()}
       />,
     );
-    await userEvent.click(screen.getByRole('button', { name: /Open/ }));
+    await user.click(screen.getByRole('button', { name: /Open/ }));
 
     rerender(
       <ConfirmDialog
@@ -116,6 +122,7 @@ describe('ConfirmDialog', () => {
   });
 
   it('closes the dialog when isPending transitions true → false after confirm', async () => {
+    const user = userEvent.setup();
     const onConfirm = vi.fn();
     const { rerender } = render(
       <ConfirmDialog
@@ -129,11 +136,11 @@ describe('ConfirmDialog', () => {
     );
 
     // Open the dialog while isPending=false
-    await userEvent.click(screen.getByRole('button', { name: /Open/ }));
+    await user.click(screen.getByRole('button', { name: /Open/ }));
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
 
     // Click confirm — sets awaitingSettlement internally, calls onConfirm
-    await userEvent.click(screen.getByRole('button', { name: /Delete/ }));
+    await user.click(screen.getByRole('button', { name: /Delete/ }));
     expect(onConfirm).toHaveBeenCalledOnce();
 
     // Simulate: parent re-renders with isPending=true (mutation started after confirm)
