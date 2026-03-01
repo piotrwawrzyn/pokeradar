@@ -196,6 +196,12 @@ describe('findAll()', () => {
     expect(locator.locator).toHaveBeenCalledWith('.first');
   });
 
+  it('uses xpath= prefix for type=xpath selector', async () => {
+    const locator = makeMockLocator({ allCount: 1 });
+    await new PlaywrightElement(locator).findAll(sel('//div', 'xpath'));
+    expect(locator.locator).toHaveBeenCalledWith('xpath=//div');
+  });
+
   it('returns empty array when an exception is thrown', async () => {
     const locator = makeMockLocator();
     (locator.locator as jest.Mock).mockImplementation(() => {

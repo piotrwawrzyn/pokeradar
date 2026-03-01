@@ -334,6 +334,46 @@ describe('extract()', () => {
     await gotoWithFakeTimers(engine, 'https://test.com/page');
     expect(await engine.extract(sel(['.a', '.b']))).toBeNull();
   });
+
+  it('returns innerHTML for extract=innerHTML', async () => {
+    const { mockPage } = setupMockBrowserChain();
+    const locator = makeMockLocator();
+    (locator.innerHTML as jest.Mock).mockResolvedValue('<b>bold</b>');
+    (locator.all as jest.Mock).mockResolvedValue([{}]);
+    (locator.first as jest.Mock).mockReturnValue(locator);
+    (mockPage.locator as jest.Mock).mockReturnValue(locator);
+
+    const engine = new PlaywrightEngine(makeShop());
+    await gotoWithFakeTimers(engine, 'https://test.com/page');
+    expect(await engine.extract(sel('.desc', 'css', 'innerHTML'))).toBe('<b>bold</b>');
+  });
+
+  it('returns ownText (direct text nodes only) for extract=ownText', async () => {
+    const { mockPage } = setupMockBrowserChain();
+    const locator = makeMockLocator();
+    (locator.innerHTML as jest.Mock).mockResolvedValue('Price: <span>149</span>.99');
+    (locator.all as jest.Mock).mockResolvedValue([{}]);
+    (locator.first as jest.Mock).mockReturnValue(locator);
+    (mockPage.locator as jest.Mock).mockReturnValue(locator);
+
+    const engine = new PlaywrightEngine(makeShop());
+    await gotoWithFakeTimers(engine, 'https://test.com/page');
+    expect(await engine.extract(sel('.price', 'css', 'ownText'))).toBe('Price: .99');
+  });
+
+  it('uses xpath= prefix when extracting with type=xpath', async () => {
+    const { mockPage } = setupMockBrowserChain();
+    const locator = makeMockLocator();
+    (locator.textContent as jest.Mock).mockResolvedValue('XPath result');
+    (locator.all as jest.Mock).mockResolvedValue([{}]);
+    (locator.first as jest.Mock).mockReturnValue(locator);
+    (mockPage.locator as jest.Mock).mockReturnValue(locator);
+
+    const engine = new PlaywrightEngine(makeShop());
+    await gotoWithFakeTimers(engine, 'https://test.com/page');
+    await engine.extract(sel('//h1', 'xpath', 'text'));
+    expect(mockPage.locator).toHaveBeenCalledWith('xpath=//h1');
+  });
 });
 
 // ─── extractAll ───────────────────────────────────────────────────────────────
