@@ -14,3 +14,7 @@ export interface UserProfile {
 export interface LinkToken {
   linkToken: string;
 }
+
+export interface UnlinkResult {
+  watchlistCleared: boolean;
+}

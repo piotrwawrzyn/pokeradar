@@ -34,9 +34,9 @@ export function TelegramInstructions() {
     <div className="space-y-4">
       <h4 className="font-medium text-sm">Jak połączyć Telegram:</h4>
       <ol className="space-y-5 text-sm">
-        <li className="flex gap-3 items-center">
+        <li className="flex gap-3 items-start">
           <StepNumber number={1} />
-          <span>
+          <span className="leading-6">
             Otwórz Telegram i wyszukaj bota{' '}
             <ExternalLink
               href={`https://t.me/${botUsername}`}

@@ -98,6 +98,14 @@ export const mockUserNoTelegram: UserProfile = {
   discord: { linked: false, linkToken: null },
 };
 
+export const mockUserBothLinked: UserProfile = {
+  id: 'user-1',
+  email: 'test@example.com',
+  displayName: 'Test User',
+  telegram: { linked: true, linkToken: null },
+  discord: { linked: true, linkToken: null },
+};
+
 export const mockTelegramToken: LinkToken = {
   linkToken: 'abc123token',
 };

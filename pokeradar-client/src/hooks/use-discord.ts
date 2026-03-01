@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersApi } from '@/api/users.api';
-import type { UserProfile } from '@/types';
+import type { UserProfile, UnlinkResult } from '@/types';
 
 export function useGenerateDiscordToken() {
   const queryClient = useQueryClient();
@@ -16,10 +16,13 @@ export function useUnlinkDiscord() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: usersApi.unlinkDiscord,
-    onSuccess: () => {
+    onSuccess: (result: UnlinkResult) => {
       queryClient.setQueryData(['user-profile'], (prev: UserProfile | undefined) =>
         prev ? { ...prev, discord: { ...prev.discord, linked: false } } : prev,
       );
+      if (result.watchlistCleared) {
+        queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      }
     },
   });
 }

@@ -85,7 +85,7 @@ export const handlers = [
   http.delete(`${API}/users/me/telegram`, ({ request }) => {
     const auth = request.headers.get('Authorization');
     if (!auth) return new HttpResponse(null, { status: 401 });
-    return new HttpResponse(null, { status: 204 });
+    return HttpResponse.json({ watchlistCleared: false });
   }),
 
   // Discord
@@ -98,6 +98,6 @@ export const handlers = [
   http.delete(`${API}/users/me/discord`, ({ request }) => {
     const auth = request.headers.get('Authorization');
     if (!auth) return new HttpResponse(null, { status: 401 });
-    return new HttpResponse(null, { status: 204 });
+    return HttpResponse.json({ watchlistCleared: false });
   }),
 ];

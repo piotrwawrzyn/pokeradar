@@ -24,8 +24,8 @@ export class UsersController {
 
   async unlinkTelegram(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await usersService.unlinkTelegram(req.user!.userId);
-      res.status(204).send();
+      const result = await usersService.unlinkTelegram(req.user!.userId);
+      res.json(result);
     } catch (error) {
       next(error);
     }
@@ -42,8 +42,8 @@ export class UsersController {
 
   async unlinkDiscord(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      await usersService.unlinkDiscord(req.user!.userId);
-      res.status(204).send();
+      const result = await usersService.unlinkDiscord(req.user!.userId);
+      res.json(result);
     } catch (error) {
       next(error);
     }

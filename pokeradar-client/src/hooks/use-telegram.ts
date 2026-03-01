@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersApi } from '@/api/users.api';
-import type { UserProfile } from '@/types';
+import type { UserProfile, UnlinkResult } from '@/types';
 
 export function useGenerateTelegramToken() {
   const queryClient = useQueryClient();
@@ -16,10 +16,13 @@ export function useUnlinkTelegram() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: usersApi.unlinkTelegram,
-    onSuccess: () => {
+    onSuccess: (result: UnlinkResult) => {
       queryClient.setQueryData(['user-profile'], (prev: UserProfile | undefined) =>
         prev ? { ...prev, telegram: { ...prev.telegram, linked: false } } : prev,
       );
+      if (result.watchlistCleared) {
+        queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      }
     },
   });
 }

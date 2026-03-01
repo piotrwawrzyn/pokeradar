@@ -5,5 +5,5 @@ export type {
   AddWatchEntryRequest,
   UpdateWatchEntryRequest,
 } from './watchlist.types';
-export type { UserProfile, ChannelStatus, LinkToken } from './user.types';
+export type { UserProfile, ChannelStatus, LinkToken, UnlinkResult } from './user.types';
 export type { ApiError } from './api.types';

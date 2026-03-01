@@ -7,7 +7,12 @@ import { AuthContext } from '@/context/auth-context';
 import { TelegramSetup } from '@/components/notifications/telegram/telegram-setup';
 import { TelegramInstructions } from '@/components/notifications/telegram/telegram-instructions';
 import { TelegramStatus } from '@/components/notifications/telegram/telegram-status';
-import { mockUser, mockUserNoTelegram } from '../../../__tests__/mocks/data';
+import {
+  mockUser,
+  mockUserNoTelegram,
+  mockUserBothLinked,
+  mockWatchlist,
+} from '../../../__tests__/mocks/data';
 import { server } from '../../../__tests__/mocks/server';
 import { http, HttpResponse } from 'msw';
 import type { ReactNode } from 'react';
@@ -114,30 +119,69 @@ describe('TelegramInstructions', () => {
 });
 
 describe('TelegramStatus', () => {
-  it('shows connected message', () => {
+  it('shows connected message', async () => {
+    server.use(
+      http.get('http://localhost:3000/users/me', () => HttpResponse.json(mockUser)),
+      http.get('http://localhost:3000/watchlist', () => HttpResponse.json([])),
+    );
     render(<TelegramStatus />, { wrapper: Wrapper });
-    expect(screen.getByText(/połączone z pokeradar/)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/połączone z pokeradar/)).toBeInTheDocument();
+    });
   });
 
-  it('shows unlink button', () => {
+  it('shows unlink button', async () => {
+    server.use(
+      http.get('http://localhost:3000/users/me', () => HttpResponse.json(mockUser)),
+      http.get('http://localhost:3000/watchlist', () => HttpResponse.json([])),
+    );
     render(<TelegramStatus />, { wrapper: Wrapper });
-    expect(screen.getByRole('button', { name: /Odłącz/ })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Odłącz/ })).toBeInTheDocument();
+    });
   });
 
-  it('calls DELETE when unlink button is clicked', async () => {
+  it('calls DELETE when unlink button is clicked (other channel still linked — no dialog)', async () => {
     let deleteCalled = false;
     server.use(
+      // Both channels linked → not the last channel → no confirmation dialog
+      http.get('http://localhost:3000/users/me', () => HttpResponse.json(mockUserBothLinked)),
+      http.get('http://localhost:3000/watchlist', () => HttpResponse.json(mockWatchlist)),
       http.delete('http://localhost:3000/users/me/telegram', () => {
         deleteCalled = true;
-        return new HttpResponse(null, { status: 204 });
+        return HttpResponse.json({ watchlistCleared: false });
       }),
     );
 
     render(<TelegramStatus />, { wrapper: Wrapper });
+    await waitFor(() => screen.getByRole('button', { name: /Odłącz/ }));
     await userEvent.click(screen.getByRole('button', { name: /Odłącz/ }));
 
     await waitFor(() => {
       expect(deleteCalled).toBe(true);
     });
+  });
+
+  it('shows confirmation dialog when unlinking the last channel with watchlist items', async () => {
+    server.use(
+      // Only telegram linked → isLastChannel=true; has watchlist items → dialog shown
+      http.get('http://localhost:3000/users/me', () => HttpResponse.json(mockUser)),
+      http.get('http://localhost:3000/watchlist', () => HttpResponse.json(mockWatchlist)),
+    );
+
+    render(<TelegramStatus />, { wrapper: Wrapper });
+
+    // Wait for both queries (profile + watchlist) to settle so that
+    // isLastChannel and watchlistCount are computed before we click.
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Odłącz/ })).toBeInTheDocument();
+    });
+    // Give React Query a tick to apply all query results
+    await new Promise((r) => setTimeout(r, 50));
+
+    await userEvent.click(screen.getByRole('button', { name: /Odłącz/ }));
+
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(screen.getByText(/To jedyny skonfigurowany kanał/)).toBeInTheDocument();
   });
 });

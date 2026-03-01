@@ -2,9 +2,18 @@ import crypto from 'crypto';
 import { Types } from 'mongoose';
 import type { ChangeStreamUpdateDocument } from 'mongodb';
 import { clerkClient } from '@clerk/express';
-import { UserModel } from '../../infrastructure/database/models';
+import {
+  UserModel,
+  UserWatchEntryModel,
+  NotificationStateModel,
+  NotificationModel,
+} from '../../infrastructure/database/models';
 import { UserProfileResponse, LinkTokenResponse } from '../../shared/types';
 import { NotFoundError } from '../../shared/middleware';
+
+export interface UnlinkResult {
+  watchlistCleared: boolean;
+}
 
 export class UsersService {
   async getProfile(userId: string, clerkId: string): Promise<UserProfileResponse> {
@@ -44,13 +53,21 @@ export class UsersService {
     return { linkToken: token };
   }
 
-  async unlinkTelegram(userId: string): Promise<void> {
-    const result = await UserModel.updateOne(
+  async unlinkTelegram(userId: string): Promise<UnlinkResult> {
+    const user = await UserModel.findOneAndUpdate(
       { _id: userId },
       { $set: { 'telegram.channelId': null, 'telegram.linkToken': null } },
+      { new: true },
     );
 
-    if (result.matchedCount === 0) throw new NotFoundError('User not found');
+    if (!user) throw new NotFoundError('User not found');
+
+    const hasOtherChannel = user.discord?.channelId != null;
+    if (!hasOtherChannel) {
+      return this.clearWatchlistForUser(userId);
+    }
+
+    return { watchlistCleared: false };
   }
 
   async generateDiscordLinkToken(userId: string): Promise<LinkTokenResponse> {
@@ -67,13 +84,45 @@ export class UsersService {
     return { linkToken: token };
   }
 
-  async unlinkDiscord(userId: string): Promise<void> {
-    const result = await UserModel.updateOne(
+  async unlinkDiscord(userId: string): Promise<UnlinkResult> {
+    const user = await UserModel.findOneAndUpdate(
       { _id: userId },
       { $set: { 'discord.channelId': null, 'discord.linkToken': null } },
+      { new: true },
     );
 
-    if (result.matchedCount === 0) throw new NotFoundError('User not found');
+    if (!user) throw new NotFoundError('User not found');
+
+    const hasOtherChannel = user.telegram?.channelId != null;
+    if (!hasOtherChannel) {
+      return this.clearWatchlistForUser(userId);
+    }
+
+    return { watchlistCleared: false };
+  }
+
+  private async clearWatchlistForUser(userId: string): Promise<UnlinkResult> {
+    const entries = await UserWatchEntryModel.find({
+      userId: new Types.ObjectId(userId),
+    }).lean();
+
+    if (entries.length === 0) {
+      return { watchlistCleared: false };
+    }
+
+    const productIds = entries.map((e) => e.productId);
+
+    await Promise.all([
+      UserWatchEntryModel.deleteMany({ userId: new Types.ObjectId(userId) }),
+      NotificationStateModel.deleteMany({ userId, productId: { $in: productIds } }),
+      NotificationModel.deleteMany({
+        userId,
+        'payload.productId': { $in: productIds },
+        status: 'pending',
+      }),
+    ]);
+
+    return { watchlistCleared: true };
   }
 
   watchForLinkConfirmation(userId: string, onLinked: () => void): () => void {

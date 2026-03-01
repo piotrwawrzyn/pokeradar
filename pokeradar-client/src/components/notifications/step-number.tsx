@@ -4,8 +4,8 @@ interface StepNumberProps {
 
 export function StepNumber({ number }: StepNumberProps) {
   return (
-    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-bold">
+    <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/20 text-primary text-[11px] font-mono font-bold leading-none select-none">
       {number}
-    </span>
+    </div>
   );
 }

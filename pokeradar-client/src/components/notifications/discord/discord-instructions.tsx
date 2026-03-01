@@ -58,9 +58,9 @@ export function DiscordInstructions() {
             </p>
           </div>
         </li>
-        <li className="flex gap-3 items-center">
+        <li className="flex gap-3 items-start">
           <StepNumber number={2} />
-          <span>
+          <span className="leading-6">
             {botDmUrl ? (
               <>
                 Otwórz{' '}
