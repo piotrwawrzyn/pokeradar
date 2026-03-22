@@ -1,0 +1,49 @@
+{
+  "id": "pokeverse",
+  "name": "Pokeverse",
+  "baseUrl": "https://www.pokeverse.pl",
+  "searchUrl": "/?s={query}&post_type=product",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.wd-product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h3 a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3"
+      },
+      "price": {
+        "type": "css",
+        "value": ["span.price ins bdi", "span.price bdi"],
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": ".instock",
+        "matchSelf": true
+      },
+      "unavailable": {
+        "type": "css",
+        "value": ".outofstock",
+        "matchSelf": true
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": [".summary-inner ins span.amount bdi", ".summary-inner span.amount bdi"],
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": ".summary-inner button.single_add_to_cart_button:not([disabled])"
+      }
+    }
+  }
+}
