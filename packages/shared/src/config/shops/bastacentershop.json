@@ -1,0 +1,47 @@
+{
+  "id": "bastacentershop",
+  "name": "Basta Center Shop",
+  "baseUrl": "https://www.bastacentershop.pl",
+  "searchUrl": "/pl/searchquery/{query}/1/full/5",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "product-tile"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "product-link a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product-tile__name"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price__value.price__value_bold.js__price-value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "buy-button[is-buyable='1']"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "availability-notifier-btn"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "h-tab-panel.js__product-price-gross span.price__value.price__value_bold.js__price-value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "buy-button[is-buyable='1']"
+      }
+    }
+  }
+}
