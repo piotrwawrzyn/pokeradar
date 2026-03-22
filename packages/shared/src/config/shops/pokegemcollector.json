@@ -1,0 +1,52 @@
+{
+  "id": "pokegemcollector",
+  "name": "PokeGem Collector",
+  "baseUrl": "https://www.pokegemcollector.pl",
+  "searchUrl": "/pl/searchquery/{query}/1/phot/5",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.product.product-main-wrap"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a.prodname",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "span.productname"
+      },
+      "price": {
+        "type": "css",
+        "value": "div.price em",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.product.product_inactive",
+        "matchSelf": true
+      },
+      "available": {
+        "type": "css",
+        "value": "button.addtobasket"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div.maininfo em.main-price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.maininfo button.addtobasket"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.maininfo p.availability__name"
+      }
+    }
+  }
+}
