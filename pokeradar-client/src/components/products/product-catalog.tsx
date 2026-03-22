@@ -177,7 +177,7 @@ export function ProductCatalog() {
       <WatchlistBanner />
 
       {/* Header and Filters - Sticky */}
-      <div className="sticky top-16 z-10 bg-background/80 backdrop-blur-md pb-4 border-b border-border">
+      <div className="sticky top-14 z-10 bg-background pb-4 border-b border-border">
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between pt-4">
           {/* Header - hidden on mobile, title already visible above fold */}
           <div className="hidden sm:block">
