@@ -1,0 +1,44 @@
+{
+  "id": "morigal",
+  "name": "Morigal",
+  "baseUrl": "https://morigal.pl",
+  "searchUrl": "/search?query={query}",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a.link",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "div.name span"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "us"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "article.soldout",
+        "matchSelf": true
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "us"
+      },
+      "available": {
+        "type": "css",
+        "value": "button[name='add_cart_product']"
+      }
+    }
+  }
+}
