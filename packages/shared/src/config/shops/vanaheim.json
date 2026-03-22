@@ -1,0 +1,51 @@
+{
+  "id": "vanaheim",
+  "name": "Vanaheim",
+  "baseUrl": "https://vanaheim.pl",
+  "searchUrl": "/pl/szukaj?controller=search&s={query}",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article.product-miniature"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h3.product-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product-title a"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.money",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.vh-available"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.vh-unavailable"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div.current-price span.price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.vh-add-to-cart"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.vh-unavailable"
+      }
+    }
+  }
+}
