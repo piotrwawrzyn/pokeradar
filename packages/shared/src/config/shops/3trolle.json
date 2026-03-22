@@ -1,0 +1,47 @@
+{
+  "id": "3trolle",
+  "name": "3 Trolle",
+  "baseUrl": "https://3trolle.pl",
+  "searchUrl": "/jolisearch?s={query}",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article.product-miniature"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h2.product-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2.product-title a"
+      },
+      "price": {
+        "type": "css",
+        "value": ".product-description span.product-price",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "span.sold_out"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.current-price-value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not([disabled])"
+      }
+    }
+  }
+}
