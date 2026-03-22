@@ -1,0 +1,47 @@
+{
+  "id": "monsteriada",
+  "name": "Monsteriada",
+  "baseUrl": "https://monsteriada.pl",
+  "searchUrl": "/szukaj?controller=search&s={query}",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article.product-miniature"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h2.product-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2.product-title a"
+      },
+      "price": {
+        "type": "css",
+        "value": ".product-description span.price[aria-label='Cena']",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": ".block-unavailable"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not([disabled])"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": ".product-container span[itemprop='price']",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": ".product-container button.add-to-cart:not([disabled])"
+      }
+    }
+  }
+}
