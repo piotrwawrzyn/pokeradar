@@ -295,7 +295,10 @@ export class ScanCycleRunner {
     const tasks = productTasks.map((task) => async () => {
       const scraper = this.config.scraperFactory.create(shop, this.config.logger);
       try {
-        if (task.searchPageData && task.searchPageData.price !== null) {
+        if (
+          task.searchPageData &&
+          (task.searchPageData.price !== null || !task.searchPageData.isAvailable)
+        ) {
           // Use search page data directly - no HTTP request needed
           const result = scraper.createResultFromSearchData(
             task.product,
@@ -373,7 +376,10 @@ export class ScanCycleRunner {
       // Execute tasks sequentially
       for (const task of productTasks) {
         try {
-          if (task.searchPageData && task.searchPageData.price !== null) {
+          if (
+            task.searchPageData &&
+            (task.searchPageData.price !== null || !task.searchPageData.isAvailable)
+          ) {
             const result = scraper.createResultFromSearchData(
               task.product,
               task.resolvedUrl,

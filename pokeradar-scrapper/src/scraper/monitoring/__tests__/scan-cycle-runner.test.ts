@@ -300,6 +300,28 @@ describe('runCheerioScanCycle()', () => {
     expect(dispatcher.processResult).toHaveBeenCalled();
   });
 
+  it('skips product page visit when item is unavailable even without price', async () => {
+    const product = makeProduct('p1');
+    const { scraper } = makeScraper([
+      makeCandidateWithData('Surging Sparks Booster Box', null, false),
+    ]);
+    const dispatcher = makeDispatcher();
+    const { runner, factory } = makeRunner({
+      scraper,
+      dispatcher,
+      watchlistIndex: new Map([['type-1|set-1', [product]]]),
+    });
+
+    const shop = makeShop('shop-a');
+    factory.groupByEngine.mockReturnValue({ cheerio: [shop], playwright: [] });
+
+    await runner.runCheerioScanCycle([shop], [makeSetGroup('set-1', 'Surging Sparks')], []);
+
+    expect(scraper.scrapeProductWithUrl).not.toHaveBeenCalled();
+    expect(scraper.createResultFromSearchData).toHaveBeenCalled();
+    expect(dispatcher.processResult).toHaveBeenCalled();
+  });
+
   it('does not dispatch when candidate has null price and product page returns null', async () => {
     const product = makeProduct('p1');
     const { scraper } = makeScraper(
