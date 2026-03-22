@@ -1,0 +1,51 @@
+{
+  "id": "swiatkart",
+  "name": "Świat Kart",
+  "baseUrl": "https://swiatkart.pl",
+  "searchUrl": "/pl/searchquery/{query}/1/full/4",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "product-tile"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "product-link a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product-tile__name"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price__value.price__value_bold.js__price-value",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "tymczasowo niedostępny"
+      },
+      "available": {
+        "type": "text",
+        "value": ["na wyczerpaniu", "średnia ilość", "duża ilość"]
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "h-tab-panel.js__product-price-gross span.price__value.price__value_bold.js__price-value",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "tymczasowo niedostępny"
+      },
+      "available": {
+        "type": "text",
+        "value": ["na wyczerpaniu", "średnia ilość", "duża ilość"]
+      }
+    }
+  }
+}
