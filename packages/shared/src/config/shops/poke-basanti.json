@@ -1,0 +1,47 @@
+{
+  "id": "poke-basanti",
+  "name": "Poke Basanti",
+  "baseUrl": "https://poke.basanti.pl",
+  "searchUrl": "/szukaj?s={query}",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h2.product-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2.product-title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not([disabled])"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Obecnie brak na stanie"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div.product-info-section .normal-price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not([disabled])"
+      }
+    }
+  }
+}
