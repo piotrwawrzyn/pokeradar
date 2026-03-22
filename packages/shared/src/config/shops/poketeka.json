@@ -1,0 +1,43 @@
+{
+  "id": "poketeka",
+  "name": "Poketeka",
+  "baseUrl": "https://www.poketeka.pl",
+  "searchUrl": "/szukaj?controller=search&s={query}",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "li.product_item"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h3.product-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.product-title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Obecnie brak na stanie"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.current-price-value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not([disabled])"
+      }
+    }
+  }
+}
