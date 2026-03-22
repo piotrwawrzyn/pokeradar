@@ -6,12 +6,22 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import type { AnyNode } from 'domhandler';
+import { Agent as HttpAgent } from 'http';
+import { Agent as HttpsAgent } from 'https';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { Selector, ExtractType, ShopConfig } from '@pokeradar/shared';
 import { getProxyConfig } from '../../../shared/utils';
 import { IEngine, IElement } from '../engine.interface';
 import { CheerioElement } from './cheerio-element';
 import { findByTextInsensitive } from '../selector-utils';
+
+/**
+ * Shared HTTP agents for all Cheerio engines (non-proxy requests).
+ * keepAlive=false ensures sockets close after each request.
+ * maxSockets caps total concurrent connections to prevent socket exhaustion.
+ */
+const sharedHttpAgent = new HttpAgent({ keepAlive: false, maxSockets: 50 });
+const sharedHttpsAgent = new HttpsAgent({ keepAlive: false, maxSockets: 50 });
 
 /**
  * Logger interface for engine operations.
@@ -60,6 +70,7 @@ export class CheerioEngine implements IEngine {
   private userAgent: string;
   private headers: Record<string, string>;
   private proxyAgent: HttpsProxyAgent<string> | null = null;
+  private abortController: AbortController = new AbortController();
 
   constructor(
     private shop: ShopConfig,
@@ -97,11 +108,17 @@ export class CheerioEngine implements IEngine {
         timeout: 15000,
         maxRedirects: 5,
         responseType: 'text',
-        ...(this.proxyAgent && {
-          httpAgent: this.proxyAgent,
-          httpsAgent: this.proxyAgent,
-          proxy: false,
-        }),
+        signal: this.abortController.signal,
+        ...(this.proxyAgent
+          ? {
+              httpAgent: this.proxyAgent,
+              httpsAgent: this.proxyAgent,
+              proxy: false,
+            }
+          : {
+              httpAgent: sharedHttpAgent,
+              httpsAgent: sharedHttpsAgent,
+            }),
       });
     });
 
@@ -338,6 +355,10 @@ export class CheerioEngine implements IEngine {
   }
 
   async close(): Promise<void> {
+    this.abortController.abort();
+    if (this.proxyAgent) {
+      this.proxyAgent.destroy();
+    }
     this.$ = null;
     this.currentUrl = null;
   }

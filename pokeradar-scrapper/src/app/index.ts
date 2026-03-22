@@ -45,6 +45,15 @@ const shopRepository: IShopRepository = new FileShopRepository(getShopConfigDir(
 async function main() {
   const startTime = Date.now();
 
+  // Safety net: force exit if process hangs beyond this timeout (e.g. stuck HTTP request).
+  // Generous default (30 min) — should never fire under normal conditions.
+  const processTimeoutMs = Number(process.env.PROCESS_TIMEOUT_MS) || 30 * 60 * 1000;
+  const processTimer = setTimeout(() => {
+    console.error(`Process timeout reached (${processTimeoutMs}ms), forcing exit`);
+    process.exit(1);
+  }, processTimeoutMs);
+  processTimer.unref();
+
   // Validate environment variables
   const logLevel = (process.env.LOG_LEVEL as 'info' | 'debug') || 'info';
   const mongodbUri = process.env.MONGODB_URI;
@@ -122,6 +131,7 @@ async function main() {
     console.error('Scan failed:', formatError(error));
     process.exit(1);
   } finally {
+    clearTimeout(processTimer);
     await disconnectDB();
   }
 }

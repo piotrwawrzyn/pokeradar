@@ -16,6 +16,35 @@ import { ProductMatchingPipeline } from '../../matching';
 
 const CHEERIO_CONCURRENCY = 10;
 const PRODUCT_CONCURRENCY = 3;
+const TASK_TIMEOUT_MS = 120_000; // 2 minutes per product task
+const SEARCH_PHASE_TIMEOUT_MS = 180_000; // 3 minutes for Phase 1 (search all sets for one shop)
+
+/**
+ * Wraps a promise with a timeout. Rejects with a TaskTimeoutError if the
+ * promise doesn't settle within the given duration.
+ */
+export class TaskTimeoutError extends Error {
+  constructor(ms: number) {
+    super(`Task timed out after ${ms}ms`);
+    this.name = 'TaskTimeoutError';
+  }
+}
+
+export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new TaskTimeoutError(ms)), ms);
+    promise.then(
+      (val) => {
+        clearTimeout(timer);
+        resolve(val);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
 
 function countTotalProducts(
   setGroups: SetGroup[],
@@ -24,12 +53,16 @@ function countTotalProducts(
   return setGroups.reduce((sum, g) => sum + g.products.length, 0) + ungroupedProducts.length;
 }
 
-async function runWithConcurrency(tasks: (() => Promise<void>)[], limit: number): Promise<void> {
+async function runWithConcurrency(
+  tasks: (() => Promise<void>)[],
+  limit: number,
+  taskTimeoutMs: number = TASK_TIMEOUT_MS,
+): Promise<void> {
   const queue = [...tasks];
   const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
     while (queue.length > 0) {
       const task = queue.shift()!;
-      await task();
+      await withTimeout(task(), taskTimeoutMs);
     }
   });
   await Promise.allSettled(workers);
@@ -231,8 +264,27 @@ export class ScanCycleRunner {
     setGroups: SetGroup[],
     breaker: ShopCircuitBreaker,
   ): Promise<void> {
-    // Phase 1: Collect candidates across all set searches
-    const productTasks = await this.collectAndMatchCandidates(shop, setGroups, breaker);
+    // Phase 1: Collect candidates across all set searches (with timeout)
+    let productTasks: ProductTask[];
+    try {
+      productTasks = await withTimeout(
+        this.collectAndMatchCandidates(shop, setGroups, breaker),
+        SEARCH_PHASE_TIMEOUT_MS,
+      );
+    } catch (error) {
+      if (error instanceof TaskTimeoutError) {
+        this.config.logger.error('Search phase timed out, skipping shop', {
+          shop: shop.id,
+          timeoutMs: SEARCH_PHASE_TIMEOUT_MS,
+        });
+      } else {
+        this.config.logger.error('Search phase failed', {
+          shop: shop.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+      return;
+    }
 
     // If breaker tripped, skip Phase 2
     if (breaker.isTripped(shop.id)) {
@@ -269,11 +321,20 @@ export class ScanCycleRunner {
           }
         }
       } catch (error) {
-        this.config.logger.error('Error scanning product', {
-          product: task.product.id,
-          shop: shop.id,
-          error: error instanceof Error ? error.message : String(error),
-        });
+        if (error instanceof TaskTimeoutError) {
+          this.config.logger.error('Product task timed out', {
+            shop: shop.id,
+            product: task.product.id,
+            url: task.resolvedUrl,
+            timeoutMs: TASK_TIMEOUT_MS,
+          });
+        } else {
+          this.config.logger.error('Error scanning product', {
+            product: task.product.id,
+            shop: shop.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
       } finally {
         await scraper.close();
       }
