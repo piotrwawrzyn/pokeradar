@@ -122,11 +122,9 @@ export class SearchNavigator {
   ): Promise<{ price: number | null; isAvailable: boolean } | null> {
     const searchSelectors = this.config.selectors.searchPage;
 
-    // Must have at least one availability selector AND price selector
     const hasAvailabilitySelector = !!searchSelectors.available || !!searchSelectors.unavailable;
-    const hasPriceSelector = !!searchSelectors.price;
 
-    if (!hasAvailabilitySelector || !hasPriceSelector) {
+    if (!hasAvailabilitySelector) {
       return null;
     }
 
@@ -141,7 +139,7 @@ export class SearchNavigator {
         ? searchSelectors.unavailable
         : [searchSelectors.unavailable]
       : [];
-    const priceSelector = searchSelectors.price!;
+    const priceSelector = searchSelectors.price ?? null;
 
     // Run all find operations in parallel
     // Selectors with matchSelf=true check the article element itself; others search descendants
@@ -153,7 +151,7 @@ export class SearchNavigator {
     const [availElements, unavailElements, priceElement] = await Promise.all([
       Promise.all(availSelectors.map((selector) => findOrMatch(selector, article))),
       Promise.all(unavailSelectors.map((selector) => findOrMatch(selector, article))),
-      article.find(priceSelector),
+      priceSelector ? article.find(priceSelector) : Promise.resolve(null),
     ]);
 
     // Determine availability from results
@@ -180,7 +178,7 @@ export class SearchNavigator {
     // Extract price
     let price: number | null = null;
 
-    if (priceElement) {
+    if (priceElement && priceSelector) {
       let priceText: string | null = null;
       if (priceSelector.extract === 'ownText') {
         priceText = await priceElement.getOwnText();

@@ -135,7 +135,7 @@ export class AdminShopsService {
             $and: [
               { productUrl: { $ne: null } },
               { productUrl: { $ne: '' } },
-              { $or: [{ isAvailable: true }, { price: { $ne: null } }] },
+              { $or: [{ isAvailable: { $ne: null } }, { price: { $ne: null } }] },
             ],
           },
         },

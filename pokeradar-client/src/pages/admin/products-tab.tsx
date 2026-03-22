@@ -342,7 +342,8 @@ export const ProductsTab = forwardRef<ProductsTabHandle, object>(function Produc
                                     const recentFinds = product.shopFinds.filter((f) => {
                                       const isRecent = new Date(f.timestamp).getTime() >= hourAgo;
                                       const hasUrl = f.productUrl && f.productUrl !== '';
-                                      const hasValidData = f.isAvailable || f.price !== null;
+                                      const hasValidData =
+                                        f.isAvailable !== undefined || f.price !== null;
                                       return isRecent && hasUrl && hasValidData;
                                     });
 

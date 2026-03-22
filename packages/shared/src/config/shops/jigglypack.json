@@ -1,0 +1,48 @@
+{
+  "id": "jigglypack",
+  "name": "Jigglypack",
+  "baseUrl": "https://www.jigglypack.pl",
+  "searchUrl": "/?s={query}&ct_post_type=post%3Apage%3Aproduct",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article.type-product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h2.entry-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2.entry-title a"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "article.outofstock",
+        "matchSelf": true
+      },
+      "available": {
+        "type": "css",
+        "value": "article.instock",
+        "matchSelf": true
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": ".summary span.woocommerce-Price-amount bdi",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": ".summary p.stock.in-stock"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": ".summary p.stock.out-of-stock"
+      }
+    }
+  }
+}
