@@ -1,6 +1,9 @@
 {
   "id": "vanaheim",
   "name": "Vanaheim",
+  "antiBot": {
+    "useProxy": true
+  },
   "baseUrl": "https://vanaheim.pl",
   "searchUrl": "/pl/szukaj?controller=search&s={query}",
   "selectors": {
