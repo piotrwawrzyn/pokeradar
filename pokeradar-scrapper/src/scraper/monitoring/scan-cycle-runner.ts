@@ -62,7 +62,11 @@ async function runWithConcurrency(
   const workers = Array.from({ length: Math.min(limit, queue.length) }, async () => {
     while (queue.length > 0) {
       const task = queue.shift()!;
-      await withTimeout(task(), taskTimeoutMs);
+      if (taskTimeoutMs > 0) {
+        await withTimeout(task(), taskTimeoutMs);
+      } else {
+        await task();
+      }
     }
   });
   await Promise.allSettled(workers);
@@ -264,11 +268,15 @@ export class ScanCycleRunner {
     setGroups: SetGroup[],
     breaker: ShopCircuitBreaker,
   ): Promise<void> {
-    // Phase 1: Collect candidates across all set searches (with timeout)
+    // Phase 1: Collect candidates across all set searches (with timeout).
+    // The scraper is created here (not inside collectAndMatchCandidates) so we
+    // can force-close it if the timeout fires — aborting in-flight HTTP requests
+    // and preventing orphaned sockets from keeping the process alive.
+    const searchScraper = this.config.scraperFactory.create(shop, this.config.logger);
     let productTasks: ProductTask[];
     try {
       productTasks = await withTimeout(
-        this.collectAndMatchCandidates(shop, setGroups, breaker),
+        this.collectAndMatchCandidatesWithScraper(searchScraper, shop, setGroups, breaker),
         SEARCH_PHASE_TIMEOUT_MS,
       );
     } catch (error) {
@@ -284,6 +292,8 @@ export class ScanCycleRunner {
         });
       }
       return;
+    } finally {
+      await searchScraper.close();
     }
 
     // If breaker tripped, skip Phase 2
@@ -291,38 +301,13 @@ export class ScanCycleRunner {
       return;
     }
 
-    // Phase 2: Execute all product tasks concurrently
+    // Phase 2: Execute all product tasks concurrently.
+    // The scraper is created OUTSIDE the timed work so that if the timeout
+    // fires, we still close() the scraper (aborting in-flight HTTP requests).
     const tasks = productTasks.map((task) => async () => {
       const scraper = this.config.scraperFactory.create(shop, this.config.logger);
       try {
-        if (
-          task.searchPageData &&
-          (task.searchPageData.price !== null || !task.searchPageData.isAvailable)
-        ) {
-          // Use search page data directly - no HTTP request needed
-          const result = scraper.createResultFromSearchData(
-            task.product,
-            task.resolvedUrl,
-            task.searchPageData,
-            task.productTitle,
-          );
-          this.handleResult(task.product, result, shop);
-        } else {
-          // Visit the product page for full price/availability
-          this.config.logger.debug('No search page data, visiting product page', {
-            product: task.product.id,
-            shop: shop.id,
-            url: task.resolvedUrl,
-          });
-          const result = await scraper.scrapeProductWithUrl(
-            task.product,
-            task.resolvedUrl,
-            task.productTitle,
-          );
-          if (result) {
-            this.handleResult(task.product, result, shop);
-          }
-        }
+        await withTimeout(this.executeProductTask(scraper, task, shop), TASK_TIMEOUT_MS);
       } catch (error) {
         if (error instanceof TaskTimeoutError) {
           this.config.logger.error('Product task timed out', {
@@ -345,7 +330,8 @@ export class ScanCycleRunner {
 
     // Use per-shop concurrency if configured, otherwise use default
     const concurrency = shop.antiBot?.maxConcurrency ?? PRODUCT_CONCURRENCY;
-    await runWithConcurrency(tasks, concurrency);
+    // No additional timeout in runWithConcurrency — each task handles its own
+    await runWithConcurrency(tasks, concurrency, 0);
   }
 
   /**
@@ -376,27 +362,7 @@ export class ScanCycleRunner {
       // Execute tasks sequentially
       for (const task of productTasks) {
         try {
-          if (
-            task.searchPageData &&
-            (task.searchPageData.price !== null || !task.searchPageData.isAvailable)
-          ) {
-            const result = scraper.createResultFromSearchData(
-              task.product,
-              task.resolvedUrl,
-              task.searchPageData,
-              task.productTitle,
-            );
-            this.handleResult(task.product, result, shop);
-          } else {
-            const result = await scraper.scrapeProductWithUrl(
-              task.product,
-              task.resolvedUrl,
-              task.productTitle,
-            );
-            if (result) {
-              this.handleResult(task.product, result, shop);
-            }
-          }
+          await this.executeProductTask(scraper, task, shop);
         } catch (error) {
           this.config.logger.error('Error scanning product', {
             product: task.product.id,
@@ -411,24 +377,39 @@ export class ScanCycleRunner {
   }
 
   /**
-   * Phase 1 for Cheerio: creates a temporary scraper to accumulate all candidates,
-   * runs pipeline matching + watchlist lookup, returns product tasks.
+   * Executes a single product task: either uses search page data directly
+   * or visits the product page for full price/availability.
    */
-  private async collectAndMatchCandidates(
+  private async executeProductTask(
+    scraper: IScraper,
+    task: ProductTask,
     shop: ShopConfig,
-    setGroups: SetGroup[],
-    breaker: ShopCircuitBreaker,
-  ): Promise<ProductTask[]> {
-    const searchScraper = this.config.scraperFactory.create(shop, this.config.logger);
-    try {
-      return await this.collectAndMatchCandidatesWithScraper(
-        searchScraper,
-        shop,
-        setGroups,
-        breaker,
+  ): Promise<void> {
+    if (
+      task.searchPageData &&
+      (task.searchPageData.price !== null || !task.searchPageData.isAvailable)
+    ) {
+      const result = scraper.createResultFromSearchData(
+        task.product,
+        task.resolvedUrl,
+        task.searchPageData,
+        task.productTitle,
       );
-    } finally {
-      await searchScraper.close();
+      this.handleResult(task.product, result, shop);
+    } else {
+      this.config.logger.debug('No search page data, visiting product page', {
+        product: task.product.id,
+        shop: shop.id,
+        url: task.resolvedUrl,
+      });
+      const result = await scraper.scrapeProductWithUrl(
+        task.product,
+        task.resolvedUrl,
+        task.productTitle,
+      );
+      if (result) {
+        this.handleResult(task.product, result, shop);
+      }
     }
   }
 
