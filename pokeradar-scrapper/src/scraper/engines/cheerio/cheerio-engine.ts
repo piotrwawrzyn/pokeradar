@@ -127,6 +127,27 @@ export class CheerioEngine implements IEngine {
   }
 
   /**
+   * Delay that resolves after `ms` or rejects immediately if the abort signal fires.
+   */
+  private abortableDelay(ms: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const signal = this.abortController.signal;
+      if (signal.aborted) {
+        return reject(signal.reason ?? new Error('Aborted'));
+      }
+      const timer = setTimeout(() => {
+        signal.removeEventListener('abort', onAbort);
+        resolve();
+      }, ms);
+      function onAbort() {
+        clearTimeout(timer);
+        reject(signal.reason ?? new Error('Aborted'));
+      }
+      signal.addEventListener('abort', onAbort, { once: true });
+    });
+  }
+
+  /**
    * Apply jittered delay before request if configured.
    */
   private async applyJitteredDelay(): Promise<void> {
@@ -134,7 +155,7 @@ export class CheerioEngine implements IEngine {
     if (baseDelay > 0) {
       const jitter = baseDelay * 0.3; // ±30% jitter
       const delay = baseDelay + (Math.random() * 2 - 1) * jitter;
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await this.abortableDelay(delay);
     }
   }
 
@@ -174,7 +195,7 @@ export class CheerioEngine implements IEngine {
           error: error instanceof Error ? error.message : String(error),
         });
 
-        await new Promise((resolve) => setTimeout(resolve, waitMs));
+        await this.abortableDelay(waitMs);
       }
     }
 
