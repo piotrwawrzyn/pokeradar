@@ -1,0 +1,49 @@
+{
+  "id": "krajen",
+  "name": "Krajen",
+  "baseUrl": "https://krajen.pl",
+  "searchUrl": "/?s={query}s&post_type=product&type_aws=true",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "ul.products li.product"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a.ast-loop-product__link",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h2.woocommerce-loop-product__title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price bdi",
+        "format": ""
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "li.outofstock",
+        "matchSelf": true
+      },
+      "available": {
+        "type": "css",
+        "value": "li.instock",
+        "matchSelf": true
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "p.price bdi",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.single_add_to_cart_button:not([disabled])"
+      }
+    }
+  }
+}
