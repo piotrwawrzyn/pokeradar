@@ -1,0 +1,47 @@
+{
+  "id": "centrum-mtg",
+  "name": "Centrum MTG",
+  "baseUrl": "https://centrum-mtg.com.pl",
+  "searchUrl": "/szukaj?word=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.c-product-box"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "a.c-product-box__block-part",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3.c-product-box__title"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.c-product-box__price-value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "div.c-avaibility--avaible"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "div.c-avaibility--none"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.m-product-data-1__price-value",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button#product-card-add-to-card:not(.u-hide)"
+      }
+    }
+  }
+}
