@@ -398,6 +398,8 @@ export class ScanCycleRunner {
       this.handleResult(task.product, result, shop);
     } else {
       this.config.logger.debug('No search page data, visiting product page', {
+        available: task.searchPageData?.isAvailable,
+        price: task.searchPageData?.price,
         product: task.product.id,
         shop: shop.id,
         url: task.resolvedUrl,

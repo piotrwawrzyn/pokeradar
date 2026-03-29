@@ -1,0 +1,47 @@
+{
+  "id": "pokeelite",
+  "name": "PokeElite",
+  "baseUrl": "https://pokeelite.pl",
+  "searchUrl": "/szukaj.html/szukaj=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.Okno"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h3 a",
+        "extract": ""
+      },
+      "title": {
+        "type": "css",
+        "value": "h3"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.CenaAktualna",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "span.MagazynIlosc:not([style*=\"--ilosc: 0\"])"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "span.MagazynIlosc[style*=\"--ilosc: 0\"]"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "p.CenaGlownaProduktuBrutto strong span",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "#PrzyciskKupowania:not([style*=\"display:none\"])"
+      }
+    }
+  }
+}
