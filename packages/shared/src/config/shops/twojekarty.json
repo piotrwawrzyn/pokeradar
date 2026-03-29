@@ -1,0 +1,47 @@
+{
+  "id": "twojekarty",
+  "name": "Twoje Karty",
+  "baseUrl": "https://twojekarty.pl",
+  "searchUrl": "/szukaj.html/szukaj=",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "div.Okno"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "h3 a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h3"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.CenaAktualna",
+        "format": ""
+      },
+      "unavailable": {
+        "type": "text",
+        "value": "Zapytaj o produkt"
+      },
+      "available": {
+        "type": "css",
+        "value": "span.DoKoszyka"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "div#InformacjeProduktu strong span[itemprop='price']",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "p#InfoNiedostepny[style*='display:none']"
+      }
+    }
+  }
+}
