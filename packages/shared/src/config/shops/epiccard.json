@@ -35,12 +35,12 @@
     "productPage": {
       "price": {
         "type": "css",
-        "value": "span.price",
+        "value": "div.tv-product-page-content div.current-price span.price",
         "format": "european"
       },
       "available": {
         "type": "css",
-        "value": "button[data-button-action='add-to-cart']:not([disabled])"
+        "value": "div.product-information button[data-button-action='add-to-cart']:not([disabled])"
       }
     }
   }
