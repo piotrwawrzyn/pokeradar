@@ -1,0 +1,47 @@
+{
+  "id": "epiccard",
+  "name": "EpicCard",
+  "baseUrl": "https://epiccard.pl",
+  "searchUrl": "/szukaj?controller=search&s={query}&order=product.price.desc",
+  "selectors": {
+    "searchPage": {
+      "article": {
+        "type": "css",
+        "value": "article"
+      },
+      "productUrl": {
+        "type": "css",
+        "value": "div.product-title a",
+        "extract": "href"
+      },
+      "title": {
+        "type": "css",
+        "value": "h6[itemprop='name']"
+      },
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button.add-to-cart:not(.tvproduct-out-of-stock):not([disabled])"
+      },
+      "unavailable": {
+        "type": "css",
+        "value": "button.add-to-cart.tvproduct-out-of-stock[disabled]"
+      }
+    },
+    "productPage": {
+      "price": {
+        "type": "css",
+        "value": "span.price",
+        "format": "european"
+      },
+      "available": {
+        "type": "css",
+        "value": "button[data-button-action='add-to-cart']:not([disabled])"
+      }
+    }
+  }
+}
