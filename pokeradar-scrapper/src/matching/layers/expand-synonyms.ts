@@ -34,6 +34,9 @@ const PRODUCT_TYPE_SYNONYM_RULES: SynonymRule[] = [
   // "BB" → Booster Box
   { pattern: /\bbb\b/g, replacement: 'booster box' },
 
+  // "Boosterbox" → Booster Box (merged form)
+  { pattern: /\bboosterbox\b/g, replacement: 'booster box' },
+
   // "Booster Display" → Booster Box (same product, different regional naming)
   { pattern: /\bbooster\s+display\b/g, replacement: 'booster box' },
 
